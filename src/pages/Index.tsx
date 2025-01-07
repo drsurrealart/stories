@@ -3,6 +3,7 @@ import { StoryForm, type StoryPreferences } from "@/components/StoryForm";
 import { Story } from "@/components/Story";
 import { ReflectionQuestions } from "@/components/ReflectionQuestions";
 import { useToast } from "@/components/ui/use-toast";
+import { initializeSettings } from "@/utils/settings";
 
 type AppState = "form" | "story" | "reflection";
 
@@ -12,18 +13,12 @@ const Index = () => {
   const [story, setStory] = useState("");
   const { toast } = useToast();
 
-  const generateStory = async (preferences: StoryPreferences) => {
-    const apiKey = localStorage.getItem("OPENAI_API_KEY");
-    
-    if (!apiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please enter your OpenAI API key in the settings to generate stories.",
-        variant: "destructive",
-      });
-      return;
-    }
+  // Initialize settings when component mounts
+  useState(() => {
+    initializeSettings();
+  });
 
+  const generateStory = async (preferences: StoryPreferences) => {
     setIsLoading(true);
     try {
       const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. The story should be engaging and end with a clear moral lesson. Keep it concise but meaningful.`;
@@ -32,7 +27,7 @@ const Index = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${localStorage.getItem("OPENAI_API_KEY")}`,
         },
         body: JSON.stringify({
           model: "gpt-4",
@@ -68,12 +63,6 @@ const Index = () => {
       setIsLoading(false);
     }
   };
-
-  const reflectionQuestions = [
-    "What was the main lesson of this story?",
-    "How did the characters demonstrate the moral value?",
-    "How can you apply this lesson in your own life?",
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background p-6">
