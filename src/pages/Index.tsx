@@ -13,6 +13,17 @@ const Index = () => {
   const { toast } = useToast();
 
   const generateStory = async (preferences: StoryPreferences) => {
+    const apiKey = localStorage.getItem("OPENAI_API_KEY");
+    
+    if (!apiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please enter your OpenAI API key in the settings to generate stories.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. The story should be engaging and end with a clear moral lesson. Keep it concise but meaningful.`;
@@ -21,7 +32,7 @@ const Index = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("OPENAI_API_KEY")}`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           model: "gpt-4",
