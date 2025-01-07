@@ -64,6 +64,12 @@ const Index = () => {
     }
   };
 
+  const reflectionQuestions = [
+    "What was the main lesson of this story?",
+    "How did the characters demonstrate the moral value?",
+    "How can you apply this lesson in your own life?",
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background p-6">
       <div className="max-w-4xl mx-auto space-y-8">
