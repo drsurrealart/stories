@@ -1,0 +1,21 @@
+{
+  "name": "AI Story Time",
+  "short_name": "Story Time",
+  "description": "Create personalized stories with moral lessons",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F2FCE2",
+  "theme_color": "#9b87f5",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
