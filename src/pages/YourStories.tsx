@@ -35,6 +35,7 @@ const YourStories = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
       console.log("Fetched stories:", data); // Debug log
       setStories(data || []);
     } catch (error) {
@@ -86,13 +87,17 @@ const YourStories = () => {
   };
 
   const formatAgeGroup = (ageGroup: string) => {
+    console.log("Formatting age group:", ageGroup); // Debug log
     const age = ageGroups.find(a => a.value === ageGroup);
+    console.log("Found age group:", age); // Debug log
     return age ? age.label : ageGroup;
   };
 
   const formatGenre = (genre: string, ageGroup: string) => {
+    console.log("Formatting genre:", genre, "for age group:", ageGroup); // Debug log
     const genres = genresByAge[ageGroup as keyof typeof genresByAge] || [];
     const genreObj = genres.find(g => g.value === genre);
+    console.log("Found genre:", genreObj); // Debug log
     return genreObj ? genreObj.label : genre;
   };
 
