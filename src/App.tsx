@@ -1,59 +1,92 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { NavigationBar } from "./components/NavigationBar";
-import Landing from "./pages/Landing";
-import Auth from "./pages/Auth";
-import { Admin } from "./pages/Admin";
-import Dashboard from "./pages/Dashboard";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { supabase } from "./integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
-import { Toaster } from "./components/ui/toaster";
+import { supabase } from "@/integrations/supabase/client";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Landing from "./pages/Landing";
 import YourStories from "./pages/YourStories";
-import MySubscriptions from "./pages/MySubscriptions";
 import AccountSettings from "./pages/AccountSettings";
+import MySubscriptions from "./pages/MySubscriptions";
 
-function App() {
-  const [user, setUser] = useState<User | null>(null);
+const queryClient = new QueryClient();
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    checkUser();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    const checkAuth = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Auth check error:", error);
+      }
+      setIsAuthenticated(!!session);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed in ProtectedRoute:", event, session);
+      setIsAuthenticated(!!session);
     });
 
+    checkAuth();
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-  };
+  if (isAuthenticated === null) {
+    return <div>Loading...</div>;
+  }
 
-  const handleLogin = (user: User) => {
-    setUser(user);
-  };
+  return isAuthenticated ? <>{children}</> : <Navigate to="/auth" />;
+};
 
-  const handleLogout = () => {
-    setUser(null);
-  };
-
-  return (
-    <Router>
-      <div className="min-h-screen bg-background">
-        <NavigationBar onLogout={handleLogout} />
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/auth" element={<Auth onLogin={handleLogin} />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/your-stories" element={<YourStories />} />
-          <Route path="/my-subscriptions" element={<MySubscriptions />} />
-          <Route path="/account-settings" element={<AccountSettings />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/your-stories"
+            element={
+              <ProtectedRoute>
+                <YourStories />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account-settings"
+            element={
+              <ProtectedRoute>
+                <AccountSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-subscriptions"
+            element={
+              <ProtectedRoute>
+                <MySubscriptions />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
-        <Toaster />
-      </div>
-    </Router>
-  );
-}
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;

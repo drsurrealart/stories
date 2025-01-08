@@ -4,13 +4,8 @@ import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { User } from "@supabase/supabase-js";
 
-interface AuthProps {
-  onLogin: (user: User) => void;
-}
-
-const Auth = ({ onLogin }: AuthProps) => {
+const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,7 +16,6 @@ const Auth = ({ onLogin }: AuthProps) => {
         console.error("Session check error:", error);
       }
       if (session) {
-        onLogin(session.user);
         navigate("/dashboard");
       }
     };
@@ -31,13 +25,12 @@ const Auth = ({ onLogin }: AuthProps) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session);
       if (event === "SIGNED_IN" && session) {
-        onLogin(session.user);
         navigate("/dashboard");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, onLogin]);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background p-6">
