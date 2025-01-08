@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,10 +20,30 @@ interface NavigationBarProps {
 
 export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    checkAdminStatus();
+  }, []);
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase.rpc('is_admin', {
+          user_id: user.id
+        });
+        if (error) throw error;
+        setIsAdmin(data);
+      }
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -51,6 +71,7 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
     { title: "Your Stories", href: "/your-stories" },
     { title: "My Subscriptions", href: "/my-subscriptions" },
     { title: "Account Settings", href: "/account-settings" },
+    ...(isAdmin ? [{ title: "Admin Dashboard", href: "/admin" }] : []),
   ];
 
   const NavigationItems = () => (
