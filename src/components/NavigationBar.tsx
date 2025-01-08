@@ -10,7 +10,9 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface NavigationBarProps {
   onLogout: () => void;
@@ -20,11 +22,32 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      onLogout();
+      navigate('/');
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Error logging out",
+        description: "There was a problem logging out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const navigationItems = [
     { title: "Dashboard", href: "/dashboard" },
-    { title: "Stories", href: "/stories" },
-    { title: "About", href: "/about" },
   ];
 
   const NavigationItems = () => (
@@ -46,7 +69,7 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
       <NavigationMenuItem>
         <Button
           variant="ghost"
-          onClick={onLogout}
+          onClick={handleLogout}
           className="w-full md:w-auto justify-start md:justify-center"
         >
           Logout
