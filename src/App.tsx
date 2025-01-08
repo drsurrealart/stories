@@ -14,6 +14,7 @@ import AccountSettings from "./pages/AccountSettings";
 import MySubscriptions from "./pages/MySubscriptions";
 import AdminDashboard from "./pages/AdminDashboard";
 import Terms from "./pages/Terms";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +91,7 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/contact" element={<Contact />} />
             <Route
               path="/dashboard"
               element={
