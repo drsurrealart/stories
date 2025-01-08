@@ -68,7 +68,7 @@ serve(async (req) => {
     const data = await openAIResponse.json();
     console.log("OpenAI response received");
 
-    // Increment the story count for the current month
+    // Instead of using raw SQL, we'll use the Supabase client to handle the story count
     const currentMonth = new Date().toISOString().slice(0, 7);
     const { error: countError } = await supabase
       .from('user_story_counts')
@@ -77,11 +77,7 @@ serve(async (req) => {
         month_year: currentMonth,
         stories_generated: 1
       }, {
-        onConflict: 'user_id,month_year',
-        update: {
-          stories_generated: sql`user_story_counts.stories_generated + 1`,
-          updated_at: new Date().toISOString()
-        }
+        onConflict: 'user_id,month_year'
       });
 
     if (countError) {
