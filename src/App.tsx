@@ -1,16 +1,16 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { NavigationBar } from "./components/NavigationBar";
-import { Landing } from "./pages/Landing";
-import { Auth } from "./pages/Auth";
+import Landing from "./pages/Landing";
+import Auth from "./pages/Auth";
 import { Admin } from "./pages/Admin";
-import { Dashboard } from "./pages/Dashboard";
-import { YourStories } from "./pages/YourStories";
-import { MySubscriptions } from "./pages/MySubscriptions";
-import { AccountSettings } from "./pages/AccountSettings";
-import { Toaster } from "./components/ui/toaster";
+import Dashboard from "./pages/Dashboard";
 import { useEffect, useState } from "react";
 import { supabase } from "./integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { Toaster } from "./components/ui/toaster";
+import YourStories from "./pages/YourStories";
+import MySubscriptions from "./pages/MySubscriptions";
+import AccountSettings from "./pages/AccountSettings";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
