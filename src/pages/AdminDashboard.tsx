@@ -22,18 +22,86 @@ interface UserStatistics {
 }
 
 const AdminDashboard = () => {
-  const { data: stats, isLoading, error } = useQuery({
-    queryKey: ["admin-stats"],
+  // First check if user is admin
+  const { data: isAdmin, isLoading: isCheckingAdmin } = useQuery({
+    queryKey: ["is-admin"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_user_statistics');
+      const { data: isAdmin, error } = await supabase.rpc('is_admin', {
+        user_id: (await supabase.auth.getUser()).data.user?.id
+      });
       if (error) throw error;
-      return data as UserStatistics;
+      return isAdmin;
     },
   });
 
+  // Then fetch statistics if user is admin
+  const { data: stats, isLoading: isLoadingStats, error } = useQuery({
+    queryKey: ["admin-stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('profiles')
+        .select(`
+          subscription_level,
+          stories (
+            created_at
+          )
+        `);
+      if (error) throw error;
+
+      // Process the data to create statistics
+      const total_users = data.length;
+      const total_stories = data.reduce((acc, profile) => 
+        acc + (Array.isArray(profile.stories) ? profile.stories.length : 0), 0);
+      
+      const users_by_subscription = data.reduce((acc, profile) => {
+        const level = profile.subscription_level || 'free';
+        acc[level] = (acc[level] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const stories_last_30_days = data.reduce((acc, profile) => {
+        if (!Array.isArray(profile.stories)) return acc;
+        return acc + profile.stories.filter(story => 
+          new Date(story.created_at) >= thirtyDaysAgo
+        ).length;
+      }, 0);
+
+      return {
+        total_users,
+        total_stories,
+        users_by_subscription,
+        stories_last_30_days
+      } as UserStatistics;
+    },
+    enabled: !!isAdmin, // Only run this query if user is admin
+  });
+
+  if (isCheckingAdmin) {
+    return <div className="container mx-auto p-6">
+      <Skeleton className="h-8 w-48 mb-8" />
+      <div className="grid gap-4 md:grid-cols-3">
+        <Skeleton className="h-32" />
+        <Skeleton className="h-32" />
+        <Skeleton className="h-32" />
+      </div>
+    </div>;
+  }
+
+  if (!isAdmin) {
+    return (
+      <Alert variant="destructive" className="m-6">
+        <AlertDescription>
+          You do not have permission to access the admin dashboard.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   if (error) {
     return (
-      <Alert variant="destructive">
+      <Alert variant="destructive" className="m-6">
         <AlertDescription>
           Error loading dashboard statistics. Please try again later.
         </AlertDescription>
@@ -60,7 +128,7 @@ const AdminDashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {isLoadingStats ? (
               <Skeleton className="h-8 w-[100px]" />
             ) : (
               <div className="text-2xl font-bold">{stats?.total_users}</div>
@@ -75,7 +143,7 @@ const AdminDashboard = () => {
             <BookText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {isLoadingStats ? (
               <Skeleton className="h-8 w-[100px]" />
             ) : (
               <div className="text-2xl font-bold">{stats?.total_stories}</div>
@@ -90,7 +158,7 @@ const AdminDashboard = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {isLoading ? (
+            {isLoadingStats ? (
               <Skeleton className="h-8 w-[100px]" />
             ) : (
               <div className="text-2xl font-bold">{stats?.stories_last_30_days}</div>
@@ -105,7 +173,7 @@ const AdminDashboard = () => {
           <CardTitle>Users by Subscription Level</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px]">
-          {isLoading ? (
+          {isLoadingStats ? (
             <div className="w-full h-full flex items-center justify-center">
               <Skeleton className="h-full w-full" />
             </div>
