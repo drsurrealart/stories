@@ -13,6 +13,8 @@ import YourStories from "./pages/YourStories";
 import AccountSettings from "./pages/AccountSettings";
 import MySubscriptions from "./pages/MySubscriptions";
 import AdminDashboard from "./pages/AdminDashboard";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Terms from "./pages/Terms";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +90,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route
               path="/dashboard"
               element={
