@@ -62,8 +62,8 @@ export function Story({ content, onReflect }: StoryProps) {
           content: storyContent,
           moral,
           author_id: session.user.id,
-          age_group: "all", // Default value
-          genre: "general", // Default value
+          age_group: "preschool", // Using a valid age group value
+          genre: "fantasy", // Using a valid genre value
         });
 
       if (error) {
