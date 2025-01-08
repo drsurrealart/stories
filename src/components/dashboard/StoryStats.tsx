@@ -20,7 +20,8 @@ export const StoryStats = () => {
       
       return {
         totalStories: stories.length,
-        savedStories: stories.filter(story => story.content).length,
+        // Only count stories that have both title and content as saved
+        savedStories: stories.filter(story => story.title && story.content).length,
       };
     },
   });
