@@ -49,6 +49,7 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
   const navigationItems = [
     { title: "Dashboard", href: "/dashboard" },
     { title: "Your Stories", href: "/your-stories" },
+    { title: "Account Settings", href: "/account-settings" },
   ];
 
   const NavigationItems = () => (
