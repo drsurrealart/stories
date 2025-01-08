@@ -39,26 +39,47 @@ export function Story({ content, onReflect }: StoryProps) {
         return;
       }
 
-      const { error } = await supabase.from('stories').insert({
-        title,
-        content: storyContent,
-        moral,
-        author_id: session.user.id,
-        age_group: "all", // You might want to pass this as a prop from the parent
-        genre: "general", // You might want to pass this as a prop from the parent
-      });
+      // First, check if the story already exists to prevent duplicates
+      const { data: existingStories } = await supabase
+        .from('stories')
+        .select('id')
+        .eq('title', title)
+        .eq('author_id', session.user.id)
+        .single();
 
-      if (error) throw error;
+      if (existingStories) {
+        toast({
+          title: "Story already saved",
+          description: "This story is already in your collection",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('stories')
+        .insert({
+          title,
+          content: storyContent,
+          moral,
+          author_id: session.user.id,
+          age_group: "all", // Default value
+          genre: "general", // Default value
+        });
+
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
 
       toast({
         title: "Success",
         description: "Story saved successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving story:", error);
       toast({
         title: "Error",
-        description: "Failed to save the story. Please try again.",
+        description: error.message || "Failed to save the story. Please try again.",
         variant: "destructive",
       });
     } finally {
