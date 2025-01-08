@@ -1,35 +1,23 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+import { TierTableRow } from "./subscription/TierTableRow";
 
 export const SubscriptionTierManager = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<{
-    stories_per_month: number;
-    saved_stories_limit: number;
-    price: number;
-    yearly_price: number;
-  }>({
-    stories_per_month: 0,
-    saved_stories_limit: 0,
-    price: 0,
-    yearly_price: 0,
-  });
 
-  const { data: tiers, isLoading, refetch } = useQuery({
+  const { data: tiers, isLoading } = useQuery({
     queryKey: ['admin-subscription-tiers'],
     queryFn: async () => {
       console.log("Fetching subscription tiers...");
@@ -47,29 +35,26 @@ export const SubscriptionTierManager = () => {
     },
   });
 
-  const handleEdit = (tier: any) => {
-    console.log("Editing tier:", tier);
-    setEditingId(tier.id);
-    setEditForm({
-      stories_per_month: tier.stories_per_month,
-      saved_stories_limit: tier.saved_stories_limit,
-      price: tier.price,
-      yearly_price: tier.yearly_price,
-    });
-  };
-
-  const handleSave = async () => {
+  const handleSave = async (
+    tierId: string,
+    formData: {
+      stories_per_month: number;
+      saved_stories_limit: number;
+      price: number;
+      yearly_price: number;
+    }
+  ) => {
     try {
-      console.log("Saving tier:", editingId, editForm);
+      console.log("Saving tier:", tierId, formData);
       const { data, error } = await supabase
         .from('subscription_tiers')
         .update({
-          stories_per_month: editForm.stories_per_month,
-          saved_stories_limit: editForm.saved_stories_limit,
-          price: editForm.price,
-          yearly_price: editForm.yearly_price,
+          stories_per_month: formData.stories_per_month,
+          saved_stories_limit: formData.saved_stories_limit,
+          price: formData.price,
+          yearly_price: formData.yearly_price,
         })
-        .eq('id', editingId)
+        .eq('id', tierId)
         .select();
 
       if (error) {
@@ -79,13 +64,15 @@ export const SubscriptionTierManager = () => {
 
       console.log("Update response:", data);
 
+      // Invalidate and refetch
+      await queryClient.invalidateQueries({ queryKey: ['admin-subscription-tiers'] });
+
       toast({
         title: "Success",
         description: "Subscription tier updated successfully",
       });
 
       setEditingId(null);
-      refetch();
     } catch (error) {
       console.error("Error in handleSave:", error);
       toast({
@@ -112,106 +99,19 @@ export const SubscriptionTierManager = () => {
         <TableHeader>
           <TableRow>
             <TableHead>Level</TableHead>
-            <TableHead>Stories/Month</TableHead>
-            <TableHead>Saved Stories</TableHead>
-            <TableHead>Monthly Price</TableHead>
-            <TableHead>Yearly Price</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>Details</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {tiers?.map((tier) => (
-            <TableRow key={tier.id}>
-              <TableCell className="font-medium">{tier.name}</TableCell>
-              <TableCell>
-                {editingId === tier.id ? (
-                  <Input
-                    type="number"
-                    value={editForm.stories_per_month}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        stories_per_month: parseInt(e.target.value),
-                      })
-                    }
-                    className="w-24"
-                  />
-                ) : (
-                  tier.stories_per_month
-                )}
-              </TableCell>
-              <TableCell>
-                {editingId === tier.id ? (
-                  <Input
-                    type="number"
-                    value={editForm.saved_stories_limit}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        saved_stories_limit: parseInt(e.target.value),
-                      })
-                    }
-                    className="w-24"
-                  />
-                ) : (
-                  tier.saved_stories_limit
-                )}
-              </TableCell>
-              <TableCell>
-                {editingId === tier.id ? (
-                  <Input
-                    type="number"
-                    value={editForm.price}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        price: parseFloat(e.target.value),
-                      })
-                    }
-                    className="w-24"
-                  />
-                ) : (
-                  `$${tier.price}`
-                )}
-              </TableCell>
-              <TableCell>
-                {editingId === tier.id ? (
-                  <Input
-                    type="number"
-                    value={editForm.yearly_price}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        yearly_price: parseFloat(e.target.value),
-                      })
-                    }
-                    className="w-24"
-                  />
-                ) : (
-                  `$${tier.yearly_price}`
-                )}
-              </TableCell>
-              <TableCell>
-                {editingId === tier.id ? (
-                  <div className="space-x-2">
-                    <Button onClick={handleSave} size="sm">
-                      Save
-                    </Button>
-                    <Button
-                      onClick={() => setEditingId(null)}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                ) : (
-                  <Button onClick={() => handleEdit(tier)} size="sm">
-                    Edit
-                  </Button>
-                )}
-              </TableCell>
-            </TableRow>
+            <TierTableRow
+              key={tier.id}
+              tier={tier}
+              isEditing={editingId === tier.id}
+              onEdit={() => setEditingId(tier.id)}
+              onSave={(formData) => handleSave(tier.id, formData)}
+              onCancel={() => setEditingId(null)}
+            />
           ))}
         </TableBody>
       </Table>
