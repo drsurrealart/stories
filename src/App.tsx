@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Landing from "./pages/Landing";
 import YourStories from "./pages/YourStories";
 import AccountSettings from "./pages/AccountSettings";
+import MySubscriptions from "./pages/MySubscriptions";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <AccountSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-subscriptions"
+            element={
+              <ProtectedRoute>
+                <MySubscriptions />
               </ProtectedRoute>
             }
           />

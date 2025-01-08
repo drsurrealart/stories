@@ -17,6 +17,9 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          subscription_level:
+            | Database["public"]["Enums"]["subscription_level"]
+            | null
           updated_at: string
         }
         Insert: {
@@ -26,6 +29,9 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          subscription_level?:
+            | Database["public"]["Enums"]["subscription_level"]
+            | null
           updated_at?: string
         }
         Update: {
@@ -35,6 +41,9 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          subscription_level?:
+            | Database["public"]["Enums"]["subscription_level"]
+            | null
           updated_at?: string
         }
         Relationships: []
@@ -75,6 +84,48 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_tiers: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: Json
+          id: string
+          level: Database["public"]["Enums"]["subscription_level"]
+          name: string
+          price: number
+          saved_stories_limit: number
+          stories_per_month: number
+          stripe_price_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          level: Database["public"]["Enums"]["subscription_level"]
+          name: string
+          price: number
+          saved_stories_limit: number
+          stories_per_month: number
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          level?: Database["public"]["Enums"]["subscription_level"]
+          name?: string
+          price?: number
+          saved_stories_limit?: number
+          stories_per_month?: number
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -83,7 +134,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      subscription_level: "free" | "basic" | "premium" | "enterprise"
     }
     CompositeTypes: {
       [_ in never]: never
