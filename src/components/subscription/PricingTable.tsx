@@ -11,6 +11,8 @@ import { Check } from "lucide-react";
 import { Json } from "@/integrations/supabase/types";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface PricingTier {
   id: string;
@@ -27,18 +29,65 @@ interface PricingTier {
 
 interface PricingTableProps {
   tiers: PricingTier[];
+  currentTier?: string;
 }
 
-export const PricingTable = ({ tiers }: PricingTableProps) => {
+export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
   const [isYearly, setIsYearly] = useState(false);
+  const { toast } = useToast();
   
   const handleSubscribe = async (tier: PricingTier) => {
-    console.log("Subscribe to:", tier.name, isYearly ? "yearly" : "monthly");
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to subscribe",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          priceId: isYearly ? tier.stripe_price_id + '_yearly' : tier.stripe_price_id,
+          isYearly,
+        }),
+      });
+
+      const { url, error } = await response.json();
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      window.location.href = url;
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start checkout process",
+        variant: "destructive",
+      });
+    }
   };
 
   const calculatePrice = (tier: PricingTier) => {
     if (isYearly) {
-      return Math.round(tier.yearly_price / 12); // Show monthly equivalent
+      return Math.round(tier.yearly_price / 12);
     }
     return tier.price;
   };
@@ -115,23 +164,22 @@ export const PricingTable = ({ tiers }: PricingTableProps) => {
                   <Check className="h-4 w-4 text-primary" />
                   <span>Save up to {tier.saved_stories_limit} stories</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
-                  <span>All Story Genres</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
-                  <span>All Moral Lessons</span>
-                </li>
+                {tier.features && Array.isArray(tier.features) && tier.features.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
               </ul>
             </CardContent>
             <CardFooter>
               <Button 
                 className="w-full" 
-                variant={tier.level === 'free' ? 'outline' : 'default'}
+                variant={currentTier === tier.level ? 'outline' : 'default'}
                 onClick={() => handleSubscribe(tier)}
+                disabled={currentTier === tier.level}
               >
-                {tier.level === 'free' ? 'Current Plan' : 'Upgrade Now'}
+                {currentTier === tier.level ? 'Current Plan' : 'Upgrade Now'}
               </Button>
             </CardFooter>
           </Card>

@@ -2,10 +2,28 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { NavigationBar } from "@/components/NavigationBar";
 import { PricingTable } from "@/components/subscription/PricingTable";
+import { SubscriptionDetails } from "@/components/subscription/SubscriptionDetails";
 import { useToast } from "@/hooks/use-toast";
 
 const MySubscriptions = () => {
   const { toast } = useToast();
+
+  const { data: profile } = useQuery({
+    queryKey: ['user-profile'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: subscriptionTiers, isLoading } = useQuery({
     queryKey: ['subscriptionTiers'],
@@ -40,11 +58,19 @@ const MySubscriptions = () => {
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       <NavigationBar onLogout={handleLogout} />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-8">Choose Your Plan</h1>
+        <div className="mb-12">
+          <SubscriptionDetails />
+        </div>
+        <h1 className="text-4xl font-bold text-center mb-8">Available Plans</h1>
         <p className="text-center text-muted-foreground mb-12">
           Unlock more stories and features with our premium plans
         </p>
-        {subscriptionTiers && <PricingTable tiers={subscriptionTiers} />}
+        {subscriptionTiers && (
+          <PricingTable 
+            tiers={subscriptionTiers} 
+            currentTier={profile?.subscription_level} 
+          />
+        )}
       </div>
     </div>
   );
