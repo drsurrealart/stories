@@ -45,7 +45,7 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
 
       // Get the appropriate price ID based on billing interval
       const priceId = isYearly ? tier.stripe_yearly_price_id : tier.stripe_price_id;
-      console.log('Using price ID:', priceId); // Debug log
+      console.log('Using price ID:', priceId);
 
       if (!priceId) {
         toast({
@@ -56,13 +56,13 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
         return;
       }
 
-      console.log('Calling create-checkout-session with:', { priceId, isYearly }); // Debug log
+      console.log('Calling create-checkout-session with:', { priceId, isYearly });
 
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { priceId, isYearly },
       });
 
-      console.log('Response from create-checkout-session:', { data, error }); // Debug log
+      console.log('Response from create-checkout-session:', { data, error });
 
       if (error) {
         console.error('Supabase function error:', error);
