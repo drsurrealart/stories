@@ -11,11 +11,12 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 
 export const SubscriptionDetails = () => {
   const { toast } = useToast();
 
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['user-profile'],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -32,6 +33,28 @@ export const SubscriptionDetails = () => {
     },
   });
 
+  const { data: stripeData, isLoading: stripeLoading } = useQuery({
+    queryKey: ['stripe-subscription'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+
+      const response = await fetch('/api/stripe/subscription-details', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch subscription details');
+      }
+
+      return response.json();
+    },
+    enabled: !!profile && profile.subscription_level !== 'free',
+  });
+
   const handleManageSubscription = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -44,11 +67,19 @@ export const SubscriptionDetails = () => {
         return;
       }
 
-      // Add portal session creation logic here
-      toast({
-        title: "Coming soon",
-        description: "Subscription management will be available soon",
+      const response = await fetch('/api/stripe/create-portal-session', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to create portal session');
+      }
+
+      const { url } = await response.json();
+      window.location.href = url;
     } catch (error) {
       console.error('Error:', error);
       toast({
@@ -59,6 +90,8 @@ export const SubscriptionDetails = () => {
     }
   };
 
+  const isLoading = profileLoading || (profile?.subscription_level !== 'free' && stripeLoading);
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -68,6 +101,10 @@ export const SubscriptionDetails = () => {
     );
   }
 
+  const formatDate = (date: string) => {
+    return format(new Date(date), 'MMMM d, yyyy');
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -75,20 +112,40 @@ export const SubscriptionDetails = () => {
         <CardDescription>Manage your subscription and billing</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
             <h3 className="font-medium">Current Plan</h3>
             <p className="text-2xl font-bold capitalize">{profile?.subscription_level || 'Free'}</p>
           </div>
-          <div>
-            <h3 className="font-medium">Status</h3>
-            <p className="text-muted-foreground">Active</p>
-          </div>
+
+          {stripeData && (
+            <>
+              <div>
+                <h3 className="font-medium">Status</h3>
+                <p className="text-muted-foreground capitalize">{stripeData.status}</p>
+              </div>
+
+              <div>
+                <h3 className="font-medium">Billing Period</h3>
+                <p className="text-muted-foreground">
+                  {formatDate(stripeData.current_period_start)} - {formatDate(stripeData.current_period_end)}
+                </p>
+              </div>
+
+              {stripeData.cancel_at_period_end && (
+                <div className="rounded-md bg-destructive/10 p-4">
+                  <p className="text-sm text-destructive">
+                    Your subscription will end on {formatDate(stripeData.current_period_end)}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </CardContent>
       <CardFooter>
         <Button onClick={handleManageSubscription}>
-          Manage Subscription
+          {profile?.subscription_level === 'free' ? 'Upgrade Plan' : 'Manage Subscription'}
         </Button>
       </CardFooter>
     </Card>
