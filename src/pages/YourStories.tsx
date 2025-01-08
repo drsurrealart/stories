@@ -6,6 +6,7 @@ import { NavigationBar } from "@/components/NavigationBar";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ageGroups, genresByAge } from "@/data/storyOptions";
 
 interface SavedStory {
   id: string;
@@ -85,18 +86,14 @@ const YourStories = () => {
   };
 
   const formatAgeGroup = (ageGroup: string) => {
-    const ageGroups: Record<string, string> = {
-      preschool: "Preschool (3-5)",
-      elementary: "Elementary (6-8)",
-      tween: "Tween (9-12)",
-      teen: "Teen (13-17)",
-      adult: "Adult (18+)"
-    };
-    return ageGroups[ageGroup] || ageGroup;
+    const age = ageGroups.find(a => a.value === ageGroup);
+    return age ? age.label : ageGroup;
   };
 
-  const formatGenre = (genre: string) => {
-    return genre.charAt(0).toUpperCase() + genre.slice(1).replace(/-/g, ' ');
+  const formatGenre = (genre: string, ageGroup: string) => {
+    const genres = genresByAge[ageGroup as keyof typeof genresByAge] || [];
+    const genreObj = genres.find(g => g.value === genre);
+    return genreObj ? genreObj.label : genre;
   };
 
   return (
@@ -127,7 +124,7 @@ const YourStories = () => {
                           {formatAgeGroup(story.age_group)}
                         </Badge>
                         <Badge variant="outline">
-                          {formatGenre(story.genre)}
+                          {formatGenre(story.genre, story.age_group)}
                         </Badge>
                       </div>
                     </div>
