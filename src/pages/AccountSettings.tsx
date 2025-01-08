@@ -22,6 +22,9 @@ const AccountSettings = () => {
     bio: "",
     avatar_url: "",
   });
+  const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -34,6 +37,8 @@ const AccountSettings = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
+
+      setEmail(user.email || "");
 
       const { data, error } = await supabase
         .from("profiles")
@@ -71,7 +76,8 @@ const AccountSettings = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No user found");
 
-      const { error } = await supabase
+      // Update profile data
+      const { error: profileError } = await supabase
         .from("profiles")
         .update({
           first_name: profile.first_name,
@@ -81,17 +87,40 @@ const AccountSettings = () => {
         })
         .eq("id", user.id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Update email if changed
+      if (email !== user.email) {
+        const { error: emailError } = await supabase.auth.updateUser({
+          email: email,
+        });
+        if (emailError) throw emailError;
+      }
+
+      // Update password if provided
+      if (newPassword) {
+        if (newPassword !== confirmPassword) {
+          throw new Error("Passwords do not match");
+        }
+        const { error: passwordError } = await supabase.auth.updateUser({
+          password: newPassword,
+        });
+        if (passwordError) throw passwordError;
+      }
 
       toast({
         title: "Success",
         description: "Profile updated successfully",
       });
-    } catch (error) {
+
+      // Clear password fields after successful update
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
       console.error("Error updating profile:", error);
       toast({
         title: "Error",
-        description: "Failed to update profile",
+        description: error.message || "Failed to update profile",
         variant: "destructive",
       });
     } finally {
@@ -100,10 +129,13 @@ const AccountSettings = () => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setProfile(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    const { name, value } = e.target;
+    if (name in profile) {
+      setProfile(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   if (loading) {
@@ -117,6 +149,18 @@ const AccountSettings = () => {
         <h1 className="text-2xl font-bold mb-6">Account Settings</h1>
         
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+            />
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="first_name">First Name</Label>
             <Input
@@ -159,6 +203,30 @@ const AccountSettings = () => {
               value={profile.avatar_url || ""}
               onChange={handleChange}
               placeholder="Enter avatar URL"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="new_password">New Password</Label>
+            <Input
+              id="new_password"
+              name="new_password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter new password"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirm_password">Confirm Password</Label>
+            <Input
+              id="confirm_password"
+              name="confirm_password"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm new password"
             />
           </div>
 
