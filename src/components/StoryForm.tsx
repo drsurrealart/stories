@@ -1,16 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookOpen, Wand2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-
-const genres = [
-  { value: "fantasy", label: "Fantasy" },
-  { value: "scifi", label: "Science Fiction" },
-  { value: "adventure", label: "Adventure" },
-  { value: "mystery", label: "Mystery" },
-];
 
 const ageGroups = [
   { value: "preschool", label: "Preschool (3-5)" },
@@ -19,13 +12,55 @@ const ageGroups = [
   { value: "teen", label: "Teen (13-17)" },
 ];
 
-const morals = [
-  { value: "kindness", label: "Kindness" },
-  { value: "honesty", label: "Honesty" },
-  { value: "courage", label: "Courage" },
-  { value: "responsibility", label: "Responsibility" },
-  { value: "friendship", label: "Friendship" },
-];
+const genresByAge = {
+  preschool: [
+    { value: "fantasy", label: "Fantasy" },
+    { value: "adventure", label: "Adventure" },
+  ],
+  elementary: [
+    { value: "fantasy", label: "Fantasy" },
+    { value: "adventure", label: "Adventure" },
+    { value: "mystery", label: "Mystery" },
+  ],
+  tween: [
+    { value: "fantasy", label: "Fantasy" },
+    { value: "scifi", label: "Science Fiction" },
+    { value: "adventure", label: "Adventure" },
+    { value: "mystery", label: "Mystery" },
+  ],
+  teen: [
+    { value: "fantasy", label: "Fantasy" },
+    { value: "scifi", label: "Science Fiction" },
+    { value: "adventure", label: "Adventure" },
+    { value: "mystery", label: "Mystery" },
+  ],
+};
+
+const moralsByAge = {
+  preschool: [
+    { value: "kindness", label: "Kindness" },
+    { value: "sharing", label: "Sharing" },
+    { value: "friendship", label: "Friendship" },
+  ],
+  elementary: [
+    { value: "kindness", label: "Kindness" },
+    { value: "honesty", label: "Honesty" },
+    { value: "friendship", label: "Friendship" },
+    { value: "responsibility", label: "Responsibility" },
+  ],
+  tween: [
+    { value: "honesty", label: "Honesty" },
+    { value: "courage", label: "Courage" },
+    { value: "responsibility", label: "Responsibility" },
+    { value: "perseverance", label: "Perseverance" },
+  ],
+  teen: [
+    { value: "courage", label: "Courage" },
+    { value: "responsibility", label: "Responsibility" },
+    { value: "integrity", label: "Integrity" },
+    { value: "empathy", label: "Empathy" },
+  ],
+};
 
 export interface StoryPreferences {
   genre: string;
@@ -45,6 +80,22 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     moral: "",
   });
   const { toast } = useToast();
+
+  const availableGenres = useMemo(() => {
+    return preferences.ageGroup ? genresByAge[preferences.ageGroup as keyof typeof genresByAge] : [];
+  }, [preferences.ageGroup]);
+
+  const availableMorals = useMemo(() => {
+    return preferences.ageGroup ? moralsByAge[preferences.ageGroup as keyof typeof moralsByAge] : [];
+  }, [preferences.ageGroup]);
+
+  const handleAgeGroupChange = (value: string) => {
+    setPreferences({
+      ageGroup: value,
+      genre: "",
+      moral: "",
+    });
+  };
 
   const handleSubmit = () => {
     if (!preferences.genre || !preferences.ageGroup || !preferences.moral) {
@@ -67,29 +118,10 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Choose your genre</label>
-          <Select
-            value={preferences.genre}
-            onValueChange={(value) => setPreferences({ ...preferences, genre: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a genre" />
-            </SelectTrigger>
-            <SelectContent>
-              {genres.map((genre) => (
-                <SelectItem key={genre.value} value={genre.value}>
-                  {genre.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
           <label className="text-sm font-medium">Age group</label>
           <Select
             value={preferences.ageGroup}
-            onValueChange={(value) => setPreferences({ ...preferences, ageGroup: value })}
+            onValueChange={handleAgeGroupChange}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select age group" />
@@ -104,24 +136,47 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Choose a moral lesson</label>
-          <Select
-            value={preferences.moral}
-            onValueChange={(value) => setPreferences({ ...preferences, moral: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a moral" />
-            </SelectTrigger>
-            <SelectContent>
-              {morals.map((moral) => (
-                <SelectItem key={moral.value} value={moral.value}>
-                  {moral.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {preferences.ageGroup && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Choose your genre</label>
+            <Select
+              value={preferences.genre}
+              onValueChange={(value) => setPreferences({ ...preferences, genre: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a genre" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableGenres.map((genre) => (
+                  <SelectItem key={genre.value} value={genre.value}>
+                    {genre.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {preferences.ageGroup && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Choose a moral lesson</label>
+            <Select
+              value={preferences.moral}
+              onValueChange={(value) => setPreferences({ ...preferences, moral: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a moral" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableMorals.map((moral) => (
+                  <SelectItem key={moral.value} value={moral.value}>
+                    {moral.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       <Button
