@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Github, Mail, Twitter } from "lucide-react";
+import { Mail, Twitter } from "lucide-react";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -44,11 +44,6 @@ export const Footer = () => {
                   Privacy Policy & Terms
                 </Link>
               </li>
-              <li>
-                <Link to="/terms" className="text-sm text-gray-600 hover:text-primary">
-                  Terms of Service
-                </Link>
-              </li>
             </ul>
           </div>
           
@@ -64,19 +59,16 @@ export const Footer = () => {
                 <Twitter className="h-5 w-5" />
               </a>
               <a
-                href="https://github.com/learnmorals"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-600 hover:text-primary"
-              >
-                <Github className="h-5 w-5" />
-              </a>
-              <a
                 href="mailto:support@learnmorals.com"
                 className="text-gray-600 hover:text-primary"
               >
                 <Mail className="h-5 w-5" />
               </a>
+            </div>
+            <div className="mt-2">
+              <Link to="/contact" className="text-sm text-gray-600 hover:text-primary">
+                Contact Us
+              </Link>
             </div>
           </div>
         </div>
