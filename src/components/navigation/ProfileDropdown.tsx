@@ -6,14 +6,35 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserCircle, Settings, CreditCard, LogOut } from "lucide-react";
+import { UserCircle, Settings, CreditCard, LogOut, LayoutDashboard } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProfileDropdownProps {
   onLogout: () => void;
 }
 
 export const ProfileDropdown = ({ onLogout }: ProfileDropdownProps) => {
+  const { data: isAdmin } = useQuery({
+    queryKey: ['isAdmin'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return false;
+      
+      const { data, error } = await supabase.rpc('is_admin', {
+        user_id: session.user.id
+      });
+      
+      if (error) {
+        console.error("Admin check error:", error);
+        return false;
+      }
+      
+      return data;
+    },
+  });
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -22,6 +43,17 @@ export const ProfileDropdown = ({ onLogout }: ProfileDropdownProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 bg-gray-800 text-gray-300 border-gray-700">
+        {isAdmin && (
+          <>
+            <DropdownMenuItem asChild>
+              <Link to="/admin" className="flex items-center cursor-pointer">
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                <span>Admin Dashboard</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-gray-700" />
+          </>
+        )}
         <DropdownMenuItem asChild>
           <Link to="/account-settings" className="flex items-center cursor-pointer">
             <Settings className="mr-2 h-4 w-4" />
