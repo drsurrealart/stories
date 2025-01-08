@@ -6,6 +6,7 @@ import { NavigationBar } from "@/components/NavigationBar";
 import { StatsCards } from "@/components/admin/StatsCards";
 import { SubscriptionChart } from "@/components/admin/SubscriptionChart";
 import { SubscriptionTierManager } from "@/components/admin/SubscriptionTierManager";
+import { APIConfigManager } from "@/components/admin/APIConfigManager";
 
 interface UserStatistics {
   total_users: number;
@@ -150,6 +151,10 @@ const AdminDashboard = () => {
 
         <div className="mt-8">
           <SubscriptionTierManager />
+        </div>
+
+        <div className="mt-8">
+          <APIConfigManager />
         </div>
       </div>
     </>
