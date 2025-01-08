@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, BookOpen, History, Plus, Settings } from "lucide-react";
+import { StoryStats } from "@/components/dashboard/StoryStats";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -61,6 +62,9 @@ const Index = () => {
       <NavigationBar onLogout={handleLogout} />
       
       <div className="max-w-6xl mx-auto p-6 space-y-8">
+        {/* Story Stats */}
+        <StoryStats />
+        
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Quick Actions */}
           <Card className="p-6 space-y-4">
