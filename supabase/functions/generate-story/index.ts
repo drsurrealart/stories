@@ -30,14 +30,16 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a skilled storyteller who creates engaging, age-appropriate stories with clear moral lessons. Format the output with a Title at the start and a Moral at the end, without using any asterisks or decorative characters.',
+            content: 'You are a skilled storyteller who creates engaging, age-appropriate stories with clear moral lessons. Each story must be completely unique - never reuse character names, plot elements, or titles from previous stories. Create fresh, original content every time. Format the output with a Title at the start and a Moral at the end, without using any asterisks or decorative characters.',
           },
           {
             role: 'user',
             content: prompt,
           },
         ],
-        temperature: 0.7,
+        temperature: 1.2, // Increased for more randomness
+        presence_penalty: 1.0, // Penalize topic repetition
+        frequency_penalty: 1.0, // Penalize phrase repetition
       }),
     });
 
