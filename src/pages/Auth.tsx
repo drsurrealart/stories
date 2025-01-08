@@ -9,9 +9,23 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check current session on mount
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Session check error:", error);
+      }
+      if (session) {
+        navigate("/dashboard");
+      }
+    };
+    checkSession();
+
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session);
       if (event === "SIGNED_IN" && session) {
-        navigate("/");
+        navigate("/dashboard");
       }
     });
 
