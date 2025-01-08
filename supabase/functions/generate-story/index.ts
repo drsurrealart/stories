@@ -13,7 +13,11 @@ serve(async (req) => {
 
   try {
     const { preferences } = await req.json();
+    console.log("Received preferences:", preferences);
+
     const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. The story should be engaging and end with a clear moral lesson. Keep it concise but meaningful.`;
+
+    console.log("Sending prompt to OpenAI:", prompt);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -37,14 +41,21 @@ serve(async (req) => {
       }),
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("OpenAI API error:", errorText);
+      throw new Error(`OpenAI API error: ${errorText}`);
+    }
+
     const data = await response.json();
+    console.log("OpenAI response received");
 
     return new Response(
       JSON.stringify({ story: data.choices[0].message.content }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in generate-story function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

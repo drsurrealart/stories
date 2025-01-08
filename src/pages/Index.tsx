@@ -28,32 +28,22 @@ const Index = () => {
     try {
       console.log("Generating story with preferences:", preferences);
       
-      const response = await fetch(
-        "https://uhxpzeyklqbkeibvreqv.supabase.co/functions/v1/generate-story",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({ preferences }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error("Story generation error:", errorData);
-        throw new Error(`Failed to generate story: ${errorData}`);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error("No authentication token found");
       }
 
-      const data = await response.json();
-      console.log("Received story:", data);
-      
-      if (data.error) {
-        throw new Error(data.error);
+      const response = await supabase.functions.invoke('generate-story', {
+        body: { preferences }
+      });
+
+      if (response.error) {
+        console.error("Story generation error:", response.error);
+        throw new Error(response.error.message || "Failed to generate story");
       }
 
-      setStory(data.story);
+      console.log("Received story:", response.data);
+      setStory(response.data.story);
       setAppState("story");
     } catch (error) {
       console.error("Error generating story:", error);
