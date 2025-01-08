@@ -11,8 +11,43 @@ import Landing from "./pages/Landing";
 import YourStories from "./pages/YourStories";
 import AccountSettings from "./pages/AccountSettings";
 import MySubscriptions from "./pages/MySubscriptions";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
+
+const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setIsAdmin(false);
+        return;
+      }
+      
+      const { data, error } = await supabase.rpc('is_admin', {
+        user_id: session.user.id
+      });
+      
+      if (error) {
+        console.error("Admin check error:", error);
+        setIsAdmin(false);
+        return;
+      }
+      
+      setIsAdmin(data);
+    };
+
+    checkAdmin();
+  }, []);
+
+  if (isAdmin === null) {
+    return <div>Loading...</div>;
+  }
+
+  return isAdmin ? <>{children}</> : <Navigate to="/dashboard" />;
+};
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -81,6 +116,14 @@ const App = () => (
               <ProtectedRoute>
                 <MySubscriptions />
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedAdminRoute>
+                <AdminDashboard />
+              </ProtectedAdminRoute>
             }
           />
         </Routes>
