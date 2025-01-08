@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Link, useLocation } from "react-router-dom";
 
 interface NavigationBarProps {
   onLogout: () => void;
@@ -18,9 +19,10 @@ interface NavigationBarProps {
 export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isMobile = useIsMobile();
+  const location = useLocation();
 
   const navigationItems = [
-    { title: "Home", href: "/" },
+    { title: "Dashboard", href: "/dashboard" },
     { title: "Stories", href: "/stories" },
     { title: "About", href: "/about" },
   ];
@@ -29,15 +31,16 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
     <NavigationMenuList className="flex-col md:flex-row space-y-2 md:space-y-0">
       {navigationItems.map((item) => (
         <NavigationMenuItem key={item.title}>
-          <NavigationMenuLink
-            href={item.href}
-            className={cn(
-              navigationMenuTriggerStyle(),
-              "w-full md:w-auto justify-start"
-            )}
-          >
-            {item.title}
-          </NavigationMenuLink>
+          <Link to={item.href}>
+            <NavigationMenuLink
+              className={cn(
+                navigationMenuTriggerStyle(),
+                "w-full md:w-auto justify-start"
+              )}
+            >
+              {item.title}
+            </NavigationMenuLink>
+          </Link>
         </NavigationMenuItem>
       ))}
       <NavigationMenuItem>
@@ -56,7 +59,9 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <div className="flex w-full justify-between items-center">
-          <div className="font-bold text-xl">AI Story Time</div>
+          <Link to="/" className="font-bold text-xl">
+            AI Story Time
+          </Link>
           
           {isMobile ? (
             <>
