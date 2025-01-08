@@ -25,17 +25,28 @@ export function StoryDirectory() {
     queryKey: ["stories"],
     queryFn: async () => {
       console.log("Fetching stories...");
-      const { data, error } = await supabase
-        .from("stories")
-        .select("*")
-        .order("created_at", { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from("stories")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching stories:", error);
-        throw error;
+        if (error) {
+          console.error("Supabase error:", error);
+          throw error;
+        }
+
+        if (!data) {
+          console.log("No stories found");
+          return [];
+        }
+
+        console.log("Successfully fetched stories:", data);
+        return data as Story[];
+      } catch (err) {
+        console.error("Error in query function:", err);
+        throw err;
       }
-      console.log("Fetched stories:", data);
-      return data as Story[];
     },
   });
 
@@ -56,7 +67,25 @@ export function StoryDirectory() {
     );
   }
 
-  const filteredStories = stories?.filter((story) => {
+  if (!stories || stories.length === 0) {
+    return (
+      <div className="flex h-[calc(100vh-4rem)]">
+        <StoryCategorySidebar
+          selectedCategory={selectedCategory}
+          selectedValue={selectedValue}
+          onCategoryChange={setSelectedCategory}
+          onValueChange={setSelectedValue}
+        />
+        <main className="flex-1 p-6">
+          <div className="text-center text-muted-foreground">
+            No stories found. Create your first story!
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  const filteredStories = stories.filter((story) => {
     if (!selectedValue) return true;
     return story[selectedCategory] === selectedValue;
   });
@@ -73,12 +102,12 @@ export function StoryDirectory() {
       <main className="flex-1 p-6 overflow-auto">
         <ScrollArea className="h-full">
           <div className="space-y-6">
-            {filteredStories?.length === 0 ? (
+            {filteredStories.length === 0 ? (
               <div className="text-center text-muted-foreground">
                 No stories found for the selected category.
               </div>
             ) : (
-              filteredStories?.map((story) => (
+              filteredStories.map((story) => (
                 <StoryCard key={story.id} story={story} />
               ))
             )}
