@@ -1,18 +1,9 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Check } from "lucide-react";
-import { Json } from "@/integrations/supabase/types";
-import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { BillingToggle } from "./BillingToggle";
+import { PricingCard } from "./PricingCard";
+import { Json } from "@/integrations/supabase/types";
 
 interface PricingTier {
   id: string;
@@ -85,113 +76,18 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
     }
   };
 
-  const calculatePrice = (tier: PricingTier) => {
-    if (isYearly) {
-      return Math.round(tier.yearly_price / 12);
-    }
-    return tier.price;
-  };
-
-  const getBillingText = (tier: PricingTier) => {
-    if (isYearly) {
-      return (
-        <>
-          <span className="text-4xl font-bold">${calculatePrice(tier)}</span>
-          <span className="text-muted-foreground">/month</span>
-          <div className="text-sm text-primary mt-1">
-            Billed ${tier.yearly_price} yearly
-            <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary">Save 20%</Badge>
-          </div>
-        </>
-      );
-    }
-    return (
-      <>
-        <span className="text-4xl font-bold">${tier.price}</span>
-        <span className="text-muted-foreground">/month</span>
-        <div className="text-sm text-muted-foreground mt-1">
-          Billed monthly
-        </div>
-      </>
-    );
-  };
-
-  const renderFeatures = (features: Json) => {
-    if (Array.isArray(features)) {
-      return features.map((feature, index) => (
-        typeof feature === 'string' && (
-          <li key={index} className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-primary" />
-            <span>{feature}</span>
-          </li>
-        )
-      ));
-    }
-    return null;
-  };
-
   return (
     <div className="space-y-8">
-      <div className="flex justify-center items-center gap-6 bg-card p-2 rounded-lg shadow-sm max-w-xs mx-auto">
-        <button
-          onClick={() => setIsYearly(false)}
-          className={`px-4 py-2 rounded-md transition-colors ${
-            !isYearly
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:bg-secondary'
-          }`}
-        >
-          Monthly
-        </button>
-        <button
-          onClick={() => setIsYearly(true)}
-          className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
-            isYearly
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:bg-secondary'
-          }`}
-        >
-          Yearly
-          <Badge className="bg-primary/10 text-primary-foreground">
-            Save 20%
-          </Badge>
-        </button>
-      </div>
-
+      <BillingToggle isYearly={isYearly} setIsYearly={setIsYearly} />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {tiers.map((tier) => (
-          <Card key={tier.id} className="flex flex-col">
-            <CardHeader>
-              <CardTitle>{tier.name}</CardTitle>
-              <CardDescription>{tier.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <div className="mb-4">
-                {getBillingText(tier)}
-              </div>
-              <ul className="space-y-2">
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
-                  <span>{tier.stories_per_month} stories per month</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-primary" />
-                  <span>Save up to {tier.saved_stories_limit} stories</span>
-                </li>
-                {renderFeatures(tier.features)}
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                className="w-full" 
-                variant={currentTier === tier.level ? 'outline' : 'default'}
-                onClick={() => handleSubscribe(tier)}
-                disabled={currentTier === tier.level}
-              >
-                {currentTier === tier.level ? 'Current Plan' : 'Upgrade Now'}
-              </Button>
-            </CardFooter>
-          </Card>
+          <PricingCard
+            key={tier.id}
+            tier={tier}
+            isYearly={isYearly}
+            currentTier={currentTier}
+            onSubscribe={() => handleSubscribe(tier)}
+          />
         ))}
       </div>
     </div>
