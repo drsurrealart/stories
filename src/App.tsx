@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Landing from "./pages/Landing";
+import Create from "./pages/Create";
 import YourStories from "./pages/YourStories";
 import AccountSettings from "./pages/AccountSettings";
 import MySubscriptions from "./pages/MySubscriptions";
@@ -97,6 +98,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Index />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create"
+              element={
+                <ProtectedRoute>
+                  <Create />
                 </ProtectedRoute>
               }
             />
