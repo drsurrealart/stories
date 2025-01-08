@@ -32,17 +32,23 @@ export const SubscriptionTierManager = () => {
   const { data: tiers, isLoading, refetch } = useQuery({
     queryKey: ['admin-subscription-tiers'],
     queryFn: async () => {
+      console.log("Fetching subscription tiers...");
       const { data, error } = await supabase
         .from('subscription_tiers')
         .select('*')
         .order('price');
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching tiers:", error);
+        throw error;
+      }
+      console.log("Fetched tiers:", data);
       return data;
     },
   });
 
   const handleEdit = (tier: any) => {
+    console.log("Editing tier:", tier);
     setEditingId(tier.id);
     setEditForm({
       stories_per_month: tier.stories_per_month,
@@ -54,7 +60,8 @@ export const SubscriptionTierManager = () => {
 
   const handleSave = async () => {
     try {
-      const { error } = await supabase
+      console.log("Saving tier:", editingId, editForm);
+      const { data, error } = await supabase
         .from('subscription_tiers')
         .update({
           stories_per_month: editForm.stories_per_month,
@@ -62,9 +69,15 @@ export const SubscriptionTierManager = () => {
           price: editForm.price,
           yearly_price: editForm.yearly_price,
         })
-        .eq('id', editingId);
+        .eq('id', editingId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating tier:", error);
+        throw error;
+      }
+
+      console.log("Update response:", data);
 
       toast({
         title: "Success",
@@ -74,6 +87,7 @@ export const SubscriptionTierManager = () => {
       setEditingId(null);
       refetch();
     } catch (error) {
+      console.error("Error in handleSave:", error);
       toast({
         title: "Error",
         description: "Failed to update subscription tier",
