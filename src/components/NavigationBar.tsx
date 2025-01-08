@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Menu, X, PenTool } from "lucide-react";
+import { Menu, X, PenTool, LayoutDashboard, BookOpen, CreditCard, Settings, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -67,18 +67,18 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
   };
 
   const navigationItems = [
-    { title: "Dashboard", href: "/dashboard" },
-    { title: "Your Stories", href: "/your-stories" },
-    { title: "My Subscriptions", href: "/my-subscriptions" },
-    { title: "Account Settings", href: "/account-settings" },
-    ...(isAdmin ? [{ title: "Admin Dashboard", href: "/admin" }] : []),
+    { title: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
+    { title: "Your Stories", href: "/your-stories", icon: <BookOpen className="h-4 w-4" /> },
+    { title: "My Subscriptions", href: "/my-subscriptions", icon: <CreditCard className="h-4 w-4" /> },
+    { title: "Account Settings", href: "/account-settings", icon: <Settings className="h-4 w-4" /> },
+    ...(isAdmin ? [{ title: "Admin Dashboard", href: "/admin", icon: <UserCircle className="h-4 w-4" /> }] : []),
   ];
 
   const NavigationItems = () => (
     <NavigationMenuList className="flex-col md:flex-row space-y-2 md:space-y-0">
       <NavigationMenuItem>
         <Link to="/create">
-          <Button variant="secondary" size="sm" className="w-full md:w-auto">
+          <Button variant="secondary" size="sm" className="w-full md:w-auto bg-[#E2FCE2] hover:bg-[#D0EBD0]">
             <PenTool className="mr-2 h-4 w-4" />
             Create Story
           </Button>
@@ -87,23 +87,28 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
       {navigationItems.map((item) => (
         <NavigationMenuItem key={item.title}>
           <Link to={item.href}>
-            <NavigationMenuLink
+            <Button
+              variant="ghost"
+              size="sm"
               className={cn(
-                navigationMenuTriggerStyle(),
-                "w-full md:w-auto justify-start text-white hover:text-white/90"
+                "w-full md:w-auto justify-start text-gray-300 hover:text-white hover:bg-gray-700/50",
+                location.pathname === item.href && "bg-gray-700/50 text-white"
               )}
             >
-              {item.title}
-            </NavigationMenuLink>
+              {item.icon}
+              <span className="ml-2">{item.title}</span>
+            </Button>
           </Link>
         </NavigationMenuItem>
       ))}
       <NavigationMenuItem>
         <Button
           variant="ghost"
+          size="sm"
           onClick={handleLogout}
-          className="w-full md:w-auto justify-start md:justify-center text-white hover:text-white/90"
+          className="w-full md:w-auto justify-start md:justify-center text-gray-300 hover:text-white hover:bg-gray-700/50"
         >
+          <X className="mr-2 h-4 w-4" />
           Logout
         </Button>
       </NavigationMenuItem>
