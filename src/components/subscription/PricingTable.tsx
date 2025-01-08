@@ -37,13 +37,6 @@ export const PricingTable = ({ tiers }: PricingTableProps) => {
     console.log("Subscribe to:", tier.name, isYearly ? "yearly" : "monthly");
   };
 
-  const getFeaturesList = (features: Json): string[] => {
-    if (Array.isArray(features)) {
-      return features as string[];
-    }
-    return [];
-  };
-
   const calculatePrice = (basePrice: number) => {
     if (isYearly) {
       // 20% discount for yearly plans
@@ -99,7 +92,7 @@ export const PricingTable = ({ tiers }: PricingTableProps) => {
           }`}
         >
           Yearly
-          <Badge variant="secondary" className="bg-primary/10 text-primary whitespace-nowrap">
+          <Badge className="bg-primary/10 text-primary-foreground whitespace-nowrap">
             Save 20%
           </Badge>
         </button>
@@ -125,12 +118,14 @@ export const PricingTable = ({ tiers }: PricingTableProps) => {
                   <Check className="h-4 w-4 text-primary" />
                   <span>Save up to {tier.saved_stories_limit} stories</span>
                 </li>
-                {getFeaturesList(tier.features).map((feature, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-primary" />
+                  <span>All Story Genres</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-primary" />
+                  <span>All Moral Lessons</span>
+                </li>
               </ul>
             </CardContent>
             <CardFooter>
