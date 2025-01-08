@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, PenTool } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -76,13 +76,21 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
 
   const NavigationItems = () => (
     <NavigationMenuList className="flex-col md:flex-row space-y-2 md:space-y-0">
+      <NavigationMenuItem>
+        <Link to="/create">
+          <Button variant="secondary" size="sm" className="w-full md:w-auto">
+            <PenTool className="mr-2 h-4 w-4" />
+            Create Story
+          </Button>
+        </Link>
+      </NavigationMenuItem>
       {navigationItems.map((item) => (
         <NavigationMenuItem key={item.title}>
           <Link to={item.href}>
             <NavigationMenuLink
               className={cn(
                 navigationMenuTriggerStyle(),
-                "w-full md:w-auto justify-start"
+                "w-full md:w-auto justify-start text-white hover:text-white/90"
               )}
             >
               {item.title}
@@ -94,7 +102,7 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
         <Button
           variant="ghost"
           onClick={handleLogout}
-          className="w-full md:w-auto justify-start md:justify-center"
+          className="w-full md:w-auto justify-start md:justify-center text-white hover:text-white/90"
         >
           Logout
         </Button>
@@ -103,10 +111,10 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
   );
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="sticky top-0 z-50 w-full border-b bg-gray-800 backdrop-blur supports-[backdrop-filter]:bg-gray-800/95">
       <div className="container flex h-14 items-center">
         <div className="flex w-full justify-between items-center">
-          <Link to="/" className="font-bold text-xl">
+          <Link to="/" className="font-bold text-xl text-white">
             LearnMorals.com
           </Link>
           
@@ -116,12 +124,13 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="text-white"
               >
                 {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
               
               {isMenuOpen && (
-                <div className="absolute top-14 left-0 right-0 border-b bg-background p-4">
+                <div className="absolute top-14 left-0 right-0 border-b bg-gray-800 p-4">
                   <NavigationMenu className="w-full">
                     <NavigationItems />
                   </NavigationMenu>
