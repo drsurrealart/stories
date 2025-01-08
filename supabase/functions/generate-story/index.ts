@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,6 +14,21 @@ serve(async (req) => {
 
   try {
     const { preferences } = await req.json();
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header');
+    }
+
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Get user ID from the JWT token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !user) throw new Error('Invalid token');
+
     console.log("Received preferences:", preferences);
 
     const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Keep it concise but meaningful. Do not use asterisks or other decorative characters in the formatting.`;
@@ -37,9 +53,9 @@ serve(async (req) => {
             content: prompt,
           },
         ],
-        temperature: 0.8, // Balanced creativity without being too random
-        presence_penalty: 0.3, // Light penalty for repetition
-        frequency_penalty: 0.3, // Light penalty for phrase repetition
+        temperature: 0.8,
+        presence_penalty: 0.3,
+        frequency_penalty: 0.3,
       }),
     });
 
@@ -51,6 +67,27 @@ serve(async (req) => {
 
     const data = await response.json();
     console.log("OpenAI response received");
+
+    // Increment the story count for the current month
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const { error: countError } = await supabase
+      .from('user_story_counts')
+      .upsert({
+        user_id: user.id,
+        month_year: currentMonth,
+        stories_generated: 1
+      }, {
+        onConflict: 'user_id,month_year',
+        update: {
+          stories_generated: sql`user_story_counts.stories_generated + 1`,
+          updated_at: new Date().toISOString()
+        }
+      });
+
+    if (countError) {
+      console.error("Error incrementing story count:", countError);
+      throw countError;
+    }
 
     return new Response(
       JSON.stringify({ story: data.choices[0].message.content }),
