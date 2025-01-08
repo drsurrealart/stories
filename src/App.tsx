@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Landing from "./pages/Landing";
+import YourStories from "./pages/YourStories";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Index />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/your-stories"
+            element={
+              <ProtectedRoute>
+                <YourStories />
               </ProtectedRoute>
             }
           />
