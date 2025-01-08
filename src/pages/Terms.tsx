@@ -1,10 +1,17 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { NavigationBar } from "@/components/NavigationBar";
+import { useNavigate } from "react-router-dom";
 
 const Terms = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
-      <NavigationBar onLogout={() => {}} />
+      <NavigationBar onLogout={handleLogout} />
       <div className="container mx-auto py-8 px-4 flex-grow">
         <h1 className="text-3xl font-bold mb-6">Terms of Service & Privacy Policy</h1>
         <ScrollArea className="h-[calc(100vh-300px)] pr-4">

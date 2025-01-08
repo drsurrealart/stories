@@ -40,8 +40,8 @@ export const Footer = () => {
             <h3 className="font-semibold">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/privacy" className="text-sm text-gray-600 hover:text-primary">
-                  Privacy Policy
+                <Link to="/terms" className="text-sm text-gray-600 hover:text-primary">
+                  Privacy Policy & Terms
                 </Link>
               </li>
               <li>
