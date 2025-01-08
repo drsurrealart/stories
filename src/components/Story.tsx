@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { StoryContent } from "./story/StoryContent";
 import { StoryFeedback } from "./story/StoryFeedback";
 import { StoryActions } from "./story/StoryActions";
+import { useQuery } from "@tanstack/react-query";
 
 interface StoryProps {
   content: string;
@@ -26,6 +27,41 @@ export function Story({ content, onReflect }: StoryProps) {
   const title = titleMatch ? titleMatch[1].trim() : "Untitled Story";
   const storyWithoutTitle = storyContent.replace(/^.+?\n/, '').trim();
 
+  // Fetch saved stories count and limit
+  const { data: saveLimits } = useQuery({
+    queryKey: ['user-save-limits'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+
+      // Get user's subscription level
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_level')
+        .eq('id', session.user.id)
+        .single();
+
+      // Get subscription tier limits
+      const { data: tierLimits } = await supabase
+        .from('subscription_tiers')
+        .select('saved_stories_limit')
+        .eq('level', profile?.subscription_level || 'free')
+        .single();
+
+      // Get current saved stories count
+      const { count: savedCount } = await supabase
+        .from('stories')
+        .select('id', { count: 'exact', head: true })
+        .eq('author_id', session.user.id);
+
+      return {
+        savedCount: savedCount || 0,
+        saveLimit: tierLimits?.saved_stories_limit || 0,
+        subscriptionLevel: profile?.subscription_level || 'free'
+      };
+    }
+  });
+
   const handleSaveStory = async () => {
     try {
       setIsSaving(true);
@@ -35,6 +71,15 @@ export function Story({ content, onReflect }: StoryProps) {
         toast({
           title: "Authentication required",
           description: "Please log in to save stories",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (saveLimits && saveLimits.savedCount >= saveLimits.saveLimit) {
+        toast({
+          title: "Saved stories limit reached",
+          description: `You've reached your ${saveLimits.saveLimit} saved stories limit. Upgrade your subscription to save more stories!`,
           variant: "destructive",
         });
         return;
@@ -63,8 +108,8 @@ export function Story({ content, onReflect }: StoryProps) {
           content: storyContent,
           moral,
           author_id: session.user.id,
-          age_group: "preschool", // Using a valid age group value
-          genre: "fantasy", // Using a valid genre value
+          age_group: "preschool",
+          genre: "fantasy",
         });
 
       if (error) {
@@ -97,6 +142,11 @@ export function Story({ content, onReflect }: StoryProps) {
       />
 
       <div className="border-t pt-4 md:pt-6 space-y-3 md:space-y-4">
+        {saveLimits && (
+          <div className="text-sm text-muted-foreground">
+            Saved stories: {saveLimits.savedCount} / {saveLimits.saveLimit}
+          </div>
+        )}
         <StoryFeedback
           feedback={feedback}
           onFeedback={setFeedback}

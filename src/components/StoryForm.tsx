@@ -6,6 +6,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { AgeGroupSelect } from "./story/AgeGroupSelect";
 import { GenreSelect } from "./story/GenreSelect";
 import { MoralSelect } from "./story/MoralSelect";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 export interface StoryPreferences {
   genre: string;
@@ -26,6 +28,44 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
   });
   const { toast } = useToast();
 
+  // Fetch user's story count and subscription tier
+  const { data: userLimits } = useQuery({
+    queryKey: ['user-story-limits'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+
+      // Get user's subscription level
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_level')
+        .eq('id', session.user.id)
+        .single();
+
+      // Get subscription tier limits
+      const { data: tierLimits } = await supabase
+        .from('subscription_tiers')
+        .select('stories_per_month')
+        .eq('level', profile?.subscription_level || 'free')
+        .single();
+
+      // Get current month's story count
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const { data: storyCount } = await supabase
+        .from('user_story_counts')
+        .select('stories_generated')
+        .eq('user_id', session.user.id)
+        .eq('month_year', currentMonth)
+        .single();
+
+      return {
+        storiesGenerated: storyCount?.stories_generated || 0,
+        monthlyLimit: tierLimits?.stories_per_month || 0,
+        subscriptionLevel: profile?.subscription_level || 'free'
+      };
+    }
+  });
+
   const handleAgeGroupChange = (value: string) => {
     setPreferences({
       ageGroup: value,
@@ -34,7 +74,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!preferences.genre || !preferences.ageGroup || !preferences.moral) {
       toast({
         title: "Please fill in all fields",
@@ -43,6 +83,26 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
       });
       return;
     }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({
+        title: "Please sign in",
+        description: "You need to be signed in to generate stories",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (userLimits && userLimits.storiesGenerated >= userLimits.monthlyLimit) {
+      toast({
+        title: "Monthly limit reached",
+        description: `You've reached your ${userLimits.monthlyLimit} stories limit for this month. Upgrade your subscription to generate more stories!`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     onSubmit(preferences);
   };
 
@@ -52,6 +112,12 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
         <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-primary" />
         <h2 className="text-xl md:text-2xl font-bold">Create Your Story</h2>
       </div>
+
+      {userLimits && (
+        <div className="text-sm text-muted-foreground">
+          Stories this month: {userLimits.storiesGenerated} / {userLimits.monthlyLimit}
+        </div>
+      )}
 
       <div className="space-y-4">
         <AgeGroupSelect

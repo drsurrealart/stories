@@ -183,6 +183,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_story_counts: {
+        Row: {
+          created_at: string
+          id: string
+          month_year: string
+          stories_generated: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month_year: string
+          stories_generated?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month_year?: string
+          stories_generated?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
