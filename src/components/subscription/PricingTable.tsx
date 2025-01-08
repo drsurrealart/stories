@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Check } from "lucide-react";
+import { Json } from "@/integrations/supabase/types";
 
 interface PricingTier {
   id: string;
@@ -17,7 +18,7 @@ interface PricingTier {
   description: string;
   stories_per_month: number;
   saved_stories_limit: number;
-  features: string[];
+  features: Json;
   stripe_price_id?: string;
 }
 
@@ -29,6 +30,13 @@ export const PricingTable = ({ tiers }: PricingTableProps) => {
   const handleSubscribe = async (tier: PricingTier) => {
     // Will implement Stripe integration in the next step
     console.log("Subscribe to:", tier.name);
+  };
+
+  const getFeaturesList = (features: Json): string[] => {
+    if (Array.isArray(features)) {
+      return features as string[];
+    }
+    return [];
   };
 
   return (
@@ -53,7 +61,7 @@ export const PricingTable = ({ tiers }: PricingTableProps) => {
                 <Check className="h-4 w-4 text-primary" />
                 <span>Save up to {tier.saved_stories_limit} stories</span>
               </li>
-              {tier.features.map((feature, index) => (
+              {getFeaturesList(tier.features).map((feature, index) => (
                 <li key={index} className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-primary" />
                   <span>{feature}</span>
