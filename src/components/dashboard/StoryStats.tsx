@@ -11,6 +11,7 @@ export const StoryStats = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No session');
       
+      // Get all stories for the user
       const { data: stories, error } = await supabase
         .from('stories')
         .select('*')
@@ -18,8 +19,18 @@ export const StoryStats = () => {
         
       if (error) throw error;
       
+      // Get the total count from user_story_counts for the current month
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const { data: storyCount } = await supabase
+        .from('user_story_counts')
+        .select('stories_generated')
+        .eq('user_id', session.user.id)
+        .eq('month_year', currentMonth)
+        .single();
+      
       return {
-        totalStories: stories.length,
+        // Use the stories_generated count from user_story_counts
+        totalStories: storyCount?.stories_generated || 0,
         // Only count stories that have both title and content as saved
         savedStories: stories.filter(story => story.title && story.content).length,
       };
