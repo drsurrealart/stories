@@ -34,6 +34,7 @@ const YourStories = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      console.log("Fetched stories:", data); // Debug log
       setStories(data || []);
     } catch (error) {
       console.error("Error fetching stories:", error);
