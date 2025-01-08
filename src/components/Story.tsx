@@ -11,13 +11,25 @@ interface StoryProps {
 export function Story({ content, onReflect }: StoryProps) {
   const [feedback, setFeedback] = useState<"liked" | "disliked" | null>(null);
 
+  // Split content to separate moral from the rest of the story
+  const parts = content.split("Moral:");
+  const storyContent = parts[0].trim();
+  const moral = parts[1]?.trim() || "";
+
   return (
     <Card className="w-full max-w-2xl p-4 md:p-8 space-y-4 md:space-y-6 animate-fade-in bg-story-background">
       <div className="prose max-w-none">
         <div className="text-story-text leading-relaxed whitespace-pre-wrap text-sm md:text-base">
-          {content}
+          {storyContent}
         </div>
       </div>
+
+      {moral && (
+        <Card className="bg-secondary p-4 md:p-6 mt-4">
+          <h3 className="font-semibold text-lg mb-2">Moral</h3>
+          <p className="text-story-text">{moral}</p>
+        </Card>
+      )}
 
       <div className="border-t pt-4 md:pt-6 space-y-3 md:space-y-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
