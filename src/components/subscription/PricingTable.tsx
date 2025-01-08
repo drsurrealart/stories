@@ -116,6 +116,20 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
     );
   };
 
+  const renderFeatures = (features: Json) => {
+    if (Array.isArray(features)) {
+      return features.map((feature, index) => (
+        typeof feature === 'string' && (
+          <li key={index} className="flex items-center gap-2">
+            <Check className="h-4 w-4 text-primary" />
+            <span>{feature}</span>
+          </li>
+        )
+      ));
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex justify-center items-center gap-6 bg-card p-2 rounded-lg shadow-sm max-w-xs mx-auto">
@@ -164,12 +178,7 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
                   <Check className="h-4 w-4 text-primary" />
                   <span>Save up to {tier.saved_stories_limit} stories</span>
                 </li>
-                {tier.features && Array.isArray(tier.features) && tier.features.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-primary" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
+                {renderFeatures(tier.features)}
               </ul>
             </CardContent>
             <CardFooter>
