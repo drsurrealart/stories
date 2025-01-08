@@ -5,8 +5,7 @@ import { ReflectionQuestions } from "@/components/ReflectionQuestions";
 import { useToast } from "@/components/ui/use-toast";
 import { initializeSettings } from "@/utils/settings";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { NavigationBar } from "@/components/NavigationBar";
 
 type AppState = "form" | "story" | "reflection";
 
@@ -16,7 +15,6 @@ const Index = () => {
   const [story, setStory] = useState("");
   const { toast } = useToast();
 
-  // Initialize settings when component mounts
   useState(() => {
     initializeSettings();
   });
@@ -78,20 +76,9 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary to-background p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-bold">AI Story Time</h1>
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className="flex items-center gap-2"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </Button>
-        </div>
-        
+    <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
+      <NavigationBar onLogout={handleLogout} />
+      <div className="max-w-4xl mx-auto p-6 space-y-8">
         <div className="flex justify-center">
           {appState === "form" && (
             <StoryForm onSubmit={generateStory} isLoading={isLoading} />
