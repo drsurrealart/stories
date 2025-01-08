@@ -29,7 +29,10 @@ const AdminDashboard = () => {
       const { data: isAdmin, error } = await supabase.rpc('is_admin', {
         user_id: (await supabase.auth.getUser()).data.user?.id
       });
-      if (error) throw error;
+      if (error) {
+        console.error("Error checking admin status:", error);
+        throw error;
+      }
       return isAdmin;
     },
   });
@@ -38,21 +41,31 @@ const AdminDashboard = () => {
   const { data: stats, isLoading: isLoadingStats, error } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const { data, error } = await supabase.from('profiles')
-        .select(`
-          subscription_level,
-          stories (
-            created_at
-          )
-        `);
-      if (error) throw error;
-
-      // Process the data to create statistics
-      const total_users = data.length;
-      const total_stories = data.reduce((acc, profile) => 
-        acc + (Array.isArray(profile.stories) ? profile.stories.length : 0), 0);
+      // First get all profiles
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('subscription_level');
       
-      const users_by_subscription = data.reduce((acc, profile) => {
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+        throw profilesError;
+      }
+
+      // Then get all stories
+      const { data: stories, error: storiesError } = await supabase
+        .from('stories')
+        .select('*');
+      
+      if (storiesError) {
+        console.error("Error fetching stories:", storiesError);
+        throw storiesError;
+      }
+
+      // Calculate statistics
+      const total_users = profiles.length;
+      const total_stories = stories.length;
+      
+      const users_by_subscription = profiles.reduce((acc, profile) => {
         const level = profile.subscription_level || 'free';
         acc[level] = (acc[level] || 0) + 1;
         return acc;
@@ -61,12 +74,9 @@ const AdminDashboard = () => {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
-      const stories_last_30_days = data.reduce((acc, profile) => {
-        if (!Array.isArray(profile.stories)) return acc;
-        return acc + profile.stories.filter(story => 
-          new Date(story.created_at) >= thirtyDaysAgo
-        ).length;
-      }, 0);
+      const stories_last_30_days = stories.filter(story => 
+        new Date(story.created_at) >= thirtyDaysAgo
+      ).length;
 
       return {
         total_users,
