@@ -1,6 +1,6 @@
 {
-  "name": "AI Story Time",
-  "short_name": "Story Time",
+  "name": "LearnMorals.com",
+  "short_name": "LearnMorals",
   "description": "Create personalized stories with moral lessons",
   "start_url": "/",
   "display": "standalone",

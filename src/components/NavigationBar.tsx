@@ -107,7 +107,7 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
       <div className="container flex h-14 items-center">
         <div className="flex w-full justify-between items-center">
           <Link to="/" className="font-bold text-xl">
-            AI Story Time
+            LearnMorals.com
           </Link>
           
           {isMobile ? (
