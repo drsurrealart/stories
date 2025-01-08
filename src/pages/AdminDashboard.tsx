@@ -1,18 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Users, BookText, TrendingUp } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { NavigationBar } from "@/components/NavigationBar";
+import { StatsCards } from "@/components/admin/StatsCards";
+import { SubscriptionChart } from "@/components/admin/SubscriptionChart";
 
 interface UserStatistics {
   total_users: number;
@@ -22,7 +14,6 @@ interface UserStatistics {
 }
 
 const AdminDashboard = () => {
-  // First check if user is admin
   const { data: isAdmin, isLoading: isCheckingAdmin } = useQuery({
     queryKey: ["is-admin"],
     queryFn: async () => {
@@ -37,7 +28,6 @@ const AdminDashboard = () => {
     },
   });
 
-  // Then fetch statistics if user is admin
   const { data: stats, isLoading: isLoadingStats, error } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
@@ -85,37 +75,52 @@ const AdminDashboard = () => {
         stories_last_30_days
       } as UserStatistics;
     },
-    enabled: !!isAdmin, // Only run this query if user is admin
+    enabled: !!isAdmin,
   });
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
   if (isCheckingAdmin) {
-    return <div className="container mx-auto p-6">
-      <Skeleton className="h-8 w-48 mb-8" />
-      <div className="grid gap-4 md:grid-cols-3">
-        <Skeleton className="h-32" />
-        <Skeleton className="h-32" />
-        <Skeleton className="h-32" />
-      </div>
-    </div>;
+    return (
+      <>
+        <NavigationBar onLogout={handleLogout} />
+        <div className="container mx-auto p-6">
+          <Skeleton className="h-8 w-48 mb-8" />
+          <div className="grid gap-4 md:grid-cols-3">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+          </div>
+        </div>
+      </>
+    );
   }
 
   if (!isAdmin) {
     return (
-      <Alert variant="destructive" className="m-6">
-        <AlertDescription>
-          You do not have permission to access the admin dashboard.
-        </AlertDescription>
-      </Alert>
+      <>
+        <NavigationBar onLogout={handleLogout} />
+        <Alert variant="destructive" className="m-6">
+          <AlertDescription>
+            You do not have permission to access the admin dashboard.
+          </AlertDescription>
+        </Alert>
+      </>
     );
   }
 
   if (error) {
     return (
-      <Alert variant="destructive" className="m-6">
-        <AlertDescription>
-          Error loading dashboard statistics. Please try again later.
-        </AlertDescription>
-      </Alert>
+      <>
+        <NavigationBar onLogout={handleLogout} />
+        <Alert variant="destructive" className="m-6">
+          <AlertDescription>
+            Error loading dashboard statistics. Please try again later.
+          </AlertDescription>
+        </Alert>
+      </>
     );
   }
 
@@ -127,80 +132,22 @@ const AdminDashboard = () => {
     : [];
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        {/* Total Users Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoadingStats ? (
-              <Skeleton className="h-8 w-[100px]" />
-            ) : (
-              <div className="text-2xl font-bold">{stats?.total_users}</div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Total Stories Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Stories</CardTitle>
-            <BookText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoadingStats ? (
-              <Skeleton className="h-8 w-[100px]" />
-            ) : (
-              <div className="text-2xl font-bold">{stats?.total_stories}</div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Stories Last 30 Days Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Stories (30 Days)</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {isLoadingStats ? (
-              <Skeleton className="h-8 w-[100px]" />
-            ) : (
-              <div className="text-2xl font-bold">{stats?.stories_last_30_days}</div>
-            )}
-          </CardContent>
-        </Card>
+    <>
+      <NavigationBar onLogout={handleLogout} />
+      <div className="container mx-auto p-6 space-y-6">
+        <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+        
+        <StatsCards 
+          isLoading={isLoadingStats} 
+          stats={stats} 
+        />
+        
+        <SubscriptionChart 
+          isLoading={isLoadingStats}
+          data={subscriptionData}
+        />
       </div>
-
-      {/* Subscription Distribution Chart */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Users by Subscription Level</CardTitle>
-        </CardHeader>
-        <CardContent className="h-[300px]">
-          {isLoadingStats ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <Skeleton className="h-full w-full" />
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={subscriptionData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#9b87f5" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    </>
   );
 };
 
