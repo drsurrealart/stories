@@ -20,7 +20,13 @@ serve(async (req) => {
 
     if (!priceId) {
       console.error('No priceId provided');
-      throw new Error('Price ID is required');
+      return new Response(
+        JSON.stringify({ error: 'Price ID is required' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        }
+      );
     }
 
     // Initialize Supabase client
@@ -33,7 +39,13 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error('No authorization header');
-      throw new Error('No authorization header');
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401,
+        }
+      );
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -41,7 +53,13 @@ serve(async (req) => {
 
     if (userError || !user) {
       console.error('User authentication error:', userError);
-      throw new Error('User not authenticated');
+      return new Response(
+        JSON.stringify({ error: 'User not authenticated' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401,
+        }
+      );
     }
 
     console.log('Authenticated user:', user.email);
@@ -50,7 +68,13 @@ serve(async (req) => {
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) {
       console.error('Stripe secret key not found');
-      throw new Error('Stripe configuration error');
+      return new Response(
+        JSON.stringify({ error: 'Stripe configuration error' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        }
+      );
     }
 
     const stripe = new Stripe(stripeKey, {
@@ -99,7 +123,6 @@ serve(async (req) => {
     });
 
     console.log('Checkout session created:', session.id);
-
     return new Response(
       JSON.stringify({ url: session.url }),
       { 
@@ -113,7 +136,7 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400, // Changed from 500 to 400 for client errors
+        status: 400,
       }
     );
   }
