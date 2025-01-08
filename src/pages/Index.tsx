@@ -4,6 +4,9 @@ import { Story } from "@/components/Story";
 import { ReflectionQuestions } from "@/components/ReflectionQuestions";
 import { useToast } from "@/components/ui/use-toast";
 import { initializeSettings } from "@/utils/settings";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 
 type AppState = "form" | "story" | "reflection";
 
@@ -17,6 +20,10 @@ const Index = () => {
   useState(() => {
     initializeSettings();
   });
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
 
   const generateStory = async (preferences: StoryPreferences) => {
     setIsLoading(true);
@@ -73,7 +80,17 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background p-6">
       <div className="max-w-4xl mx-auto space-y-8">
-        <h1 className="text-4xl font-bold text-center mb-8">AI Story Time</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-4xl font-bold">AI Story Time</h1>
+          <Button
+            variant="ghost"
+            onClick={handleLogout}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </Button>
+        </div>
         
         <div className="flex justify-center">
           {appState === "form" && (
