@@ -18,13 +18,14 @@ type Story = {
 type CategoryType = "age_group" | "genre" | "moral";
 
 export function StoryDirectory() {
+  console.log("StoryDirectory component rendering");
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>("age_group");
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
 
   const { data: stories, isLoading, error } = useQuery({
     queryKey: ["stories"],
     queryFn: async () => {
-      console.log("Fetching stories...");
+      console.log("Starting story fetch...");
       try {
         const { data, error } = await supabase
           .from("stories")
@@ -32,12 +33,19 @@ export function StoryDirectory() {
           .order("created_at", { ascending: false });
 
         if (error) {
-          console.error("Supabase error:", error);
+          console.error("Supabase query error:", error);
           throw error;
         }
 
+        console.log("Raw Supabase response:", { data, error });
+
         if (!data) {
-          console.log("No stories found");
+          console.log("No data returned from Supabase");
+          return [];
+        }
+
+        if (!Array.isArray(data)) {
+          console.error("Unexpected data format:", data);
           return [];
         }
 
@@ -50,8 +58,16 @@ export function StoryDirectory() {
     },
   });
 
+  console.log("Current component state:", {
+    stories,
+    isLoading,
+    error,
+    selectedCategory,
+    selectedValue
+  });
+
   if (error) {
-    console.error("Query error:", error);
+    console.error("Query error state:", error);
     return (
       <div className="text-center p-6 text-red-600">
         Error loading stories. Please try again later.
@@ -60,6 +76,7 @@ export function StoryDirectory() {
   }
 
   if (isLoading) {
+    console.log("Rendering loading state");
     return (
       <div className="text-center p-6">
         Loading stories...
@@ -68,6 +85,7 @@ export function StoryDirectory() {
   }
 
   if (!stories || stories.length === 0) {
+    console.log("No stories found, rendering empty state");
     return (
       <div className="flex h-[calc(100vh-4rem)]">
         <StoryCategorySidebar
@@ -88,6 +106,13 @@ export function StoryDirectory() {
   const filteredStories = stories.filter((story) => {
     if (!selectedValue) return true;
     return story[selectedCategory] === selectedValue;
+  });
+
+  console.log("Rendering stories:", {
+    totalStories: stories.length,
+    filteredCount: filteredStories.length,
+    selectedCategory,
+    selectedValue
   });
 
   return (
