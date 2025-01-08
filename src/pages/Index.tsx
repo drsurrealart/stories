@@ -6,8 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 import { initializeSettings } from "@/utils/settings";
 import { supabase } from "@/integrations/supabase/client";
 import { NavigationBar } from "@/components/NavigationBar";
-import { StoryDirectory } from "@/components/directory/StoryDirectory";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type AppState = "form" | "story" | "reflection";
 
@@ -68,39 +66,26 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       <NavigationBar onLogout={handleLogout} />
-      <div className="max-w-6xl mx-auto p-6">
-        <Tabs defaultValue="create" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="create">Create Story</TabsTrigger>
-            <TabsTrigger value="directory">Story Directory</TabsTrigger>
-          </TabsList>
+      <div className="max-w-4xl mx-auto p-6 space-y-8">
+        <div className="flex justify-center">
+          {appState === "form" && (
+            <StoryForm onSubmit={generateStory} isLoading={isLoading} />
+          )}
           
-          <TabsContent value="create" className="space-y-8">
-            <div className="flex justify-center">
-              {appState === "form" && (
-                <StoryForm onSubmit={generateStory} isLoading={isLoading} />
-              )}
-              
-              {appState === "story" && story && (
-                <Story
-                  content={story}
-                  onReflect={() => setAppState("reflection")}
-                />
-              )}
-              
-              {appState === "reflection" && (
-                <ReflectionQuestions
-                  questions={reflectionQuestions}
-                  onComplete={() => setAppState("form")}
-                />
-              )}
-            </div>
-          </TabsContent>
+          {appState === "story" && story && (
+            <Story
+              content={story}
+              onReflect={() => setAppState("reflection")}
+            />
+          )}
           
-          <TabsContent value="directory">
-            <StoryDirectory />
-          </TabsContent>
-        </Tabs>
+          {appState === "reflection" && (
+            <ReflectionQuestions
+              questions={reflectionQuestions}
+              onComplete={() => setAppState("form")}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
