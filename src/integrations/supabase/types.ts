@@ -147,6 +147,7 @@ export type Database = {
           saved_stories_limit: number
           stories_per_month: number
           stripe_price_id: string | null
+          stripe_yearly_price_id: string | null
           updated_at: string
           yearly_price: number
         }
@@ -161,6 +162,7 @@ export type Database = {
           saved_stories_limit: number
           stories_per_month: number
           stripe_price_id?: string | null
+          stripe_yearly_price_id?: string | null
           updated_at?: string
           yearly_price: number
         }
@@ -175,6 +177,7 @@ export type Database = {
           saved_stories_limit?: number
           stories_per_month?: number
           stripe_price_id?: string | null
+          stripe_yearly_price_id?: string | null
           updated_at?: string
           yearly_price?: number
         }

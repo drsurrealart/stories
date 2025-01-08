@@ -23,6 +23,7 @@ interface PricingCardProps {
     saved_stories_limit: number;
     features: Json;
     stripe_price_id?: string;
+    stripe_yearly_price_id?: string;
   };
   isYearly: boolean;
   currentTier?: string;

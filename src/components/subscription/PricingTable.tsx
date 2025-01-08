@@ -16,6 +16,7 @@ interface PricingTier {
   saved_stories_limit: number;
   features: Json;
   stripe_price_id?: string;
+  stripe_yearly_price_id?: string;
 }
 
 interface PricingTableProps {
@@ -42,6 +43,18 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
         return;
       }
 
+      // Get the appropriate price ID based on billing interval
+      const priceId = isYearly ? tier.stripe_yearly_price_id : tier.stripe_price_id;
+
+      if (!priceId) {
+        toast({
+          title: "Configuration error",
+          description: "This tier is not available for subscription",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
@@ -49,7 +62,7 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
           'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          priceId: isYearly ? tier.stripe_price_id + '_yearly' : tier.stripe_price_id,
+          priceId,
           isYearly,
         }),
       });
