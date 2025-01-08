@@ -14,59 +14,72 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Starting checkout session creation...'); // Debug log
-
+    // Parse request body
     const { priceId, isYearly } = await req.json();
-    console.log('Received request with:', { priceId, isYearly }); // Debug log
-    
+    console.log('Request received with:', { priceId, isYearly });
+
+    if (!priceId) {
+      console.error('No priceId provided');
+      throw new Error('Price ID is required');
+    }
+
+    // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Get the user from the auth header
-    const authHeader = req.headers.get('Authorization')!;
-    console.log('Auth header present:', !!authHeader); // Debug log
-    
+    // Get user from auth header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('No authorization header');
+      throw new Error('No authorization header');
+    }
+
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
 
-    if (userError || !user?.email) {
-      console.error('User authentication error:', userError); // Debug log
-      throw new Error('User not found');
+    if (userError || !user) {
+      console.error('User authentication error:', userError);
+      throw new Error('User not authenticated');
     }
 
-    console.log('Authenticated user:', user.email); // Debug log
+    console.log('Authenticated user:', user.email);
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+    // Initialize Stripe
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+    if (!stripeKey) {
+      console.error('Stripe secret key not found');
+      throw new Error('Stripe configuration error');
+    }
+
+    const stripe = new Stripe(stripeKey, {
       apiVersion: '2023-10-16',
     });
 
-    // Check if customer exists
-    console.log('Checking for existing Stripe customer...'); // Debug log
+    // Get or create customer
+    let customerId: string;
     const customers = await stripe.customers.list({
       email: user.email,
       limit: 1,
     });
 
-    let customerId = customers.data[0]?.id;
-
-    // Create customer if doesn't exist
-    if (!customerId) {
-      console.log('Creating new Stripe customer...'); // Debug log
-      const customer = await stripe.customers.create({
+    if (customers.data.length > 0) {
+      customerId = customers.data[0].id;
+      console.log('Found existing customer:', customerId);
+    } else {
+      const newCustomer = await stripe.customers.create({
         email: user.email,
         metadata: {
           supabaseUid: user.id,
         },
       });
-      customerId = customer.id;
+      customerId = newCustomer.id;
+      console.log('Created new customer:', customerId);
     }
 
-    console.log('Using customer ID:', customerId); // Debug log
-
     // Create checkout session
-    console.log('Creating checkout session...'); // Debug log
+    console.log('Creating checkout session with price:', priceId);
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
@@ -85,7 +98,7 @@ serve(async (req) => {
       },
     });
 
-    console.log('Checkout session created:', session.id); // Debug log
+    console.log('Checkout session created:', session.id);
 
     return new Response(
       JSON.stringify({ url: session.url }),
@@ -95,12 +108,12 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error in create-checkout-session:', error); // Debug log
+    console.error('Error in create-checkout-session:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
+        status: 400, // Changed from 500 to 400 for client errors
       }
     );
   }
