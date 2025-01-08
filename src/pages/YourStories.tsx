@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { NavigationBar } from "@/components/NavigationBar";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface SavedStory {
   id: string;
@@ -12,6 +13,8 @@ interface SavedStory {
   content: string;
   moral: string;
   created_at: string;
+  age_group: string;
+  genre: string;
 }
 
 const YourStories = () => {
@@ -80,6 +83,21 @@ const YourStories = () => {
     });
   };
 
+  const formatAgeGroup = (ageGroup: string) => {
+    const ageGroups: Record<string, string> = {
+      preschool: "Preschool (3-5)",
+      elementary: "Elementary (6-8)",
+      tween: "Tween (9-12)",
+      teen: "Teen (13-17)",
+      adult: "Adult (18+)"
+    };
+    return ageGroups[ageGroup] || ageGroup;
+  };
+
+  const formatGenre = (genre: string) => {
+    return genre.charAt(0).toUpperCase() + genre.slice(1).replace(/-/g, ' ');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       <NavigationBar onLogout={async () => {}} />
@@ -99,9 +117,19 @@ const YourStories = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-xl font-semibold mb-2">{story.title}</h2>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Saved on {formatDate(story.created_at)}
-                    </p>
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-500">
+                        Saved on {formatDate(story.created_at)}
+                      </p>
+                      <div className="flex gap-2">
+                        <Badge variant="secondary">
+                          {formatAgeGroup(story.age_group)}
+                        </Badge>
+                        <Badge variant="outline">
+                          {formatGenre(story.genre)}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
                   <Button
                     variant="outline"
