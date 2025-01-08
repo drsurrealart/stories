@@ -31,7 +31,7 @@ export function StoryDirectory() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>("age_group");
   const [selectedValue, setSelectedValue] = useState<string | null>(null);
 
-  const { data: stories, isLoading } = useQuery({
+  const { data: stories, isLoading, error } = useQuery({
     queryKey: ["stories"],
     queryFn: async () => {
       console.log("Fetching stories...");
@@ -49,8 +49,21 @@ export function StoryDirectory() {
     },
   });
 
+  if (error) {
+    console.error("Query error:", error);
+    return (
+      <div className="text-center p-6 text-red-600">
+        Error loading stories. Please try again later.
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <div>Loading stories...</div>;
+    return (
+      <div className="text-center p-6">
+        Loading stories...
+      </div>
+    );
   }
 
   const filteredStories = stories?.filter((story) => {
