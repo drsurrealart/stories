@@ -35,14 +35,14 @@ serve(async (req) => {
 
     console.log("Sending prompt to OpenAI:", prompt);
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
@@ -59,13 +59,13 @@ serve(async (req) => {
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    if (!openAIResponse.ok) {
+      const errorText = await openAIResponse.text();
       console.error("OpenAI API error:", errorText);
       throw new Error(`OpenAI API error: ${errorText}`);
     }
 
-    const data = await response.json();
+    const data = await openAIResponse.json();
     console.log("OpenAI response received");
 
     // Increment the story count for the current month
