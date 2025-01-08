@@ -37,6 +37,13 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
     return tier.price;
   };
 
+  const calculateSavings = () => {
+    const monthlyTotal = tier.price * 12;
+    const yearlyTotal = tier.yearly_price;
+    const savings = ((monthlyTotal - yearlyTotal) / monthlyTotal) * 100;
+    return Math.round(savings);
+  };
+
   const renderFeatures = (features: Json) => {
     if (Array.isArray(features)) {
       return features.map((feature, index) => (
@@ -53,13 +60,14 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
 
   const getBillingText = () => {
     if (isYearly) {
+      const savingsPercentage = calculateSavings();
       return (
         <>
           <span className="text-4xl font-bold">${calculatePrice()}</span>
           <span className="text-muted-foreground">/month</span>
           <div className="text-sm text-primary mt-1">
             Billed ${tier.yearly_price} yearly
-            <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary">Save 20%</Badge>
+            <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary">Save {savingsPercentage}%</Badge>
           </div>
         </>
       );
