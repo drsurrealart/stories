@@ -63,21 +63,20 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
 
-  html, body {
-    @apply overflow-x-hidden;
-    position: relative;
-    width: 100%;
-    -webkit-overflow-scrolling: touch;
+  html, body, #root {
+    @apply min-h-screen;
   }
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  #root {
+    @apply flex flex-col;
   }
 }
