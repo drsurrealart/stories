@@ -37,9 +37,9 @@ serve(async (req) => {
             content: prompt,
           },
         ],
-        temperature: 1.2, // Increased for more randomness
-        presence_penalty: 1.0, // Penalize topic repetition
-        frequency_penalty: 1.0, // Penalize phrase repetition
+        temperature: 0.8, // Balanced creativity without being too random
+        presence_penalty: 0.3, // Light penalty for repetition
+        frequency_penalty: 0.3, // Light penalty for phrase repetition
       }),
     });
 
