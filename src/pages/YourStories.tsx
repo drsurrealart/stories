@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button";
 import { NavigationBar } from "@/components/NavigationBar";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { ageGroups, genresByAge } from "@/data/storyOptions";
 
 interface SavedStory {
   id: string;
@@ -14,8 +12,6 @@ interface SavedStory {
   content: string;
   moral: string;
   created_at: string;
-  age_group: string;
-  genre: string;
 }
 
 const YourStories = () => {
@@ -35,8 +31,6 @@ const YourStories = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      console.log("Fetched stories:", data); // Debug log
       setStories(data || []);
     } catch (error) {
       console.error("Error fetching stories:", error);
@@ -86,21 +80,6 @@ const YourStories = () => {
     });
   };
 
-  const formatAgeGroup = (ageGroup: string) => {
-    console.log("Formatting age group:", ageGroup); // Debug log
-    const age = ageGroups.find(a => a.value === ageGroup);
-    console.log("Found age group:", age); // Debug log
-    return age ? age.label : ageGroup;
-  };
-
-  const formatGenre = (genre: string, ageGroup: string) => {
-    console.log("Formatting genre:", genre, "for age group:", ageGroup); // Debug log
-    const genres = genresByAge[ageGroup as keyof typeof genresByAge] || [];
-    const genreObj = genres.find(g => g.value === genre);
-    console.log("Found genre:", genreObj); // Debug log
-    return genreObj ? genreObj.label : genre;
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       <NavigationBar onLogout={async () => {}} />
@@ -120,19 +99,9 @@ const YourStories = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-xl font-semibold mb-2">{story.title}</h2>
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-500">
-                        Saved on {formatDate(story.created_at)}
-                      </p>
-                      <div className="flex gap-2">
-                        <Badge variant="secondary">
-                          {formatAgeGroup(story.age_group)}
-                        </Badge>
-                        <Badge variant="outline">
-                          {formatGenre(story.genre, story.age_group)}
-                        </Badge>
-                      </div>
-                    </div>
+                    <p className="text-sm text-gray-500 mb-4">
+                      Saved on {formatDate(story.created_at)}
+                    </p>
                   </div>
                   <Button
                     variant="outline"
