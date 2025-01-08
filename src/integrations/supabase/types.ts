@@ -97,6 +97,7 @@ export type Database = {
           stories_per_month: number
           stripe_price_id: string | null
           updated_at: string
+          yearly_price: number
         }
         Insert: {
           created_at?: string
@@ -110,6 +111,7 @@ export type Database = {
           stories_per_month: number
           stripe_price_id?: string | null
           updated_at?: string
+          yearly_price: number
         }
         Update: {
           created_at?: string
@@ -123,6 +125,7 @@ export type Database = {
           stories_per_month?: number
           stripe_price_id?: string | null
           updated_at?: string
+          yearly_price?: number
         }
         Relationships: []
       }

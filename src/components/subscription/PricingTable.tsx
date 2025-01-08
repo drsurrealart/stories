@@ -9,15 +9,15 @@ import {
 } from "@/components/ui/card";
 import { Check } from "lucide-react";
 import { Json } from "@/integrations/supabase/types";
-import { Toggle } from "@/components/ui/toggle";
-import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
 interface PricingTier {
   id: string;
   level: 'free' | 'basic' | 'premium' | 'enterprise';
   name: string;
   price: number;
+  yearly_price: number;
   description: string;
   stories_per_month: number;
   saved_stories_limit: number;
@@ -33,27 +33,24 @@ export const PricingTable = ({ tiers }: PricingTableProps) => {
   const [isYearly, setIsYearly] = useState(false);
   
   const handleSubscribe = async (tier: PricingTier) => {
-    // Will implement Stripe integration in the next step
     console.log("Subscribe to:", tier.name, isYearly ? "yearly" : "monthly");
   };
 
-  const calculatePrice = (basePrice: number) => {
+  const calculatePrice = (tier: PricingTier) => {
     if (isYearly) {
-      // 20% discount for yearly plans
-      const yearlyPrice = (basePrice * 12 * 0.8);
-      return Math.round(yearlyPrice / 12); // Show monthly equivalent
+      return Math.round(tier.yearly_price / 12); // Show monthly equivalent
     }
-    return basePrice;
+    return tier.price;
   };
 
-  const getBillingText = (price: number) => {
+  const getBillingText = (tier: PricingTier) => {
     if (isYearly) {
       return (
         <>
-          <span className="text-4xl font-bold">${calculatePrice(price)}</span>
+          <span className="text-4xl font-bold">${calculatePrice(tier)}</span>
           <span className="text-muted-foreground">/month</span>
           <div className="text-sm text-primary mt-1">
-            Billed ${Math.round(calculatePrice(price) * 12)} yearly
+            Billed ${tier.yearly_price} yearly
             <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary">Save 20%</Badge>
           </div>
         </>
@@ -61,7 +58,7 @@ export const PricingTable = ({ tiers }: PricingTableProps) => {
     }
     return (
       <>
-        <span className="text-4xl font-bold">${price}</span>
+        <span className="text-4xl font-bold">${tier.price}</span>
         <span className="text-muted-foreground">/month</span>
         <div className="text-sm text-muted-foreground mt-1">
           Billed monthly
@@ -92,7 +89,7 @@ export const PricingTable = ({ tiers }: PricingTableProps) => {
           }`}
         >
           Yearly
-          <Badge className="bg-primary/10 text-primary-foreground whitespace-nowrap">
+          <Badge className="bg-primary/10 text-primary-foreground">
             Save 20%
           </Badge>
         </button>
@@ -107,7 +104,7 @@ export const PricingTable = ({ tiers }: PricingTableProps) => {
             </CardHeader>
             <CardContent className="flex-grow">
               <div className="mb-4">
-                {getBillingText(tier.price)}
+                {getBillingText(tier)}
               </div>
               <ul className="space-y-2">
                 <li className="flex items-center gap-2">
