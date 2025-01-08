@@ -1,9 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ageGroups, genresByAge, moralsByAge } from "@/data/storyOptions";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useState } from "react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import { ageGroups, genresByAge, moralsByAge } from "@/data/storyOptions";
 
 type Story = {
   id: string;
@@ -15,16 +25,26 @@ type Story = {
   created_at: string;
 };
 
+type CategoryType = "age_group" | "genre" | "moral";
+
 export function StoryDirectory() {
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType>("age_group");
+  const [selectedValue, setSelectedValue] = useState<string | null>(null);
+
   const { data: stories, isLoading } = useQuery({
     queryKey: ["stories"],
     queryFn: async () => {
+      console.log("Fetching stories...");
       const { data, error } = await supabase
         .from("stories")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching stories:", error);
+        throw error;
+      }
+      console.log("Fetched stories:", data);
       return data as Story[];
     },
   });
@@ -33,88 +53,104 @@ export function StoryDirectory() {
     return <div>Loading stories...</div>;
   }
 
-  const getStoriesByCategory = (category: "age_group" | "genre" | "moral") => {
-    const groupedStories: Record<string, Story[]> = {};
-    
-    stories?.forEach((story) => {
-      const key = story[category];
-      if (!groupedStories[key]) {
-        groupedStories[key] = [];
-      }
-      groupedStories[key].push(story);
-    });
-    
-    return groupedStories;
+  const filteredStories = stories?.filter((story) => {
+    if (!selectedValue) return true;
+    return story[selectedCategory] === selectedValue;
+  });
+
+  const getCategoryItems = (category: CategoryType) => {
+    switch (category) {
+      case "age_group":
+        return ageGroups;
+      case "genre":
+        return Object.values(genresByAge).flat();
+      case "moral":
+        return Object.values(moralsByAge).flat();
+      default:
+        return [];
+    }
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <h2 className="text-3xl font-bold mb-6">Story Directory</h2>
-      
-      <Accordion type="single" collapsible className="w-full space-y-4">
-        <AccordionItem value="age">
-          <AccordionTrigger className="text-xl font-semibold">By Age Group</AccordionTrigger>
-          <AccordionContent>
-            <ScrollArea className="h-[400px] rounded-md border p-4">
-              {ageGroups.map((age) => {
-                const ageStories = getStoriesByCategory("age_group")[age.value] || [];
-                return (
-                  <div key={age.value} className="mb-6">
-                    <h3 className="text-lg font-semibold mb-3">{age.label}</h3>
-                    <div className="grid gap-4">
-                      {ageStories.map((story) => (
-                        <StoryCard key={story.id} story={story} />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </ScrollArea>
-          </AccordionContent>
-        </AccordionItem>
+    <div className="flex h-[calc(100vh-4rem)]">
+      <Sidebar>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Categories</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => {
+                      setSelectedCategory("age_group");
+                      setSelectedValue(null);
+                    }}
+                    data-active={selectedCategory === "age_group"}
+                  >
+                    Age Groups
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => {
+                      setSelectedCategory("genre");
+                      setSelectedValue(null);
+                    }}
+                    data-active={selectedCategory === "genre"}
+                  >
+                    Genres
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => {
+                      setSelectedCategory("moral");
+                      setSelectedValue(null);
+                    }}
+                    data-active={selectedCategory === "moral"}
+                  >
+                    Moral Lessons
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
 
-        <AccordionItem value="genre">
-          <AccordionTrigger className="text-xl font-semibold">By Genre</AccordionTrigger>
-          <AccordionContent>
-            <ScrollArea className="h-[400px] rounded-md border p-4">
-              {Object.values(genresByAge).flat().map((genre) => {
-                const genreStories = getStoriesByCategory("genre")[genre.value] || [];
-                return (
-                  <div key={genre.value} className="mb-6">
-                    <h3 className="text-lg font-semibold mb-3">{genre.label}</h3>
-                    <div className="grid gap-4">
-                      {genreStories.map((story) => (
-                        <StoryCard key={story.id} story={story} />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </ScrollArea>
-          </AccordionContent>
-        </AccordionItem>
+          <SidebarGroup>
+            <SidebarGroupLabel>{selectedCategory === "age_group" ? "Age Groups" : selectedCategory === "genre" ? "Genres" : "Moral Lessons"}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {getCategoryItems(selectedCategory).map((item) => (
+                  <SidebarMenuItem key={item.value}>
+                    <SidebarMenuButton
+                      onClick={() => setSelectedValue(item.value)}
+                      data-active={selectedValue === item.value}
+                    >
+                      {item.label}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
 
-        <AccordionItem value="moral">
-          <AccordionTrigger className="text-xl font-semibold">By Moral Lesson</AccordionTrigger>
-          <AccordionContent>
-            <ScrollArea className="h-[400px] rounded-md border p-4">
-              {Object.values(moralsByAge).flat().map((moral) => {
-                const moralStories = getStoriesByCategory("moral")[moral.value] || [];
-                return (
-                  <div key={moral.value} className="mb-6">
-                    <h3 className="text-lg font-semibold mb-3">{moral.label}</h3>
-                    <div className="grid gap-4">
-                      {moralStories.map((story) => (
-                        <StoryCard key={story.id} story={story} />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </ScrollArea>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      <main className="flex-1 p-6 overflow-auto">
+        <ScrollArea className="h-full">
+          <div className="space-y-6">
+            {filteredStories?.length === 0 ? (
+              <div className="text-center text-muted-foreground">
+                No stories found for the selected category.
+              </div>
+            ) : (
+              filteredStories?.map((story) => (
+                <StoryCard key={story.id} story={story} />
+              ))
+            )}
+          </div>
+        </ScrollArea>
+      </main>
     </div>
   );
 }
