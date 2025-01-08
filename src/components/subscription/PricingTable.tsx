@@ -11,6 +11,7 @@ import { Check } from "lucide-react";
 import { Json } from "@/integrations/supabase/types";
 import { Toggle } from "@/components/ui/toggle";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 interface PricingTier {
   id: string;
@@ -58,8 +59,9 @@ export const PricingTable = ({ tiers }: PricingTableProps) => {
         <>
           <span className="text-4xl font-bold">${calculatePrice(price)}</span>
           <span className="text-muted-foreground">/month</span>
-          <div className="text-sm text-primary">
-            Billed ${Math.round(calculatePrice(price) * 12)} yearly (20% off)
+          <div className="text-sm text-primary mt-1">
+            Billed ${Math.round(calculatePrice(price) * 12)} yearly
+            <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary">Save 20%</Badge>
           </div>
         </>
       );
@@ -68,26 +70,39 @@ export const PricingTable = ({ tiers }: PricingTableProps) => {
       <>
         <span className="text-4xl font-bold">${price}</span>
         <span className="text-muted-foreground">/month</span>
+        <div className="text-sm text-muted-foreground mt-1">
+          Billed monthly
+        </div>
       </>
     );
   };
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-center items-center gap-4">
-        <span className={`text-sm ${!isYearly ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+      <div className="flex justify-center items-center gap-6 bg-card p-2 rounded-lg shadow-sm max-w-xs mx-auto">
+        <button
+          onClick={() => setIsYearly(false)}
+          className={`px-4 py-2 rounded-md transition-colors ${
+            !isYearly
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:bg-secondary'
+          }`}
+        >
           Monthly
-        </span>
-        <Toggle
-          pressed={isYearly}
-          onPressedChange={setIsYearly}
-          className="data-[state=on]:bg-primary"
+        </button>
+        <button
+          onClick={() => setIsYearly(true)}
+          className={`px-4 py-2 rounded-md transition-colors flex items-center gap-2 ${
+            isYearly
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:bg-secondary'
+          }`}
         >
           Yearly
-        </Toggle>
-        <span className={`text-sm ${isYearly ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
-          Yearly (20% off)
-        </span>
+          <Badge variant="secondary" className="bg-primary/10 text-primary whitespace-nowrap">
+            Save 20%
+          </Badge>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
