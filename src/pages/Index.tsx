@@ -5,7 +5,6 @@ import { ReflectionQuestions } from "@/components/ReflectionQuestions";
 import { useToast } from "@/hooks/use-toast";
 import { initializeSettings } from "@/utils/settings";
 import { supabase } from "@/integrations/supabase/client";
-import { NavigationBar } from "@/components/NavigationBar";
 
 type AppState = "form" | "story" | "reflection";
 
@@ -18,10 +17,6 @@ const Index = () => {
   useState(() => {
     initializeSettings();
   });
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
 
   const generateStory = async (preferences: StoryPreferences) => {
     setIsLoading(true);
@@ -65,7 +60,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
-      <NavigationBar onLogout={handleLogout} />
       <div className="max-w-4xl mx-auto p-6 space-y-8">
         <div className="flex justify-center">
           {appState === "form" && (
