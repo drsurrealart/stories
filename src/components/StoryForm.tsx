@@ -47,10 +47,10 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-md p-6 space-y-6 animate-fade-in">
+    <Card className="w-full max-w-md p-4 md:p-6 space-y-4 md:space-y-6 animate-fade-in mx-4 md:mx-0">
       <div className="flex items-center space-x-2">
-        <BookOpen className="w-6 h-6 text-primary" />
-        <h2 className="text-2xl font-bold">Create Your Story</h2>
+        <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+        <h2 className="text-xl md:text-2xl font-bold">Create Your Story</h2>
       </div>
 
       <div className="space-y-4">
