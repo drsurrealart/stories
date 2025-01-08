@@ -16,10 +16,23 @@ interface APIConfig {
   is_active: boolean;
 }
 
+const API_KEYS = [
+  {
+    key: "OPENAI_API_KEY",
+    description: "API key for OpenAI services",
+  },
+  {
+    key: "STRIPE_SECRET_KEY",
+    description: "Secret key for Stripe payment processing",
+  },
+  {
+    key: "STRIPE_PUBLISHABLE_KEY",
+    description: "Publishable key for Stripe payment processing",
+  },
+] as const;
+
 export const APIConfigManager = () => {
   const queryClient = useQueryClient();
-  const [newKeyName, setNewKeyName] = useState("");
-  const [newDescription, setNewDescription] = useState("");
 
   const { data: configs, isLoading } = useQuery({
     queryKey: ["api-configs"],
@@ -31,29 +44,6 @@ export const APIConfigManager = () => {
 
       if (error) throw error;
       return data as APIConfig[];
-    },
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("api_configurations").insert([
-        {
-          key_name: newKeyName,
-          description: newDescription || null,
-        },
-      ]);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["api-configs"] });
-      setNewKeyName("");
-      setNewDescription("");
-      toast.success("API configuration added successfully");
-    },
-    onError: (error) => {
-      console.error("Error creating API config:", error);
-      toast.error("Failed to add API configuration");
     },
   });
 
@@ -76,14 +66,39 @@ export const APIConfigManager = () => {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newKeyName.trim()) {
-      toast.error("Please enter a key name");
-      return;
-    }
-    createMutation.mutate();
+  // Initialize API keys if they don't exist
+  const initializeMutation = useMutation({
+    mutationFn: async (key_name: string) => {
+      const { error } = await supabase.from("api_configurations").insert([
+        {
+          key_name,
+          description: API_KEYS.find((k) => k.key === key_name)?.description,
+        },
+      ]);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["api-configs"] });
+    },
+  });
+
+  // Initialize missing API keys
+  const initializeMissingKeys = () => {
+    const existingKeys = configs?.map((config) => config.key_name) || [];
+    API_KEYS.forEach((apiKey) => {
+      if (!existingKeys.includes(apiKey.key)) {
+        initializeMutation.mutate(apiKey.key);
+      }
+    });
   };
+
+  // Call initialization on component mount
+  useState(() => {
+    if (configs) {
+      initializeMissingKeys();
+    }
+  });
 
   return (
     <Card className="w-full">
@@ -91,39 +106,7 @@ export const APIConfigManager = () => {
         <CardTitle>API Configurations</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="keyName">Key Name</Label>
-            <Input
-              id="keyName"
-              value={newKeyName}
-              onChange={(e) => setNewKeyName(e.target.value)}
-              placeholder="e.g., OPENAI_API_KEY"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
-            <Input
-              id="description"
-              value={newDescription}
-              onChange={(e) => setNewDescription(e.target.value)}
-              placeholder="Description of the API key's purpose"
-            />
-          </div>
-          <Button
-            type="submit"
-            disabled={createMutation.isPending}
-            className="w-full"
-          >
-            {createMutation.isPending && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            Add API Configuration
-          </Button>
-        </form>
-
         <div className="space-y-4">
-          <h3 className="font-medium">Existing Configurations</h3>
           {isLoading ? (
             <div className="flex justify-center">
               <Loader2 className="h-6 w-6 animate-spin" />
