@@ -45,6 +45,7 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
 
       // Get the appropriate price ID based on billing interval
       const priceId = isYearly ? tier.stripe_yearly_price_id : tier.stripe_price_id;
+      console.log('Using price ID:', priceId); // Debug log
 
       if (!priceId) {
         toast({
@@ -55,32 +56,31 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
         return;
       }
 
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          priceId,
-          isYearly,
-        }),
+      console.log('Calling create-checkout-session with:', { priceId, isYearly }); // Debug log
+
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { priceId, isYearly },
       });
 
-      const { url, error } = await response.json();
+      console.log('Response from create-checkout-session:', { data, error }); // Debug log
 
       if (error) {
+        console.error('Supabase function error:', error);
         toast({
           title: "Error",
-          description: error,
+          description: error.message || "Failed to start checkout process",
           variant: "destructive",
         });
         return;
       }
 
-      window.location.href = url;
+      if (!data?.url) {
+        throw new Error('No checkout URL received');
+      }
+
+      window.location.href = data.url;
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error in handleSubscribe:', error);
       toast({
         title: "Error",
         description: "Failed to start checkout process",
