@@ -15,7 +15,7 @@ serve(async (req) => {
     const { preferences } = await req.json();
     console.log("Received preferences:", preferences);
 
-    const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. The story should be engaging and end with a clear moral lesson. Keep it concise but meaningful.`;
+    const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Keep it concise but meaningful. Do not use asterisks or other decorative characters in the formatting.`;
 
     console.log("Sending prompt to OpenAI:", prompt);
 
@@ -30,7 +30,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a skilled storyteller who creates engaging, age-appropriate stories with clear moral lessons.',
+            content: 'You are a skilled storyteller who creates engaging, age-appropriate stories with clear moral lessons. Format the output with a Title at the start and a Moral at the end, without using any asterisks or decorative characters.',
           },
           {
             role: 'user',
