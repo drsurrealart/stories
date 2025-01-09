@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, BookOpen, History, Plus, Settings } from "lucide-react";
 import { StoryStats } from "@/components/dashboard/StoryStats";
+import { AgeGroupsSection } from "@/components/landing/AgeGroupsSection";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -136,6 +137,11 @@ const Index = () => {
               )}
             </div>
           </Card>
+        </div>
+
+        {/* Age Groups Section */}
+        <div className="mt-12">
+          <AgeGroupsSection />
         </div>
       </div>
     </div>
