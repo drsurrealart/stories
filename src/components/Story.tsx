@@ -28,6 +28,14 @@ export function Story({ content, onReflect }: StoryProps) {
   const title = titleMatch ? titleMatch[1].trim() : "Untitled Story";
   const storyWithoutTitle = storyContent.replace(/^.+?\n/, '').trim();
 
+  // Generate a slug from the title
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  };
+
   // Fetch saved stories count and limit
   const { data: saveLimits } = useQuery({
     queryKey: ['user-save-limits'],
@@ -102,6 +110,8 @@ export function Story({ content, onReflect }: StoryProps) {
         return;
       }
 
+      const slug = generateSlug(title);
+
       const { error } = await supabase
         .from('stories')
         .insert({
@@ -111,6 +121,7 @@ export function Story({ content, onReflect }: StoryProps) {
           author_id: session.user.id,
           age_group: "preschool",
           genre: "fantasy",
+          slug
         });
 
       if (error) {
