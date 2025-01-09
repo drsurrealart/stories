@@ -16,6 +16,7 @@ interface StoryProps {
 export function Story({ content, onReflect }: StoryProps) {
   const [feedback, setFeedback] = useState<"liked" | "disliked" | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [storySlug, setStorySlug] = useState<string>("");
   const { toast } = useToast();
 
   // Split content to separate moral from the rest of the story
@@ -88,6 +89,7 @@ export function Story({ content, onReflect }: StoryProps) {
 
       // Generate a random slug for the story
       const slug = Math.random().toString(36).substring(2, 15);
+      setStorySlug(slug);
 
       // First, check if the story already exists to prevent duplicates
       const { data: existingStories } = await supabase
@@ -166,7 +168,7 @@ export function Story({ content, onReflect }: StoryProps) {
             title={title}
             content={storyWithoutTitle}
             moral={moral}
-            url={`${window.location.origin}/story/${slug}`}
+            url={`${window.location.origin}/story/${storySlug}`}
           />
         </div>
       </div>
