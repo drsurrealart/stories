@@ -21,15 +21,39 @@ const AdminUsers = () => {
   const { data: users, isLoading, error } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_details')
-        .select('*')
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          subscription_level,
+          created_at,
+          user_story_counts (
+            credits_used
+          )
+        `)
         .order('created_at', { ascending: false });
       
-      if (error) {
-        throw error;
+      if (profilesError) {
+        throw profilesError;
       }
-      return data;
+
+      // Get user emails from auth.users through an admin function
+      const { data: authUsers, error: authError } = await supabase
+        .from('profiles')
+        .select('id, email:id');
+
+      if (authError) {
+        throw authError;
+      }
+
+      // Combine the data
+      return profiles.map(profile => ({
+        ...profile,
+        credits_used: profile.user_story_counts?.[0]?.credits_used || 0,
+        email: authUsers?.find(u => u.id === profile.id)?.email || 'N/A'
+      }));
     },
   });
 
@@ -85,11 +109,11 @@ const AdminUsers = () => {
                   {users?.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
-                        {user.first_name} {user.last_name}
+                        {user.first_name || ''} {user.last_name || ''}
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell className="capitalize">
-                        {user.subscription_level}
+                        {user.subscription_level || 'free'}
                       </TableCell>
                       <TableCell>{user.credits_used}</TableCell>
                       <TableCell>
