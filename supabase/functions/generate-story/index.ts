@@ -53,7 +53,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
@@ -79,31 +79,27 @@ serve(async (req) => {
     const data = await openAIResponse.json();
     console.log("OpenAI response received");
 
-    // First, get the current credits_used for this month
+    // Update the credits_used count for the current month
     const currentMonth = new Date().toISOString().slice(0, 7);
-    const { data: currentCount, error: fetchError } = await supabase
-      .from('user_story_counts')
-      .select('credits_used')
-      .eq('user_id', user.id)
-      .eq('month_year', currentMonth)
-      .single();
-
-    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-      console.error("Error fetching current count:", fetchError);
-      throw fetchError;
-    }
-
-    const currentCredits = currentCount?.credits_used || 0;
     
-    // Then update or insert the new count
+    // Use a single query to update or insert the credit count
     const { error: countError } = await supabase
       .from('user_story_counts')
-      .upsert({
-        user_id: user.id,
-        month_year: currentMonth,
-        credits_used: currentCredits + 1,
-        updated_at: new Date().toISOString()
-      });
+      .upsert(
+        {
+          user_id: user.id,
+          month_year: currentMonth,
+          credits_used: 1,
+          updated_at: new Date().toISOString()
+        },
+        {
+          onConflict: 'user_id,month_year',
+          update: {
+            credits_used: supabase.sql`COALESCE(user_story_counts.credits_used, 0) + 1`,
+            updated_at: new Date().toISOString()
+          }
+        }
+      );
 
     if (countError) {
       console.error("Error incrementing credit count:", countError);
