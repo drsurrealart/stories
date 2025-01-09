@@ -79,20 +79,30 @@ serve(async (req) => {
     const data = await openAIResponse.json();
     console.log("OpenAI response received");
 
-    // Update user's credit usage for the current month
+    // First, get the current credits_used for this month
     const currentMonth = new Date().toISOString().slice(0, 7);
+    const { data: currentCount, error: fetchError } = await supabase
+      .from('user_story_counts')
+      .select('credits_used')
+      .eq('user_id', user.id)
+      .eq('month_year', currentMonth)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+      console.error("Error fetching current count:", fetchError);
+      throw fetchError;
+    }
+
+    const currentCredits = currentCount?.credits_used || 0;
+    
+    // Then update or insert the new count
     const { error: countError } = await supabase
       .from('user_story_counts')
       .upsert({
         user_id: user.id,
         month_year: currentMonth,
-        credits_used: 1
-      }, {
-        onConflict: 'user_id,month_year',
-        update: {
-          credits_used: supabase.raw('user_story_counts.credits_used + 1'),
-          updated_at: new Date().toISOString()
-        }
+        credits_used: currentCredits + 1,
+        updated_at: new Date().toISOString()
       });
 
     if (countError) {
