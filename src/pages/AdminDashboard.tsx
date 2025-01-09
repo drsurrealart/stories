@@ -5,8 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { NavigationBar } from "@/components/NavigationBar";
 import { StatsCards } from "@/components/admin/StatsCards";
 import { SubscriptionChart } from "@/components/admin/SubscriptionChart";
-import { SubscriptionTierManager } from "@/components/admin/SubscriptionTierManager";
-import { APIConfigManager } from "@/components/admin/APIConfigManager";
 import { AdminNav } from "@/components/admin/AdminNav";
 
 interface UserStatistics {
@@ -157,14 +155,6 @@ const AdminDashboard = () => {
               isLoading={isLoadingStats}
               data={subscriptionData}
             />
-
-            <div className="mt-8">
-              <SubscriptionTierManager />
-            </div>
-
-            <div className="mt-8">
-              <APIConfigManager />
-            </div>
           </div>
         </div>
       </div>
