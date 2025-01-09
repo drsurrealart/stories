@@ -34,7 +34,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
   });
   const { toast } = useToast();
 
-  // Fetch user's story count and subscription tier
+  // Fetch user's credit count and subscription tier
   const { data: userLimits } = useQuery({
     queryKey: ['user-story-limits'],
     queryFn: async () => {
@@ -51,22 +51,22 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
       // Get subscription tier limits
       const { data: tierLimits } = await supabase
         .from('subscription_tiers')
-        .select('stories_per_month')
+        .select('monthly_credits')
         .eq('level', profile?.subscription_level || 'free')
         .single();
 
-      // Get current month's story count
+      // Get current month's credit usage
       const currentMonth = new Date().toISOString().slice(0, 7);
-      const { data: storyCount } = await supabase
+      const { data: creditCount } = await supabase
         .from('user_story_counts')
-        .select('stories_generated')
+        .select('credits_used')
         .eq('user_id', session.user.id)
         .eq('month_year', currentMonth)
         .single();
 
       return {
-        storiesGenerated: storyCount?.stories_generated || 0,
-        monthlyLimit: tierLimits?.stories_per_month || 0,
+        creditsUsed: creditCount?.credits_used || 0,
+        monthlyCredits: tierLimits?.monthly_credits || 0,
         subscriptionLevel: profile?.subscription_level || 'free'
       };
     }
@@ -126,10 +126,10 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
       return;
     }
 
-    if (userLimits && userLimits.storiesGenerated >= userLimits.monthlyLimit) {
+    if (userLimits && userLimits.creditsUsed >= userLimits.monthlyCredits) {
       toast({
-        title: "Monthly limit reached",
-        description: `You've reached your ${userLimits.monthlyLimit} stories limit for this month. Upgrade your subscription to generate more stories!`,
+        title: "Monthly credit limit reached",
+        description: `You've used all your ${userLimits.monthlyCredits} AI credits for this month. Upgrade your subscription to get more credits!`,
         variant: "destructive",
       });
       return;
@@ -147,7 +147,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
 
       {userLimits && (
         <div className="text-sm text-muted-foreground">
-          Stories this month: {userLimits.storiesGenerated} / {userLimits.monthlyLimit}
+          AI Credits remaining: {userLimits.monthlyCredits - userLimits.creditsUsed} / {userLimits.monthlyCredits}
         </div>
       )}
 
@@ -208,7 +208,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
         ) : (
           <>
             <Wand2 className="w-4 h-4 mr-2" />
-            Create Story
+            Create Story (Uses 1 Credit)
           </>
         )}
       </Button>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, BookOpen, History, Plus, Settings } from "lucide-react";
+import { Loader2, BookOpen, History, Plus, Settings, CreditCard } from "lucide-react";
 import { StoryStats } from "@/components/dashboard/StoryStats";
 import { AgeGroupsSection } from "@/components/landing/AgeGroupsSection";
 
@@ -26,6 +26,36 @@ const Index = () => {
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: credits, isLoading: creditsLoading } = useQuery({
+    queryKey: ['user-credits'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('No session');
+
+      // Get subscription tier limits
+      const { data: tierLimits } = await supabase
+        .from('subscription_tiers')
+        .select('monthly_credits')
+        .eq('level', profile?.subscription_level || 'free')
+        .single();
+
+      // Get current month's credit usage
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const { data: creditCount } = await supabase
+        .from('user_story_counts')
+        .select('credits_used')
+        .eq('user_id', session.user.id)
+        .eq('month_year', currentMonth)
+        .single();
+
+      return {
+        used: creditCount?.credits_used || 0,
+        total: tierLimits?.monthly_credits || 0
+      };
+    },
+    enabled: !!profile
   });
 
   const { data: recentStories, isLoading: storiesLoading } = useQuery({
@@ -50,7 +80,7 @@ const Index = () => {
     await supabase.auth.signOut();
   };
 
-  if (profileLoading || storiesLoading) {
+  if (profileLoading || creditsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin" />
@@ -92,18 +122,23 @@ const Index = () => {
             </div>
           </Card>
 
-          {/* Subscription Status */}
+          {/* AI Credits Status */}
           <Card className="p-6 space-y-4">
-            <h2 className="text-xl font-semibold">Current Plan</h2>
-            <div className="space-y-2">
-              <p className="text-lg font-medium capitalize">
-                {profile?.subscription_level || 'Free'} Plan
-              </p>
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              AI Credits
+            </h2>
+            <div className="space-y-3">
+              <div className="text-2xl font-bold">
+                {credits ? `${credits.total - credits.used} / ${credits.total}` : '0 / 0'}
+              </div>
+              <p className="text-sm text-muted-foreground">Credits remaining this month</p>
               <Button 
                 variant="outline" 
+                className="w-full"
                 onClick={() => navigate('/my-subscriptions')}
               >
-                Manage Subscription
+                Get More Credits
               </Button>
             </div>
           </Card>

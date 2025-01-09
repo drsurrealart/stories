@@ -145,10 +145,10 @@ export type Database = {
           features: Json
           id: string
           level: Database["public"]["Enums"]["subscription_level"]
+          monthly_credits: number
           name: string
           price: number
           saved_stories_limit: number
-          stories_per_month: number
           stripe_price_id: string | null
           stripe_yearly_price_id: string | null
           updated_at: string
@@ -160,10 +160,10 @@ export type Database = {
           features?: Json
           id?: string
           level: Database["public"]["Enums"]["subscription_level"]
+          monthly_credits: number
           name: string
           price: number
           saved_stories_limit: number
-          stories_per_month: number
           stripe_price_id?: string | null
           stripe_yearly_price_id?: string | null
           updated_at?: string
@@ -175,10 +175,10 @@ export type Database = {
           features?: Json
           id?: string
           level?: Database["public"]["Enums"]["subscription_level"]
+          monthly_credits?: number
           name?: string
           price?: number
           saved_stories_limit?: number
-          stories_per_month?: number
           stripe_price_id?: string | null
           stripe_yearly_price_id?: string | null
           updated_at?: string
@@ -189,25 +189,25 @@ export type Database = {
       user_story_counts: {
         Row: {
           created_at: string
+          credits_used: number | null
           id: string
           month_year: string
-          stories_generated: number | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
           created_at?: string
+          credits_used?: number | null
           id?: string
           month_year: string
-          stories_generated?: number | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
           created_at?: string
+          credits_used?: number | null
           id?: string
           month_year?: string
-          stories_generated?: number | null
           updated_at?: string
           user_id?: string | null
         }
