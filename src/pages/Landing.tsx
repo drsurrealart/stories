@@ -8,7 +8,7 @@ const Landing = () => {
       {/* Hero Section */}
       <section className="container mx-auto px-4 pt-12 md:pt-20 pb-16 md:pb-32 text-center">
         <img 
-          src="/logo.png" 
+          src="https://media.learnmorals.com/images/logo.png" 
           alt="LearnMorals.com Logo" 
           className="w-32 h-32 mx-auto mb-6 animate-fade-in"
         />
