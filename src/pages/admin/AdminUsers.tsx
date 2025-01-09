@@ -40,7 +40,7 @@ const AdminUsers = () => {
         .select('*');
       if (userError) throw userError;
 
-      // Get total stories created for each user
+      // Get total stories for each user
       const { data: stories, error: storyError } = await supabase
         .from('stories')
         .select('author_id, title, content');
@@ -74,11 +74,17 @@ const AdminUsers = () => {
             usage.month_year === currentMonth
           )?.credits_used || 0;
 
+        // Get total stories (all stories, including drafts)
+        const totalStories = stories.filter(story => 
+          story.author_id === user.id
+        ).length;
+
         return {
           ...user,
           savedStories,
           totalCredits,
           currentMonthUsage,
+          totalStories
         };
       });
     },
@@ -134,7 +140,8 @@ const AdminUsers = () => {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Subscription</TableHead>
-                  <TableHead>Total Stories Generated</TableHead>
+                  <TableHead>AI Credits Used</TableHead>
+                  <TableHead>Total Stories</TableHead>
                   <TableHead>Saved Stories</TableHead>
                   <TableHead>Current Month Credits</TableHead>
                   <TableHead>Member Since</TableHead>
@@ -151,16 +158,17 @@ const AdminUsers = () => {
                       {user.subscription_level}
                     </TableCell>
                     <TableCell>{user.totalCredits}</TableCell>
+                    <TableCell>{user.totalStories}</TableCell>
                     <TableCell>{user.savedStories}</TableCell>
                     <TableCell>{user.currentMonthUsage}</TableCell>
                     <TableCell>
                       {user.created_at 
-                        ? format(new Date(user.created_at), 'MMM d, yyyy')
+                        ? format(new Date(user.created_at), 'MM/dd/yyyy')
                         : 'N/A'}
                     </TableCell>
                     <TableCell>
                       {user.upgrade_date 
-                        ? format(new Date(user.upgrade_date), 'MMM d, yyyy')
+                        ? format(new Date(user.upgrade_date), 'MM/dd/yyyy')
                         : 'Never'}
                     </TableCell>
                   </TableRow>
