@@ -52,7 +52,7 @@ const Index = () => {
   if (profileLoading || storiesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <Loader2 className="w-8 h-8 animate-spin" />
+        <Loader2 className="w-8 h-8 animate-spin icon" />
       </div>
     );
   }
@@ -68,7 +68,7 @@ const Index = () => {
           {/* Quick Actions */}
           <Card className="p-6 space-y-4">
             <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Settings className="w-5 h-5" />
+              <Settings className="w-5 h-5 icon" />
               Quick Actions
             </h2>
             <div className="space-y-3">
@@ -76,7 +76,7 @@ const Index = () => {
                 className="w-full justify-start" 
                 onClick={() => navigate('/create')}
               >
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="w-4 h-4 mr-2 icon" />
                 Create New Story
               </Button>
               <Button 
@@ -84,7 +84,7 @@ const Index = () => {
                 variant="secondary"
                 onClick={() => navigate('/your-stories')}
               >
-                <BookOpen className="w-4 h-4 mr-2" />
+                <BookOpen className="w-4 h-4 mr-2 icon" />
                 View All Stories
               </Button>
             </div>
@@ -109,7 +109,7 @@ const Index = () => {
           {/* Recent Activity */}
           <Card className="p-6 space-y-4">
             <h2 className="text-xl font-semibold flex items-center gap-2">
-              <History className="w-5 h-5" />
+              <History className="w-5 h-5 icon" />
               Recent Stories
             </h2>
             <div className="space-y-3">
