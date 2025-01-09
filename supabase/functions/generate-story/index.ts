@@ -79,20 +79,24 @@ serve(async (req) => {
     const data = await openAIResponse.json();
     console.log("OpenAI response received");
 
-    // Instead of using raw SQL, we'll use the Supabase client to handle the story count
+    // Update user's credit usage for the current month
     const currentMonth = new Date().toISOString().slice(0, 7);
     const { error: countError } = await supabase
       .from('user_story_counts')
       .upsert({
         user_id: user.id,
         month_year: currentMonth,
-        stories_generated: 1
+        credits_used: 1
       }, {
-        onConflict: 'user_id,month_year'
+        onConflict: 'user_id,month_year',
+        update: {
+          credits_used: supabase.raw('user_story_counts.credits_used + 1'),
+          updated_at: new Date().toISOString()
+        }
       });
 
     if (countError) {
-      console.error("Error incrementing story count:", countError);
+      console.error("Error incrementing credit count:", countError);
       throw countError;
     }
 
