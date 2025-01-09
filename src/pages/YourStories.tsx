@@ -127,6 +127,8 @@ const YourStories = () => {
                 <div className="pt-4 border-t">
                   <StorySocialShare
                     title={story.title}
+                    content={story.content}
+                    moral={story.moral}
                     url={window.location.href}
                   />
                 </div>

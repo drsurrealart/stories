@@ -160,6 +160,8 @@ export function Story({ content, onReflect }: StoryProps) {
           />
           <StorySocialShare
             title={title}
+            content={storyWithoutTitle}
+            moral={moral}
             url={window.location.href}
           />
         </div>
