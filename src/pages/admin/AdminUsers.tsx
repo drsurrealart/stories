@@ -4,14 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 const AdminUsers = () => {
   const handleLogout = async () => {
@@ -21,39 +13,11 @@ const AdminUsers = () => {
   const { data: users, isLoading, error } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          first_name,
-          last_name,
-          subscription_level,
-          created_at,
-          user_story_counts (
-            credits_used
-          )
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (profilesError) {
-        throw profilesError;
+      const { data, error } = await supabase.from('profiles').select('*');
+      if (error) {
+        throw error;
       }
-
-      // Get user emails from auth.users through an admin function
-      const { data: authUsers, error: authError } = await supabase
-        .from('profiles')
-        .select('id, email:id');
-
-      if (authError) {
-        throw authError;
-      }
-
-      // Combine the data
-      return profiles.map(profile => ({
-        ...profile,
-        credits_used: profile.user_story_counts?.[0]?.credits_used || 0,
-        email: authUsers?.find(u => u.id === profile.id)?.email || 'N/A'
-      }));
+      return data;
     },
   });
 
@@ -62,9 +26,11 @@ const AdminUsers = () => {
       <>
         <NavigationBar onLogout={handleLogout} />
         <div className="container mx-auto p-6">
-          <div className="grid gap-4">
-            <Skeleton className="h-8 w-48 mb-8" />
-            <Skeleton className="h-[300px]" />
+          <Skeleton className="h-8 w-48 mb-8" />
+          <div className="grid gap-4 md:grid-cols-3">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
           </div>
         </div>
       </>
@@ -77,7 +43,7 @@ const AdminUsers = () => {
         <NavigationBar onLogout={handleLogout} />
         <Alert variant="destructive" className="m-6">
           <AlertDescription>
-            Error loading users: {error.message}
+            Error loading users. Please try again later.
           </AlertDescription>
         </Alert>
       </>
@@ -94,36 +60,28 @@ const AdminUsers = () => {
           </div>
           <div className="col-span-12 md:col-span-9 lg:col-span-10">
             <h1 className="text-3xl font-bold mb-8">User Management</h1>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Subscription</TableHead>
-                    <TableHead>Credits Used</TableHead>
-                    <TableHead>Joined</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users?.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>
-                        {user.first_name || ''} {user.last_name || ''}
-                      </TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell className="capitalize">
-                        {user.subscription_level || 'free'}
-                      </TableCell>
-                      <TableCell>{user.credits_used}</TableCell>
-                      <TableCell>
-                        {new Date(user.created_at).toLocaleDateString()}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <table className="min-w-full">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2">Name</th>
+                  <th className="px-4 py-2">Subscription Level</th>
+                  <th className="px-4 py-2">Created At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user.id}>
+                    <td className="border px-4 py-2">
+                      {user.first_name} {user.last_name}
+                    </td>
+                    <td className="border px-4 py-2">{user.subscription_level}</td>
+                    <td className="border px-4 py-2">
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
