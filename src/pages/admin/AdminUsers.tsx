@@ -4,6 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const AdminUsers = () => {
   const handleLogout = async () => {
@@ -13,7 +21,11 @@ const AdminUsers = () => {
   const { data: users, isLoading, error } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const { data, error } = await supabase.from('profiles').select('*');
+      const { data, error } = await supabase
+        .from('user_details')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
       if (error) {
         throw error;
       }
@@ -26,11 +38,9 @@ const AdminUsers = () => {
       <>
         <NavigationBar onLogout={handleLogout} />
         <div className="container mx-auto p-6">
-          <Skeleton className="h-8 w-48 mb-8" />
-          <div className="grid gap-4 md:grid-cols-3">
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
+          <div className="grid gap-4">
+            <Skeleton className="h-8 w-48 mb-8" />
+            <Skeleton className="h-[300px]" />
           </div>
         </div>
       </>
@@ -43,7 +53,7 @@ const AdminUsers = () => {
         <NavigationBar onLogout={handleLogout} />
         <Alert variant="destructive" className="m-6">
           <AlertDescription>
-            Error loading users. Please try again later.
+            Error loading users: {error.message}
           </AlertDescription>
         </Alert>
       </>
@@ -60,28 +70,36 @@ const AdminUsers = () => {
           </div>
           <div className="col-span-12 md:col-span-9 lg:col-span-10">
             <h1 className="text-3xl font-bold mb-8">User Management</h1>
-            <table className="min-w-full">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2">Name</th>
-                  <th className="px-4 py-2">Subscription Level</th>
-                  <th className="px-4 py-2">Created At</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.id}>
-                    <td className="border px-4 py-2">
-                      {user.first_name} {user.last_name}
-                    </td>
-                    <td className="border px-4 py-2">{user.subscription_level}</td>
-                    <td className="border px-4 py-2">
-                      {new Date(user.created_at).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Subscription</TableHead>
+                    <TableHead>Credits Used</TableHead>
+                    <TableHead>Joined</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users?.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        {user.first_name} {user.last_name}
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell className="capitalize">
+                        {user.subscription_level}
+                      </TableCell>
+                      <TableCell>{user.credits_used}</TableCell>
+                      <TableCell>
+                        {new Date(user.created_at).toLocaleDateString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </div>
       </div>
