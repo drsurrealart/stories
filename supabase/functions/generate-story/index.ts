@@ -9,7 +9,7 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
@@ -34,10 +34,12 @@ serve(async (req) => {
     // Create character names string if provided
     const characterNames = [preferences.characterName1, preferences.characterName2]
       .filter(Boolean)
+      .map(name => name.trim())
+      .filter(name => name.length > 0 && name.length <= 20)
       .join(" and ");
     
     const characterPrompt = characterNames 
-      ? `Use the character names "${characterNames}" as the main characters in the story.`
+      ? `Use the character names "${characterNames}" as the main characters in the story. Make sure these characters play central roles in the narrative.`
       : "Create appropriate character names for the story.";
 
     const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Keep it concise but meaningful. Do not use asterisks or other decorative characters in the formatting.`;
@@ -51,7 +53,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',

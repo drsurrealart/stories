@@ -81,6 +81,24 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     });
   };
 
+  const validateName = (name: string) => {
+    if (name && name.length > 20) {
+      toast({
+        title: "Name too long",
+        description: "Character names must be 20 characters or less",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const handleNameChange = (field: 'characterName1' | 'characterName2', value: string) => {
+    if (!value || validateName(value)) {
+      setPreferences({ ...preferences, [field]: value });
+    }
+  };
+
   const handleSubmit = async () => {
     if (!preferences.genre || !preferences.ageGroup || !preferences.moral) {
       toast({
@@ -88,6 +106,13 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
         description: "We need these details to create your perfect story!",
         variant: "destructive",
       });
+      return;
+    }
+
+    if (
+      (preferences.characterName1 && !validateName(preferences.characterName1)) ||
+      (preferences.characterName2 && !validateName(preferences.characterName2))
+    ) {
       return;
     }
 
@@ -155,7 +180,8 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
               id="characterName1"
               placeholder="Enter a character name"
               value={preferences.characterName1}
-              onChange={(e) => setPreferences({ ...preferences, characterName1: e.target.value })}
+              onChange={(e) => handleNameChange('characterName1', e.target.value)}
+              maxLength={20}
             />
           </div>
 
@@ -165,7 +191,8 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
               id="characterName2"
               placeholder="Enter another character name"
               value={preferences.characterName2}
-              onChange={(e) => setPreferences({ ...preferences, characterName2: e.target.value })}
+              onChange={(e) => handleNameChange('characterName2', e.target.value)}
+              maxLength={20}
             />
           </div>
         </div>
