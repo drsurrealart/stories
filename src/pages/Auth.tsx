@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
@@ -7,7 +7,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Auth = () => {
   const navigate = useNavigate();
-  const [view, setView] = useState<"sign_in" | "sign_up">("sign_up");
 
   useEffect(() => {
     // Check current session on mount
@@ -33,11 +32,6 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Update view when auth UI changes view
-  const handleViewChange = (newView: 'sign_in' | 'sign_up') => {
-    setView(newView);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background p-6">
       <div className="max-w-md mx-auto space-y-8">
@@ -49,9 +43,7 @@ const Auth = () => {
               className="w-24 h-24 mb-4"
             />
             <h1 className="text-3xl font-bold text-center">Welcome</h1>
-            <h2 className="text-xl font-semibold text-primary mt-4">
-              {view === "sign_up" ? "Signup Free" : "Login Now"}
-            </h2>
+            <h2 className="text-xl font-semibold text-primary mt-4">Signup Free or Login Now</h2>
           </div>
           <SupabaseAuth 
             supabaseClient={supabase}
@@ -75,7 +67,7 @@ const Auth = () => {
               },
             }}
             providers={[]}
-            view={view}
+            view="sign_up"
           />
         </div>
       </div>
