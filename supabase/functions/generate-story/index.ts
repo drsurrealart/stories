@@ -79,26 +79,30 @@ serve(async (req) => {
     const data = await openAIResponse.json();
     console.log("OpenAI response received");
 
-    // Update the credits_used count for the current month using upsert
+    // First, get the current credits count
     const currentMonth = new Date().toISOString().slice(0, 7);
-    
+    const { data: currentCount, error: countError } = await supabase
+      .from('user_story_counts')
+      .select('credits_used')
+      .eq('user_id', user.id)
+      .eq('month_year', currentMonth)
+      .single();
+
+    if (countError && countError.code !== 'PGRST116') { // PGRST116 is "not found" error
+      console.error("Error fetching current count:", countError);
+      throw countError;
+    }
+
+    // Then either insert new record or update existing one
+    const newCreditsCount = (currentCount?.credits_used || 0) + 1;
     const { error: creditError } = await supabase
       .from('user_story_counts')
-      .upsert(
-        {
-          user_id: user.id,
-          month_year: currentMonth,
-          credits_used: 1,
-          updated_at: new Date().toISOString()
-        },
-        {
-          onConflict: 'user_id,month_year',
-          update: {
-            credits_used: db.raw('COALESCE(user_story_counts.credits_used, 0) + 1'),
-            updated_at: new Date().toISOString()
-          }
-        }
-      );
+      .upsert({
+        user_id: user.id,
+        month_year: currentMonth,
+        credits_used: newCreditsCount,
+        updated_at: new Date().toISOString()
+      });
 
     if (creditError) {
       console.error("Error updating credit count:", creditError);
