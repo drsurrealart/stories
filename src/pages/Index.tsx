@@ -51,24 +51,25 @@ const Index = () => {
 
   if (profileLoading || storiesLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Loader2 className="w-8 h-8 animate-spin icon" />
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       <NavigationBar onLogout={handleLogout} />
       
       <div className="max-w-6xl mx-auto p-6 space-y-8">
+        {/* Story Stats */}
         <StoryStats />
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Quick Actions */}
           <Card className="p-6 space-y-4">
             <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Settings className="w-5 h-5 icon" />
+              <Settings className="w-5 h-5" />
               Quick Actions
             </h2>
             <div className="space-y-3">
@@ -76,7 +77,7 @@ const Index = () => {
                 className="w-full justify-start" 
                 onClick={() => navigate('/create')}
               >
-                <Plus className="w-4 h-4 mr-2 icon" />
+                <Plus className="w-4 h-4 mr-2" />
                 Create New Story
               </Button>
               <Button 
@@ -84,7 +85,7 @@ const Index = () => {
                 variant="secondary"
                 onClick={() => navigate('/your-stories')}
               >
-                <BookOpen className="w-4 h-4 mr-2 icon" />
+                <BookOpen className="w-4 h-4 mr-2" />
                 View All Stories
               </Button>
             </div>
@@ -109,7 +110,7 @@ const Index = () => {
           {/* Recent Activity */}
           <Card className="p-6 space-y-4">
             <h2 className="text-xl font-semibold flex items-center gap-2">
-              <History className="w-5 h-5 icon" />
+              <History className="w-5 h-5" />
               Recent Stories
             </h2>
             <div className="space-y-3">
@@ -117,10 +118,10 @@ const Index = () => {
                 recentStories.map((story) => (
                   <div 
                     key={story.id} 
-                    className="p-3 bg-card rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
+                    className="p-3 bg-story-background rounded-lg cursor-pointer hover:bg-opacity-80 transition-colors"
                     onClick={() => navigate('/your-stories')}
                   >
-                    <p className="font-medium truncate">
+                    <p className="font-medium text-story-text truncate">
                       {story.title}
                     </p>
                     <p className="text-sm text-muted-foreground">
