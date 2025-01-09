@@ -3,7 +3,6 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { StoryContent } from "./story/StoryContent";
-import { StoryFeedback } from "./story/StoryFeedback";
 import { StoryActions } from "./story/StoryActions";
 import { StorySocialShare } from "./story/StorySocialShare";
 import { useQuery } from "@tanstack/react-query";
@@ -15,7 +14,6 @@ interface StoryProps {
 }
 
 export function Story({ content, onReflect }: StoryProps) {
-  const [feedback, setFeedback] = useState<"liked" | "disliked" | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
@@ -155,15 +153,6 @@ export function Story({ content, onReflect }: StoryProps) {
       />
 
       <div className="border-t pt-4 md:pt-6 space-y-3 md:space-y-4">
-        {saveLimits && (
-          <div className="text-sm text-muted-foreground">
-            Saved stories: {saveLimits.savedCount} / {saveLimits.saveLimit}
-          </div>
-        )}
-        <StoryFeedback
-          feedback={feedback}
-          onFeedback={setFeedback}
-        />
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <StoryActions
             onSave={handleSaveStory}
