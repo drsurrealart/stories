@@ -9,7 +9,14 @@ export const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3">
-            <h3 className="font-semibold text-lg">LearnMorals.com</h3>
+            <div className="flex flex-col items-start gap-2">
+              <img 
+                src="/lovable-uploads/a9b9dcba-e93f-40b8-b434-166fe8567c97.png" 
+                alt="LearnMorals.com Logo" 
+                className="h-6 w-6"
+              />
+              <h3 className="font-semibold text-lg">LearnMorals.com</h3>
+            </div>
             <p className="text-sm text-gray-600">
               Creating personalized stories with meaningful moral lessons for readers of all ages.
             </p>
@@ -71,6 +78,7 @@ export const Footer = () => {
               </Link>
             </div>
           </div>
+          
         </div>
         
         <div className="mt-8 pt-8 border-t text-center text-sm text-gray-600">
