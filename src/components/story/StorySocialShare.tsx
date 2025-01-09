@@ -1,4 +1,4 @@
-import { Mail, Facebook, Twitter, WhatsApp } from "lucide-react";
+import { Mail, Facebook, Twitter, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface StorySocialShareProps {
@@ -58,7 +58,7 @@ export function StorySocialShare({ title, content, moral, url }: StorySocialShar
         onClick={() => handleShare('whatsapp')}
         className="text-primary hover:text-primary-hover"
       >
-        <WhatsApp className="h-4 w-4" />
+        <MessageCircle className="h-4 w-4" />
       </Button>
       <Button
         variant="ghost"
