@@ -25,9 +25,16 @@ export const AgeGroupsSection = () => {
       displayMorals: 4
     },
     {
-      title: "Teen & Adult (13+)",
+      title: "Teen (13-17)",
       description: "Thought-provoking stories with deep insights",
       key: "teen",
+      displayGenres: 4,
+      displayMorals: 4
+    },
+    {
+      title: "Adult (18+)",
+      description: "Sophisticated narratives exploring complex themes",
+      key: "adult",
       displayGenres: 4,
       displayMorals: 4
     }
@@ -39,7 +46,7 @@ export const AgeGroupsSection = () => {
         <h2 className="text-2xl md:text-4xl font-bold text-center mb-8 md:mb-12 text-primary">
           Stories for Every Age
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           {ageGroups.map((group) => (
             <div key={group.key} className="p-6 bg-story-background rounded-lg">
               <div className="text-center mb-6">
