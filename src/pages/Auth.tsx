@@ -36,7 +36,15 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background p-6">
       <div className="max-w-md mx-auto space-y-8">
         <div className="bg-card rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-center mb-8">Welcome to AI Story Time</h1>
+          <div className="flex flex-col items-center mb-8">
+            <img 
+              src="/lovable-uploads/a9b9dcba-e93f-40b8-b434-166fe8567c97.png" 
+              alt="AI Story Time Logo" 
+              className="w-24 h-24 mb-4"
+            />
+            <h1 className="text-3xl font-bold text-center">Welcome</h1>
+            <h2 className="text-xl font-semibold text-primary mt-4">Signup Free or Login Now</h2>
+          </div>
           <SupabaseAuth 
             supabaseClient={supabase}
             appearance={{
@@ -49,8 +57,17 @@ const Auth = () => {
                   },
                 },
               },
+              style: {
+                button: {
+                  borderRadius: '8px',
+                },
+                anchor: {
+                  color: '#9b87f5',
+                },
+              },
             }}
             providers={[]}
+            view="sign_up"
           />
         </div>
       </div>
