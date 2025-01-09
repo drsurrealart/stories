@@ -70,12 +70,6 @@ const Create = () => {
 
       setStory(storyContent);
       setAppState("story");
-      
-      toast({
-        title: "Story created successfully!",
-        description: "Your story has been generated and saved.",
-        variant: "success",
-      });
     } catch (error) {
       console.error("Error generating story:", error);
       toast({
