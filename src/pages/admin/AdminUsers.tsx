@@ -1,9 +1,9 @@
-import { NavigationBar } from "@/components/NavigationBar";
-import { AdminNav } from "@/components/admin/AdminNav";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NavigationBar } from "@/components/NavigationBar";
+import { AdminNav } from "@/components/admin/AdminNav";
 import {
   Table,
   TableBody,
@@ -33,11 +33,45 @@ const AdminUsers = () => {
   const { data: users, isLoading, error } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const { data, error } = await supabase.from('user_details_secure').select('*');
-      if (error) {
-        throw error;
-      }
-      return data;
+      // Get user details
+      const { data: userDetails, error: userError } = await supabase
+        .from('user_details_secure')
+        .select('*');
+      if (userError) throw userError;
+
+      // Get story counts for each user
+      const { data: storyCounts, error: countError } = await supabase
+        .from('user_story_counts')
+        .select('user_id, credits_used');
+      if (countError) throw countError;
+
+      // Get saved stories count for each user
+      const { data: savedStories, error: storyError } = await supabase
+        .from('stories')
+        .select('author_id, title, content');
+      if (storyError) throw storyError;
+
+      // Combine the data
+      return userDetails.map(user => {
+        // Sum up all credits_used for this user
+        const totalCreated = storyCounts
+          .filter(count => count.user_id === user.id)
+          .reduce((sum, count) => sum + (count.credits_used || 0), 0);
+
+        // Count saved stories (those with both title and content)
+        const totalSaved = savedStories
+          .filter(story => 
+            story.author_id === user.id && 
+            story.title && 
+            story.content
+          ).length;
+
+        return {
+          ...user,
+          storiesCreated: totalCreated,
+          storiesSaved: totalSaved,
+        };
+      });
     },
   });
 
@@ -101,6 +135,8 @@ const AdminUsers = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Subscription Level</TableHead>
                   <TableHead>AI Credits Used</TableHead>
+                  <TableHead>Stories Created</TableHead>
+                  <TableHead>Stories Saved</TableHead>
                   <TableHead>Created At</TableHead>
                   <TableHead>Last Upgrade</TableHead>
                 </TableRow>
@@ -115,6 +151,8 @@ const AdminUsers = () => {
                       {user.subscription_level}
                     </TableCell>
                     <TableCell>{user.credits_used}</TableCell>
+                    <TableCell>{user.storiesCreated}</TableCell>
+                    <TableCell>{user.storiesSaved}</TableCell>
                     <TableCell>
                       {new Date(user.created_at).toLocaleDateString()}
                     </TableCell>
