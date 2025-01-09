@@ -7,6 +7,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function loadContentFilters(supabase: any) {
+  const { data: filters } = await supabase
+    .from('content_filters')
+    .select('word');
+  return filters?.map((f: any) => f.word.toLowerCase()) || [];
+}
+
+function containsInappropriateContent(text: string, bannedWords: string[]): boolean {
+  const normalizedText = text.toLowerCase();
+  return bannedWords.some(word => normalizedText.includes(word.toLowerCase()));
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -29,6 +41,17 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) throw new Error('Invalid token');
 
+    // Load content filters
+    const bannedWords = await loadContentFilters(supabase);
+
+    // Validate character names
+    if (preferences.characterName1 && containsInappropriateContent(preferences.characterName1, bannedWords)) {
+      throw new Error('Inappropriate content detected in character name');
+    }
+    if (preferences.characterName2 && containsInappropriateContent(preferences.characterName2, bannedWords)) {
+      throw new Error('Inappropriate content detected in character name');
+    }
+
     console.log("Received preferences:", preferences);
 
     // Create character names string if provided
@@ -42,7 +65,7 @@ serve(async (req) => {
       ? `Use the character names "${characterNames}" as the main characters in the story. Make sure these characters play central roles in the narrative.`
       : "Create appropriate character names for the story.";
 
-    const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Keep it concise but meaningful. Do not use asterisks or other decorative characters in the formatting. Do not start the title with "Title:".`;
+    const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Keep it concise but meaningful. Do not use asterisks or other decorative characters in the formatting. Do not start the title with "Title:". The story must be completely family-friendly and appropriate for children.`;
 
     console.log("Sending prompt to OpenAI:", prompt);
 
@@ -57,7 +80,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a skilled storyteller who creates engaging, age-appropriate stories with clear moral lessons. Each story must be completely unique - never reuse character names, plot elements, or titles from previous stories. Create fresh, original content every time. Format the output with a Title at the start and a Moral at the end, without using any asterisks or decorative characters. Do not prefix the title with "Title:".',
+            content: 'You are a skilled storyteller who creates engaging, age-appropriate stories with clear moral lessons. Each story must be completely unique - never reuse character names, plot elements, or titles from previous stories. Create fresh, original content every time. Format the output with a Title at the start and a Moral at the end, without using any asterisks or decorative characters. Do not prefix the title with "Title:". The content must be completely family-friendly and appropriate for children.',
           },
           {
             role: 'user',
@@ -79,8 +102,14 @@ serve(async (req) => {
     const data = await openAIResponse.json();
     console.log("OpenAI response received");
 
+    // Check generated content for inappropriate content
+    const generatedStory = data.choices[0].message.content;
+    if (containsInappropriateContent(generatedStory, bannedWords)) {
+      throw new Error('Inappropriate content detected in generated story. Please try again.');
+    }
+
     return new Response(
-      JSON.stringify({ story: data.choices[0].message.content }),
+      JSON.stringify({ story: generatedStory }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

@@ -60,6 +60,30 @@ export type Database = {
         }
         Relationships: []
       }
+      content_filters: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          updated_at: string
+          word: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          word: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          word?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

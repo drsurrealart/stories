@@ -8,9 +8,8 @@ import { GenreSelect } from "./story/GenreSelect";
 import { MoralSelect } from "./story/MoralSelect";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Loading } from "@/components/ui/loading";
+import { CharacterNameInput } from "./story/CharacterNameInput";
 
 export interface StoryPreferences {
   genre: string;
@@ -35,7 +34,6 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
   });
   const { toast } = useToast();
 
-  // Fetch user's credit count and subscription tier
   const { data: userLimits } = useQuery({
     queryKey: ['user-story-limits'],
     queryFn: async () => {
@@ -82,24 +80,6 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     });
   };
 
-  const validateName = (name: string) => {
-    if (name && name.length > 20) {
-      toast({
-        title: "Name too long",
-        description: "Character names must be 20 characters or less",
-        variant: "destructive",
-      });
-      return false;
-    }
-    return true;
-  };
-
-  const handleNameChange = (field: 'characterName1' | 'characterName2', value: string) => {
-    if (!value || validateName(value)) {
-      setPreferences({ ...preferences, [field]: value });
-    }
-  };
-
   const handleSubmit = async () => {
     if (!preferences.genre || !preferences.ageGroup || !preferences.moral) {
       toast({
@@ -107,13 +87,6 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
         description: "We need these details to create your perfect story!",
         variant: "destructive",
       });
-      return;
-    }
-
-    if (
-      (preferences.characterName1 && !validateName(preferences.characterName1)) ||
-      (preferences.characterName2 && !validateName(preferences.characterName2))
-    ) {
       return;
     }
 
@@ -175,27 +148,19 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
         )}
 
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="characterName1">Character Name 1 (Optional)</Label>
-            <Input
-              id="characterName1"
-              placeholder="Enter a character name"
-              value={preferences.characterName1}
-              onChange={(e) => handleNameChange('characterName1', e.target.value)}
-              maxLength={20}
-            />
-          </div>
+          <CharacterNameInput
+            id="characterName1"
+            label="Character Name 1 (Optional)"
+            value={preferences.characterName1 || ""}
+            onChange={(value) => setPreferences({ ...preferences, characterName1: value })}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="characterName2">Character Name 2 (Optional)</Label>
-            <Input
-              id="characterName2"
-              placeholder="Enter another character name"
-              value={preferences.characterName2}
-              onChange={(e) => handleNameChange('characterName2', e.target.value)}
-              maxLength={20}
-            />
-          </div>
+          <CharacterNameInput
+            id="characterName2"
+            label="Character Name 2 (Optional)"
+            value={preferences.characterName2 || ""}
+            onChange={(value) => setPreferences({ ...preferences, characterName2: value })}
+          />
         </div>
       </div>
 
