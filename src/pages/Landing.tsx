@@ -7,6 +7,11 @@ const Landing = () => {
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       {/* Hero Section */}
       <section className="container mx-auto px-4 pt-12 md:pt-20 pb-16 md:pb-32 text-center">
+        <img 
+          src="/logo.png" 
+          alt="LearnMorals.com Logo" 
+          className="w-32 h-32 mx-auto mb-6 animate-fade-in"
+        />
         <h1 className="text-4xl md:text-6xl font-bold text-primary mb-4 md:mb-6 animate-fade-in">
           AI Story Time
         </h1>
@@ -20,7 +25,6 @@ const Landing = () => {
           </Button>
         </Link>
       </section>
-
       {/* Age Groups Section */}
       <section className="bg-white py-12 md:py-20">
         <div className="container mx-auto px-4">
