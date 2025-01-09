@@ -56,7 +56,7 @@ const Create = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
+    <div className="min-h-screen bg-background">
       <NavigationBar onLogout={handleLogout} />
       <div className="max-w-4xl mx-auto p-6 space-y-8">
         <div className="flex justify-center">

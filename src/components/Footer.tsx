@@ -10,7 +10,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3">
             <h3 className="font-semibold text-lg">LearnMorals.com</h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Creating personalized stories with meaningful moral lessons for readers of all ages.
             </p>
           </div>
@@ -19,17 +19,17 @@ export const Footer = () => {
             <h3 className="font-semibold">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/dashboard" className="text-sm text-gray-600 hover:text-primary">
+                <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-primary">
                   Dashboard
                 </Link>
               </li>
               <li>
-                <Link to="/your-stories" className="text-sm text-gray-600 hover:text-primary">
+                <Link to="/your-stories" className="text-sm text-muted-foreground hover:text-primary">
                   Your Stories
                 </Link>
               </li>
               <li>
-                <Link to="/my-subscriptions" className="text-sm text-gray-600 hover:text-primary">
+                <Link to="/my-subscriptions" className="text-sm text-muted-foreground hover:text-primary">
                   Subscriptions
                 </Link>
               </li>
@@ -40,7 +40,7 @@ export const Footer = () => {
             <h3 className="font-semibold">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/terms" className="text-sm text-gray-600 hover:text-primary">
+                <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary">
                   Privacy Policy & Terms
                 </Link>
               </li>
@@ -54,26 +54,26 @@ export const Footer = () => {
                 href="https://twitter.com/learnmorals"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-600 hover:text-primary"
+                className="text-muted-foreground hover:text-primary"
               >
                 <Twitter className="h-5 w-5" />
               </a>
               <a
                 href="mailto:support@learnmorals.com"
-                className="text-gray-600 hover:text-primary"
+                className="text-muted-foreground hover:text-primary"
               >
                 <Mail className="h-5 w-5" />
               </a>
             </div>
             <div className="mt-2">
-              <Link to="/contact" className="text-sm text-gray-600 hover:text-primary">
+              <Link to="/contact" className="text-sm text-muted-foreground hover:text-primary">
                 Contact Us
               </Link>
             </div>
           </div>
         </div>
         
-        <div className="mt-8 pt-8 border-t text-center text-sm text-gray-600">
+        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
           <p>&copy; {currentYear} LearnMorals.com. All rights reserved.</p>
         </div>
       </div>

@@ -51,18 +51,17 @@ const Index = () => {
 
   if (profileLoading || storiesLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
+    <div className="min-h-screen bg-background">
       <NavigationBar onLogout={handleLogout} />
       
       <div className="max-w-6xl mx-auto p-6 space-y-8">
-        {/* Story Stats */}
         <StoryStats />
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -118,10 +117,10 @@ const Index = () => {
                 recentStories.map((story) => (
                   <div 
                     key={story.id} 
-                    className="p-3 bg-story-background rounded-lg cursor-pointer hover:bg-opacity-80 transition-colors"
+                    className="p-3 bg-card rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
                     onClick={() => navigate('/your-stories')}
                   >
-                    <p className="font-medium text-story-text truncate">
+                    <p className="font-medium truncate">
                       {story.title}
                     </p>
                     <p className="text-sm text-muted-foreground">
