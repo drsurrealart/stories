@@ -7,7 +7,7 @@ interface TierTableRowProps {
   isEditing: boolean;
   onEdit: () => void;
   onSave: (formData: {
-    stories_per_month: number;
+    monthly_credits: number;
     saved_stories_limit: number;
     price: number;
     yearly_price: number;
@@ -30,7 +30,7 @@ export const TierTableRow = ({
           <EditTierForm tier={tier} onSave={onSave} onCancel={onCancel} />
         ) : (
           <>
-            <div>Stories/Month: {tier.stories_per_month}</div>
+            <div>AI Credits/Month: {tier.monthly_credits}</div>
             <div>Saved Stories: {tier.saved_stories_limit}</div>
             <div>Monthly Price: ${tier.price}</div>
             <div>Yearly Price: ${tier.yearly_price}</div>

@@ -38,7 +38,7 @@ export const SubscriptionTierManager = () => {
   const handleSave = async (
     tierId: string,
     formData: {
-      stories_per_month: number;
+      monthly_credits: number;
       saved_stories_limit: number;
       price: number;
       yearly_price: number;
@@ -49,7 +49,7 @@ export const SubscriptionTierManager = () => {
       const { data, error } = await supabase
         .from('subscription_tiers')
         .update({
-          stories_per_month: formData.stories_per_month,
+          monthly_credits: formData.monthly_credits,
           saved_stories_limit: formData.saved_stories_limit,
           price: formData.price,
           yearly_price: formData.yearly_price,
@@ -64,7 +64,6 @@ export const SubscriptionTierManager = () => {
 
       console.log("Update response:", data);
 
-      // Invalidate and refetch
       await queryClient.invalidateQueries({ queryKey: ['admin-subscription-tiers'] });
 
       toast({
