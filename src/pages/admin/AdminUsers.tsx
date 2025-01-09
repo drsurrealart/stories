@@ -21,6 +21,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useState } from "react";
+import { format } from "date-fns";
 
 const USERS_PER_PAGE = 25;
 
@@ -33,43 +34,51 @@ const AdminUsers = () => {
   const { data: users, isLoading, error } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      // Get user details
+      // Get user details from the secure view
       const { data: userDetails, error: userError } = await supabase
         .from('user_details_secure')
         .select('*');
       if (userError) throw userError;
 
-      // Get story counts for each user
-      const { data: storyCounts, error: countError } = await supabase
-        .from('user_story_counts')
-        .select('user_id, credits_used');
-      if (countError) throw countError;
-
-      // Get saved stories count for each user
-      const { data: savedStories, error: storyError } = await supabase
+      // Get total stories created for each user
+      const { data: stories, error: storyError } = await supabase
         .from('stories')
         .select('author_id, title, content');
       if (storyError) throw storyError;
 
-      // Combine the data
-      return userDetails.map(user => {
-        // Sum up all credits_used for this user
-        const totalCreated = storyCounts
-          .filter(count => count.user_id === user.id)
-          .reduce((sum, count) => sum + (count.credits_used || 0), 0);
+      // Get monthly credit usage for each user
+      const { data: creditUsage, error: creditError } = await supabase
+        .from('user_story_counts')
+        .select('user_id, credits_used, month_year');
+      if (creditError) throw creditError;
 
-        // Count saved stories (those with both title and content)
-        const totalSaved = savedStories
-          .filter(story => 
-            story.author_id === user.id && 
-            story.title && 
-            story.content
-          ).length;
+      // Combine and process the data
+      return userDetails.map(user => {
+        // Count total saved stories (with both title and content)
+        const savedStories = stories.filter(story => 
+          story.author_id === user.id && 
+          story.title && 
+          story.content
+        ).length;
+
+        // Calculate total credits used across all months
+        const totalCredits = creditUsage
+          .filter(usage => usage.user_id === user.id)
+          .reduce((sum, usage) => sum + (usage.credits_used || 0), 0);
+
+        // Get current month's credit usage
+        const currentMonth = format(new Date(), 'yyyy-MM');
+        const currentMonthUsage = creditUsage
+          .find(usage => 
+            usage.user_id === user.id && 
+            usage.month_year === currentMonth
+          )?.credits_used || 0;
 
         return {
           ...user,
-          storiesCreated: totalCreated,
-          storiesSaved: totalSaved,
+          savedStories,
+          totalCredits,
+          currentMonthUsage,
         };
       });
     },
@@ -105,19 +114,10 @@ const AdminUsers = () => {
   }
 
   // Calculate pagination values
-  const totalPages = Math.ceil(users.length / USERS_PER_PAGE);
+  const totalPages = Math.ceil((users?.length || 0) / USERS_PER_PAGE);
   const startIndex = (currentPage - 1) * USERS_PER_PAGE;
   const endIndex = startIndex + USERS_PER_PAGE;
-  const currentUsers = users.slice(startIndex, endIndex);
-
-  // Generate page numbers for pagination
-  const getPageNumbers = () => {
-    const pages = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pages.push(i);
-    }
-    return pages;
-  };
+  const currentUsers = users?.slice(startIndex, endIndex) || [];
 
   return (
     <>
@@ -133,11 +133,11 @@ const AdminUsers = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Subscription Level</TableHead>
-                  <TableHead>AI Credits Used</TableHead>
-                  <TableHead>Stories Created</TableHead>
-                  <TableHead>Stories Saved</TableHead>
-                  <TableHead>Created At</TableHead>
+                  <TableHead>Subscription</TableHead>
+                  <TableHead>Total Stories Generated</TableHead>
+                  <TableHead>Saved Stories</TableHead>
+                  <TableHead>Current Month Credits</TableHead>
+                  <TableHead>Member Since</TableHead>
                   <TableHead>Last Upgrade</TableHead>
                 </TableRow>
               </TableHeader>
@@ -150,15 +150,17 @@ const AdminUsers = () => {
                     <TableCell className="capitalize">
                       {user.subscription_level}
                     </TableCell>
-                    <TableCell>{user.credits_used}</TableCell>
-                    <TableCell>{user.storiesCreated}</TableCell>
-                    <TableCell>{user.storiesSaved}</TableCell>
+                    <TableCell>{user.totalCredits}</TableCell>
+                    <TableCell>{user.savedStories}</TableCell>
+                    <TableCell>{user.currentMonthUsage}</TableCell>
                     <TableCell>
-                      {new Date(user.created_at).toLocaleDateString()}
+                      {user.created_at 
+                        ? format(new Date(user.created_at), 'MMM d, yyyy')
+                        : 'N/A'}
                     </TableCell>
                     <TableCell>
                       {user.upgrade_date 
-                        ? new Date(user.upgrade_date).toLocaleDateString()
+                        ? format(new Date(user.upgrade_date), 'MMM d, yyyy')
                         : 'Never'}
                     </TableCell>
                   </TableRow>
@@ -177,7 +179,7 @@ const AdminUsers = () => {
                       />
                     </PaginationItem>
                     
-                    {getPageNumbers().map((page) => (
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                       <PaginationItem key={page}>
                         <PaginationLink
                           onClick={() => setCurrentPage(page)}
