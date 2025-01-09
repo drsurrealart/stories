@@ -71,11 +71,6 @@ const Auth = () => {
             }}
             providers={[]}
             view={view}
-            onViewChange={(newView) => {
-              if (newView === "sign_in" || newView === "sign_up") {
-                setView(newView);
-              }
-            }}
           />
         </div>
       </div>
