@@ -75,6 +75,7 @@ const AdminUsers = () => {
                   <TableHead>Subscription Level</TableHead>
                   <TableHead>AI Credits Used</TableHead>
                   <TableHead>Created At</TableHead>
+                  <TableHead>Last Upgrade</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -89,6 +90,11 @@ const AdminUsers = () => {
                     <TableCell>{user.credits_used}</TableCell>
                     <TableCell>
                       {new Date(user.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {user.upgrade_date 
+                        ? new Date(user.upgrade_date).toLocaleDateString()
+                        : 'Never'}
                     </TableCell>
                   </TableRow>
                 ))}

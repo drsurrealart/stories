@@ -226,6 +226,7 @@ export type Database = {
             | Database["public"]["Enums"]["subscription_level"]
             | null
           updated_at: string | null
+          upgrade_date: string | null
         }
         Insert: {
           created_at?: string | null
@@ -237,6 +238,7 @@ export type Database = {
             | Database["public"]["Enums"]["subscription_level"]
             | null
           updated_at?: string | null
+          upgrade_date?: never
         }
         Update: {
           created_at?: string | null
@@ -248,6 +250,7 @@ export type Database = {
             | Database["public"]["Enums"]["subscription_level"]
             | null
           updated_at?: string | null
+          upgrade_date?: never
         }
         Relationships: []
       }
@@ -262,6 +265,7 @@ export type Database = {
             | Database["public"]["Enums"]["subscription_level"]
             | null
           updated_at: string | null
+          upgrade_date: string | null
         }
         Insert: {
           created_at?: string | null
@@ -273,6 +277,7 @@ export type Database = {
             | Database["public"]["Enums"]["subscription_level"]
             | null
           updated_at?: string | null
+          upgrade_date?: never
         }
         Update: {
           created_at?: string | null
@@ -284,6 +289,7 @@ export type Database = {
             | Database["public"]["Enums"]["subscription_level"]
             | null
           updated_at?: string | null
+          upgrade_date?: never
         }
         Relationships: []
       }
