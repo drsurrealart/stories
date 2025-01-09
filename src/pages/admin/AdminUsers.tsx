@@ -4,6 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const AdminUsers = () => {
   const handleLogout = async () => {
@@ -13,7 +21,7 @@ const AdminUsers = () => {
   const { data: users, isLoading, error } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const { data, error } = await supabase.from('profiles').select('*');
+      const { data, error } = await supabase.from('user_details_secure').select('*');
       if (error) {
         throw error;
       }
@@ -60,28 +68,32 @@ const AdminUsers = () => {
           </div>
           <div className="col-span-12 md:col-span-9 lg:col-span-10">
             <h1 className="text-3xl font-bold mb-8">User Management</h1>
-            <table className="min-w-full">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2">Name</th>
-                  <th className="px-4 py-2">Subscription Level</th>
-                  <th className="px-4 py-2">Created At</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Subscription Level</TableHead>
+                  <TableHead>AI Credits Used</TableHead>
+                  <TableHead>Created At</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {users.map((user) => (
-                  <tr key={user.id}>
-                    <td className="border px-4 py-2">
+                  <TableRow key={user.id}>
+                    <TableCell>
                       {user.first_name} {user.last_name}
-                    </td>
-                    <td className="border px-4 py-2">{user.subscription_level}</td>
-                    <td className="border px-4 py-2">
+                    </TableCell>
+                    <TableCell className="capitalize">
+                      {user.subscription_level}
+                    </TableCell>
+                    <TableCell>{user.credits_used}</TableCell>
+                    <TableCell>
                       {new Date(user.created_at).toLocaleDateString()}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
       </div>
