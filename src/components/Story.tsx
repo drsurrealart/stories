@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { StoryContent } from "./story/StoryContent";
 import { StoryFeedback } from "./story/StoryFeedback";
 import { StoryActions } from "./story/StoryActions";
+import { StorySocialShare } from "./story/StorySocialShare";
 import { useQuery } from "@tanstack/react-query";
 
 interface StoryProps {
@@ -151,11 +152,17 @@ export function Story({ content, onReflect }: StoryProps) {
           feedback={feedback}
           onFeedback={setFeedback}
         />
-        <StoryActions
-          onSave={handleSaveStory}
-          onReflect={onReflect}
-          isSaving={isSaving}
-        />
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <StoryActions
+            onSave={handleSaveStory}
+            onReflect={onReflect}
+            isSaving={isSaving}
+          />
+          <StorySocialShare
+            title={title}
+            url={window.location.href}
+          />
+        </div>
       </div>
     </Card>
   );
