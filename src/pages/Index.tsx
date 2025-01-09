@@ -6,8 +6,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, History, Plus, Settings, CreditCard } from "lucide-react";
 import { StoryStats } from "@/components/dashboard/StoryStats";
-import { AgeGroupsSection } from "@/components/landing/AgeGroupsSection";
 import { Loading } from "@/components/ui/loading";
+import { ShareWithFriends } from "@/components/sharing/ShareWithFriends";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -175,10 +175,10 @@ const Index = () => {
           </Card>
         </div>
 
-        {/* Age Groups Section */}
-        <div className="mt-12">
-          <AgeGroupsSection />
-        </div>
+        {/* Share with Friends & Family Section */}
+        <Card className="p-6">
+          <ShareWithFriends />
+        </Card>
       </div>
     </div>
   );
