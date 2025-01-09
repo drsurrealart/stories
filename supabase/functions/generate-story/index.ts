@@ -79,34 +79,30 @@ serve(async (req) => {
     const data = await openAIResponse.json();
     console.log("OpenAI response received");
 
-    // Update the credits_used count for the current month
+    // Update the credits_used count for the current month using upsert
     const currentMonth = new Date().toISOString().slice(0, 7);
     
-    // First try to update existing record
-    const { data: updateResult, error: updateError } = await supabase
+    const { error: creditError } = await supabase
       .from('user_story_counts')
-      .update({ 
-        credits_used: supabase.rpc('increment_credits', { row_id: user.id, month: currentMonth }),
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user.id)
-      .eq('month_year', currentMonth);
-
-    // If no record was updated (doesn't exist yet), create a new one
-    if (!updateResult || updateError) {
-      const { error: insertError } = await supabase
-        .from('user_story_counts')
-        .insert({
+      .upsert(
+        {
           user_id: user.id,
           month_year: currentMonth,
           credits_used: 1,
           updated_at: new Date().toISOString()
-        });
+        },
+        {
+          onConflict: 'user_id,month_year',
+          update: {
+            credits_used: db.raw('COALESCE(user_story_counts.credits_used, 0) + 1'),
+            updated_at: new Date().toISOString()
+          }
+        }
+      );
 
-      if (insertError) {
-        console.error("Error creating new credit count:", insertError);
-        throw insertError;
-      }
+    if (creditError) {
+      console.error("Error updating credit count:", creditError);
+      throw creditError;
     }
 
     return new Response(
