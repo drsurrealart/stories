@@ -53,7 +53,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -82,27 +82,41 @@ serve(async (req) => {
     // Update the credits_used count for the current month
     const currentMonth = new Date().toISOString().slice(0, 7);
     
-    // Use a single query to update or insert the credit count
-    const { error: countError } = await supabase
+    // First check if a record exists for this month
+    const { data: existingCount } = await supabase
       .from('user_story_counts')
-      .upsert(
-        {
+      .select('credits_used')
+      .eq('user_id', user.id)
+      .eq('month_year', currentMonth)
+      .single();
+
+    let countError;
+    if (existingCount) {
+      // If record exists, update it
+      const { error } = await supabase
+        .from('user_story_counts')
+        .update({
+          credits_used: (existingCount.credits_used || 0) + 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .eq('month_year', currentMonth);
+      countError = error;
+    } else {
+      // If no record exists, insert a new one
+      const { error } = await supabase
+        .from('user_story_counts')
+        .insert({
           user_id: user.id,
           month_year: currentMonth,
           credits_used: 1,
           updated_at: new Date().toISOString()
-        },
-        {
-          onConflict: 'user_id,month_year',
-          update: {
-            credits_used: supabase.sql`COALESCE(user_story_counts.credits_used, 0) + 1`,
-            updated_at: new Date().toISOString()
-          }
-        }
-      );
+        });
+      countError = error;
+    }
 
     if (countError) {
-      console.error("Error incrementing credit count:", countError);
+      console.error("Error managing credit count:", countError);
       throw countError;
     }
 
