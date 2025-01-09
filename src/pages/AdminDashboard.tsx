@@ -7,6 +7,7 @@ import { StatsCards } from "@/components/admin/StatsCards";
 import { SubscriptionChart } from "@/components/admin/SubscriptionChart";
 import { SubscriptionTierManager } from "@/components/admin/SubscriptionTierManager";
 import { APIConfigManager } from "@/components/admin/APIConfigManager";
+import { AdminNav } from "@/components/admin/AdminNav";
 
 interface UserStatistics {
   total_users: number;
@@ -136,25 +137,35 @@ const AdminDashboard = () => {
   return (
     <>
       <NavigationBar onLogout={handleLogout} />
-      <div className="container mx-auto p-6 space-y-8">
-        <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
-        
-        <StatsCards 
-          isLoading={isLoadingStats} 
-          stats={stats} 
-        />
-        
-        <SubscriptionChart 
-          isLoading={isLoadingStats}
-          data={subscriptionData}
-        />
+      <div className="container mx-auto p-6">
+        <div className="grid grid-cols-12 gap-6">
+          {/* Sidebar */}
+          <div className="col-span-12 md:col-span-3 lg:col-span-2">
+            <AdminNav />
+          </div>
+          
+          {/* Main Content */}
+          <div className="col-span-12 md:col-span-9 lg:col-span-10 space-y-8">
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            
+            <StatsCards 
+              isLoading={isLoadingStats} 
+              stats={stats} 
+            />
+            
+            <SubscriptionChart 
+              isLoading={isLoadingStats}
+              data={subscriptionData}
+            />
 
-        <div className="mt-8">
-          <SubscriptionTierManager />
-        </div>
+            <div className="mt-8">
+              <SubscriptionTierManager />
+            </div>
 
-        <div className="mt-8">
-          <APIConfigManager />
+            <div className="mt-8">
+              <APIConfigManager />
+            </div>
+          </div>
         </div>
       </div>
     </>

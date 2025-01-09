@@ -8,6 +8,9 @@ import YourStories from "@/pages/YourStories";
 import AccountSettings from "@/pages/AccountSettings";
 import MySubscriptions from "@/pages/MySubscriptions";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminSubscriptions from "@/pages/admin/AdminSubscriptions";
+import AdminSettings from "@/pages/admin/AdminSettings";
 import Terms from "@/pages/Terms";
 import Contact from "@/pages/Contact";
 
@@ -58,10 +61,15 @@ export const AppRoutes = () => (
       }
     />
     <Route
-      path="/admin"
+      path="/admin/*"
       element={
         <ProtectedAdminRoute>
-          <AdminDashboard />
+          <Routes>
+            <Route path="/" element={<AdminDashboard />} />
+            <Route path="/users" element={<AdminUsers />} />
+            <Route path="/subscriptions" element={<AdminSubscriptions />} />
+            <Route path="/settings" element={<AdminSettings />} />
+          </Routes>
         </ProtectedAdminRoute>
       }
     />
