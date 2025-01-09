@@ -33,6 +33,11 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Update view when auth UI changes view
+  const handleViewChange = (newView: 'sign_in' | 'sign_up') => {
+    setView(newView);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background p-6">
       <div className="max-w-md mx-auto space-y-8">
