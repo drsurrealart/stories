@@ -79,34 +79,22 @@ serve(async (req) => {
     const data = await openAIResponse.json();
     console.log("OpenAI response received");
 
-    // First, get the current credits count
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    const { data: currentCount, error: countError } = await supabase
-      .from('user_story_counts')
-      .select('credits_used')
-      .eq('user_id', user.id)
-      .eq('month_year', currentMonth)
-      .single();
-
-    if (countError && countError.code !== 'PGRST116') { // PGRST116 is "not found" error
-      console.error("Error fetching current count:", countError);
-      throw countError;
-    }
-
-    // Then either insert new record or update existing one
-    const newCreditsCount = (currentCount?.credits_used || 0) + 1;
-    const { error: creditError } = await supabase
-      .from('user_story_counts')
-      .upsert({
-        user_id: user.id,
-        month_year: currentMonth,
-        credits_used: newCreditsCount,
-        updated_at: new Date().toISOString()
+    // Insert the story into the database - this will trigger the increment_story_count trigger
+    const { error: storyError } = await supabase
+      .from('stories')
+      .insert({
+        content: data.choices[0].message.content,
+        author_id: user.id,
+        age_group: preferences.ageGroup,
+        genre: preferences.genre,
+        moral: preferences.moral,
+        title: 'Generated Story', // We'll extract the title later if needed
+        slug: crypto.randomUUID(), // Generate a random slug
       });
 
-    if (creditError) {
-      console.error("Error updating credit count:", creditError);
-      throw creditError;
+    if (storyError) {
+      console.error("Error saving story:", storyError);
+      throw storyError;
     }
 
     return new Response(
