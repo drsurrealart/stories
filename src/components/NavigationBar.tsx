@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MainNav } from "./navigation/MainNav";
 import { MobileNav } from "./navigation/MobileNav";
 import { ProfileDropdown } from "./navigation/ProfileDropdown";
+import { DarkModeToggle } from "./navigation/DarkModeToggle";
 
 interface NavigationBarProps {
   onLogout: () => void;
@@ -16,7 +17,7 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
   const isMobile = useIsMobile();
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-gray-800 backdrop-blur supports-[backdrop-filter]:bg-gray-800/95">
+    <nav className="sticky top-0 z-50 w-full border-b bg-gray-800 dark:bg-gray-900 backdrop-blur supports-[backdrop-filter]:bg-gray-800/95 dark:supports-[backdrop-filter]:bg-gray-900/95">
       <div className="container flex h-14 items-center">
         <div className="flex w-full justify-between items-center">
           <Link to="/" className="font-bold text-xl text-white">
@@ -26,6 +27,7 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
           {isMobile ? (
             <>
               <div className="flex items-center gap-2">
+                <DarkModeToggle />
                 <ProfileDropdown onLogout={onLogout} />
                 <Button
                   variant="ghost"
@@ -41,6 +43,7 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
           ) : (
             <div className="flex items-center gap-4">
               <MainNav />
+              <DarkModeToggle />
               <ProfileDropdown onLogout={onLogout} />
             </div>
           )}
