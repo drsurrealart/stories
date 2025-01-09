@@ -86,6 +86,9 @@ export function Story({ content, onReflect }: StoryProps) {
         return;
       }
 
+      // Generate a random slug for the story
+      const slug = Math.random().toString(36).substring(2, 15);
+
       // First, check if the story already exists to prevent duplicates
       const { data: existingStories } = await supabase
         .from('stories')
@@ -111,6 +114,7 @@ export function Story({ content, onReflect }: StoryProps) {
           author_id: session.user.id,
           age_group: "preschool",
           genre: "fantasy",
+          slug
         });
 
       if (error) {
@@ -162,7 +166,7 @@ export function Story({ content, onReflect }: StoryProps) {
             title={title}
             content={storyWithoutTitle}
             moral={moral}
-            url={window.location.href}
+            url={`${window.location.origin}/story/${slug}`}
           />
         </div>
       </div>

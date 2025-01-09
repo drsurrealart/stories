@@ -10,6 +10,7 @@ import MySubscriptions from "@/pages/MySubscriptions";
 import AdminDashboard from "@/pages/AdminDashboard";
 import Terms from "@/pages/Terms";
 import Contact from "@/pages/Contact";
+import SharedStory from "@/pages/SharedStory";
 
 export const AppRoutes = () => (
   <Routes>
@@ -17,6 +18,7 @@ export const AppRoutes = () => (
     <Route path="/auth" element={<Auth />} />
     <Route path="/terms" element={<Terms />} />
     <Route path="/contact" element={<Contact />} />
+    <Route path="/story/:slug" element={<SharedStory />} />
     <Route
       path="/dashboard"
       element={

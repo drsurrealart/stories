@@ -15,7 +15,7 @@ export function StorySocialShare({ title, content, moral, url }: StorySocialShar
   // Create sharing text with title, snippet, and moral
   const shareText = `${title}\n\n${snippet}\n\nMoral: ${moral}\n\nRead more at LearnMorals.com`;
   
-  const encodedUrl = encodeURIComponent('https://learnmorals.com');
+  const encodedUrl = encodeURIComponent(url);
   const encodedText = encodeURIComponent(shareText);
 
   const shareLinks = {
