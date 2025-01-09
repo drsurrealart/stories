@@ -1,6 +1,7 @@
 import { NavigationBar } from "@/components/NavigationBar";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { APIConfigManager } from "@/components/admin/APIConfigManager";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminSettings = () => {
   const handleLogout = async () => {

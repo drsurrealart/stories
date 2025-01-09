@@ -1,6 +1,7 @@
 import { NavigationBar } from "@/components/NavigationBar";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { SubscriptionTierManager } from "@/components/admin/SubscriptionTierManager";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminSubscriptions = () => {
   const handleLogout = async () => {
