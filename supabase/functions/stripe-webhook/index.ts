@@ -8,7 +8,17 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
 
 const endpointSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') || '';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   const signature = req.headers.get('stripe-signature');
   
   if (!signature) {
@@ -90,10 +100,23 @@ serve(async (req) => {
         console.log('Successfully cancelled subscription for user:', customer.email);
         break;
       }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object;
+        if (invoice.subscription) {
+          const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+          const customer = await stripe.customers.retrieve(subscription.customer as string);
+          
+          // The subscription update will trigger the credit allocation via database trigger
+          console.log('Payment succeeded for subscription:', subscription.id);
+          console.log('Credits will be allocated for customer:', customer.email);
+        }
+        break;
+      }
     }
 
     return new Response(JSON.stringify({ received: true }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
 
@@ -103,7 +126,7 @@ serve(async (req) => {
       JSON.stringify({ error: err.message }), 
       { 
         status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }
