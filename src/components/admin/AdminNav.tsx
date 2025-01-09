@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Users, Database, Settings } from "lucide-react";
+import { LayoutDashboard, Users, Database, Settings, Functions } from "lucide-react";
 
 export const AdminNav = () => {
   const location = useLocation();
@@ -20,6 +20,11 @@ export const AdminNav = () => {
       title: "Subscriptions", 
       href: "/admin/subscriptions", 
       icon: <Database className="h-4 w-4" /> 
+    },
+    { 
+      title: "Functions", 
+      href: "/admin/functions", 
+      icon: <Functions className="h-4 w-4" /> 
     },
     { 
       title: "Settings", 

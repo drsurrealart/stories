@@ -11,6 +11,7 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminSubscriptions from "@/pages/admin/AdminSubscriptions";
 import AdminSettings from "@/pages/admin/AdminSettings";
+import AdminFunctions from "@/pages/admin/AdminFunctions";
 import Terms from "@/pages/Terms";
 import Contact from "@/pages/Contact";
 
@@ -68,6 +69,7 @@ export const AppRoutes = () => (
             <Route path="/" element={<AdminDashboard />} />
             <Route path="/users" element={<AdminUsers />} />
             <Route path="/subscriptions" element={<AdminSubscriptions />} />
+            <Route path="/functions" element={<AdminFunctions />} />
             <Route path="/settings" element={<AdminSettings />} />
           </Routes>
         </ProtectedAdminRoute>
