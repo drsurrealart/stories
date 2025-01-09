@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { NavigationBar } from "@/components/NavigationBar";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
+import { StorySocialShare } from "@/components/story/StorySocialShare";
 
 interface SavedStory {
   id: string;
@@ -123,6 +124,12 @@ const YourStories = () => {
                     <p className="text-story-text">{story.moral}</p>
                   </Card>
                 )}
+                <div className="pt-4 border-t">
+                  <StorySocialShare
+                    title={story.title}
+                    url={window.location.href}
+                  />
+                </div>
               </Card>
             ))}
           </div>
