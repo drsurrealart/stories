@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Loading } from "@/components/ui/loading";
 
 export interface StoryPreferences {
   genre: string;
@@ -204,7 +205,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
         disabled={isLoading}
       >
         {isLoading ? (
-          "Creating your story..."
+          <Loading size="sm" text="Creating your story..." className="py-1" />
         ) : (
           <>
             <Wand2 className="w-4 h-4 mr-2" />

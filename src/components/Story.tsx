@@ -7,6 +7,7 @@ import { StoryFeedback } from "./story/StoryFeedback";
 import { StoryActions } from "./story/StoryActions";
 import { StorySocialShare } from "./story/StorySocialShare";
 import { useQuery } from "@tanstack/react-query";
+import { Loading } from "@/components/ui/loading";
 
 interface StoryProps {
   content: string;
@@ -168,6 +169,7 @@ export function Story({ content, onReflect }: StoryProps) {
             onSave={handleSaveStory}
             onReflect={onReflect}
             isSaving={isSaving}
+            loadingComponent={<Loading size="sm" text="Saving..." />}
           />
           <StorySocialShare
             title={title}

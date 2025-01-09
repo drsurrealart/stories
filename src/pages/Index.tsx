@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, BookOpen, History, Plus, Settings, CreditCard } from "lucide-react";
+import { BookOpen, History, Plus, Settings, CreditCard } from "lucide-react";
 import { StoryStats } from "@/components/dashboard/StoryStats";
 import { AgeGroupsSection } from "@/components/landing/AgeGroupsSection";
+import { Loading } from "@/components/ui/loading";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -83,7 +84,7 @@ const Index = () => {
   if (profileLoading || creditsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
+        <Loading size="lg" text="Loading your dashboard..." />
       </div>
     );
   }
