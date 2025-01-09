@@ -108,7 +108,6 @@ export type Database = {
           genre: string
           id: string
           moral: string
-          slug: string
           title: string
           updated_at: string
         }
@@ -120,7 +119,6 @@ export type Database = {
           genre: string
           id?: string
           moral: string
-          slug: string
           title: string
           updated_at?: string
         }
@@ -132,7 +130,6 @@ export type Database = {
           genre?: string
           id?: string
           moral?: string
-          slug?: string
           title?: string
           updated_at?: string
         }
