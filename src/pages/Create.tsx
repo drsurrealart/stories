@@ -35,7 +35,40 @@ const Create = () => {
         throw new Error(response.error.message || "Failed to generate story");
       }
 
-      setStory(response.data.story);
+      // Save the story to the database
+      const storyContent = response.data.story;
+      const parts = storyContent.split("\n");
+      const title = parts[0].trim();
+      const remainingContent = parts.slice(1).join("\n").trim();
+
+      // Generate a slug from the title
+      const slug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
+      // Extract moral if present
+      const moralParts = remainingContent.split("Moral:");
+      const content = moralParts[0].trim();
+      const moral = moralParts[1]?.trim() || "";
+
+      const { error: saveError } = await supabase
+        .from('stories')
+        .insert({
+          title,
+          content,
+          moral,
+          author_id: session.user.id,
+          age_group: preferences.ageGroup,
+          genre: preferences.genre,
+          slug
+        });
+
+      if (saveError) {
+        throw saveError;
+      }
+
+      setStory(storyContent);
       setAppState("story");
     } catch (error) {
       console.error("Error generating story:", error);

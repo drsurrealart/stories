@@ -42,7 +42,7 @@ serve(async (req) => {
       ? `Use the character names "${characterNames}" as the main characters in the story. Make sure these characters play central roles in the narrative.`
       : "Create appropriate character names for the story.";
 
-    const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Keep it concise but meaningful. Do not use asterisks or other decorative characters in the formatting.`;
+    const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Keep it concise but meaningful. Do not use asterisks or other decorative characters in the formatting. Do not start the title with "Title:".`;
 
     console.log("Sending prompt to OpenAI:", prompt);
 
@@ -57,7 +57,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a skilled storyteller who creates engaging, age-appropriate stories with clear moral lessons. Each story must be completely unique - never reuse character names, plot elements, or titles from previous stories. Create fresh, original content every time. Format the output with a Title at the start and a Moral at the end, without using any asterisks or decorative characters.',
+            content: 'You are a skilled storyteller who creates engaging, age-appropriate stories with clear moral lessons. Each story must be completely unique - never reuse character names, plot elements, or titles from previous stories. Create fresh, original content every time. Format the output with a Title at the start and a Moral at the end, without using any asterisks or decorative characters. Do not prefix the title with "Title:".',
           },
           {
             role: 'user',
@@ -78,24 +78,6 @@ serve(async (req) => {
 
     const data = await openAIResponse.json();
     console.log("OpenAI response received");
-
-    // Insert the story into the database - this will trigger the increment_story_count trigger
-    const { error: storyError } = await supabase
-      .from('stories')
-      .insert({
-        content: data.choices[0].message.content,
-        author_id: user.id,
-        age_group: preferences.ageGroup,
-        genre: preferences.genre,
-        moral: preferences.moral,
-        title: 'Generated Story', // We'll extract the title later if needed
-        slug: crypto.randomUUID(), // Generate a random slug
-      });
-
-    if (storyError) {
-      console.error("Error saving story:", storyError);
-      throw storyError;
-    }
 
     return new Response(
       JSON.stringify({ story: data.choices[0].message.content }),
