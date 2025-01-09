@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
-import { loadContentFilters } from "@/utils/contentFilter";
+import { loadContentFilters, containsInappropriateContent } from "@/utils/contentFilter";
 import { useToast } from "@/hooks/use-toast";
 
 interface CharacterNameInputProps {
