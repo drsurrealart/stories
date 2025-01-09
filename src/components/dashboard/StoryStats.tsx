@@ -22,14 +22,14 @@ export const StoryStats = () => {
       // Get the total count from user_story_counts across all months
       const { data: storyCounts, error: countError } = await supabase
         .from('user_story_counts')
-        .select('stories_generated')
+        .select('credits_used')
         .eq('user_id', session.user.id);
 
       if (countError) throw countError;
       
-      // Sum up all stories_generated counts
+      // Sum up all credits_used counts
       const totalGenerated = storyCounts?.reduce((sum, record) => 
-        sum + (record.stories_generated || 0), 0) || 0;
+        sum + (record.credits_used || 0), 0) || 0;
       
       return {
         totalStories: totalGenerated,

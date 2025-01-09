@@ -12,7 +12,7 @@ interface PricingTier {
   price: number;
   yearly_price: number;
   description: string;
-  stories_per_month: number;
+  monthly_credits: number;
   saved_stories_limit: number;
   features: Json;
   stripe_price_id?: string;

@@ -19,7 +19,7 @@ interface PricingCardProps {
     price: number;
     yearly_price: number;
     description: string;
-    stories_per_month: number;
+    monthly_credits: number;
     saved_stories_limit: number;
     features: Json;
     stripe_price_id?: string;
@@ -97,7 +97,7 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
         <ul className="space-y-2">
           <li className="flex items-center gap-2">
             <Check className="h-4 w-4 text-primary" />
-            <span>{tier.stories_per_month} stories per month</span>
+            <span>{tier.monthly_credits} AI credits per month</span>
           </li>
           <li className="flex items-center gap-2">
             <Check className="h-4 w-4 text-primary" />
