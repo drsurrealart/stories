@@ -31,7 +31,16 @@ serve(async (req) => {
 
     console.log("Received preferences:", preferences);
 
-    const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Keep it concise but meaningful. Do not use asterisks or other decorative characters in the formatting.`;
+    // Create character names string if provided
+    const characterNames = [preferences.characterName1, preferences.characterName2]
+      .filter(Boolean)
+      .join(" and ");
+    
+    const characterPrompt = characterNames 
+      ? `Use the character names "${characterNames}" as the main characters in the story.`
+      : "Create appropriate character names for the story.";
+
+    const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Keep it concise but meaningful. Do not use asterisks or other decorative characters in the formatting.`;
 
     console.log("Sending prompt to OpenAI:", prompt);
 
@@ -42,7 +51,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',

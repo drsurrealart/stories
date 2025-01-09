@@ -8,11 +8,15 @@ import { GenreSelect } from "./story/GenreSelect";
 import { MoralSelect } from "./story/MoralSelect";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export interface StoryPreferences {
   genre: string;
   ageGroup: string;
   moral: string;
+  characterName1?: string;
+  characterName2?: string;
 }
 
 interface StoryFormProps {
@@ -25,6 +29,8 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     genre: "",
     ageGroup: "",
     moral: "",
+    characterName1: "",
+    characterName2: "",
   });
   const { toast } = useToast();
 
@@ -68,6 +74,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
 
   const handleAgeGroupChange = (value: string) => {
     setPreferences({
+      ...preferences,
       ageGroup: value,
       genre: "",
       moral: "",
@@ -77,7 +84,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
   const handleSubmit = async () => {
     if (!preferences.genre || !preferences.ageGroup || !preferences.moral) {
       toast({
-        title: "Please fill in all fields",
+        title: "Please fill in all required fields",
         description: "We need these details to create your perfect story!",
         variant: "destructive",
       });
@@ -140,6 +147,28 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
             ageGroup={preferences.ageGroup}
           />
         )}
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="characterName1">Character Name 1 (Optional)</Label>
+            <Input
+              id="characterName1"
+              placeholder="Enter a character name"
+              value={preferences.characterName1}
+              onChange={(e) => setPreferences({ ...preferences, characterName1: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="characterName2">Character Name 2 (Optional)</Label>
+            <Input
+              id="characterName2"
+              placeholder="Enter another character name"
+              value={preferences.characterName2}
+              onChange={(e) => setPreferences({ ...preferences, characterName2: e.target.value })}
+            />
+          </div>
+        </div>
       </div>
 
       <Button
