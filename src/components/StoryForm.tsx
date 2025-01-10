@@ -170,7 +170,10 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
         disabled={isLoading}
       >
         {isLoading ? (
-          <Loading size="sm" text="Creating your story..." className="py-1" />
+          <div className="flex items-center justify-center">
+            <span className="mr-2">Creating...</span>
+            <Loading size="sm" className="py-1" />
+          </div>
         ) : (
           <>
             <Wand2 className="w-4 h-4 mr-2" />

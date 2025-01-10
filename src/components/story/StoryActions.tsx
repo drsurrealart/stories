@@ -1,23 +1,31 @@
 import { Button } from "@/components/ui/button";
-import { BookmarkPlus, MessageCircle } from "lucide-react";
+import { BookOpen, MessageCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface StoryActionsProps {
-  onSave: () => void;
   onReflect: () => void;
-  isSaving: boolean;
-  loadingComponent?: React.ReactNode;
+  onCreateNew: () => void;
 }
 
-export function StoryActions({ onSave, onReflect, isSaving, loadingComponent }: StoryActionsProps) {
+export function StoryActions({ onReflect, onCreateNew }: StoryActionsProps) {
+  const navigate = useNavigate();
+
   return (
-    <div className="flex flex-col md:flex-row gap-2">
-      <Button onClick={onSave} className="flex-1 md:flex-none" disabled={isSaving}>
-        <BookmarkPlus className="w-4 h-4 mr-2" />
-        {isSaving ? loadingComponent || "Saving..." : "Save Story"}
+    <div className="flex flex-col sm:flex-row gap-2">
+      <Button onClick={onCreateNew} className="flex-1">
+        <BookOpen className="w-4 h-4 mr-2" />
+        Create Another Story
+      </Button>
+      <Button 
+        onClick={() => navigate('/your-stories')} 
+        variant="secondary"
+        className="flex-1"
+      >
+        View My Stories
       </Button>
       <Button onClick={onReflect} className="flex-1">
         <MessageCircle className="w-4 h-4 mr-2" />
-        Reflect on the Story
+        Reflect on Story
       </Button>
     </div>
   );

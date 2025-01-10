@@ -82,6 +82,11 @@ const Create = () => {
     }
   };
 
+  const handleCreateNew = () => {
+    setAppState("form");
+    setStory("");
+  };
+
   const reflectionQuestions = [
     "What was the main lesson of this story?",
     "How did the characters demonstrate the moral value?",
@@ -101,6 +106,7 @@ const Create = () => {
             <Story
               content={story}
               onReflect={() => setAppState("reflection")}
+              onCreateNew={handleCreateNew}
             />
           )}
           
