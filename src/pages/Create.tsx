@@ -13,6 +13,12 @@ const Create = () => {
   const [appState, setAppState] = useState<AppState>("form");
   const [isLoading, setIsLoading] = useState(false);
   const [story, setStory] = useState("");
+  const [enrichment, setEnrichment] = useState<{
+    reflection_questions: string[];
+    action_steps: string[];
+    related_quote: string;
+    discussion_prompts: string[];
+  } | null>(null);
   const { toast } = useToast();
 
   const handleLogout = async () => {
@@ -37,6 +43,7 @@ const Create = () => {
 
       // Save the story to the database
       const storyContent = response.data.story;
+      const enrichmentData = response.data.enrichment;
       const parts = storyContent.split("\n");
       const title = parts[0].trim();
       const remainingContent = parts.slice(1).join("\n").trim();
@@ -61,7 +68,11 @@ const Create = () => {
           author_id: session.user.id,
           age_group: preferences.ageGroup,
           genre: preferences.genre,
-          slug
+          slug,
+          reflection_questions: enrichmentData.reflection_questions,
+          action_steps: enrichmentData.action_steps,
+          related_quote: enrichmentData.related_quote,
+          discussion_prompts: enrichmentData.discussion_prompts
         });
 
       if (saveError) {
@@ -69,6 +80,7 @@ const Create = () => {
       }
 
       setStory(storyContent);
+      setEnrichment(enrichmentData);
       setAppState("story");
     } catch (error) {
       console.error("Error generating story:", error);
@@ -85,6 +97,7 @@ const Create = () => {
   const handleCreateNew = () => {
     setAppState("form");
     setStory("");
+    setEnrichment(null);
   };
 
   const reflectionQuestions = [
@@ -105,6 +118,7 @@ const Create = () => {
           {appState === "story" && story && (
             <Story
               content={story}
+              enrichment={enrichment}
               onReflect={() => setAppState("reflection")}
               onCreateNew={handleCreateNew}
             />

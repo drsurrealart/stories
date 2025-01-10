@@ -82,11 +82,25 @@ serve(async (req) => {
       ? "" 
       : `Write the entire story in ${preferences.language}. Make sure to maintain proper grammar and natural flow in the target language.`;
 
-    const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} ${lengthPrompt} ${tonePrompt} ${languagePrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Make the characters and their interactions unique and memorable. If creating character names, ensure they are creative and distinctive. Keep it meaningful and family-friendly. Do not use asterisks or other decorative characters in the formatting. Do not start the title with "Title:". The story must be completely family-friendly and appropriate for children.`;
+    const storyPrompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} ${lengthPrompt} ${tonePrompt} ${languagePrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Make the characters and their interactions unique and memorable. If creating character names, ensure they are creative and distinctive. Keep it meaningful and family-friendly. Do not use asterisks or other decorative characters in the formatting. Do not start the title with "Title:". The story must be completely family-friendly and appropriate for children.`;
 
-    console.log("Sending prompt to OpenAI:", prompt);
+    const enrichmentPrompt = `Based on the story you just created, generate the following enrichment content:
+1. Three thought-provoking reflection questions that help readers deeply understand the story's message
+2. Three specific, actionable steps that readers can take to apply the story's lesson in their lives
+3. An inspirational quote that relates to the story's theme (create an original quote if needed)
+4. Three discussion prompts that encourage meaningful conversations about the story's themes
+Format the response in JSON with the following structure:
+{
+  "reflection_questions": ["question1", "question2", "question3"],
+  "action_steps": ["step1", "step2", "step3"],
+  "related_quote": "The quote here",
+  "discussion_prompts": ["prompt1", "prompt2", "prompt3"]
+}`;
 
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    console.log("Sending prompt to OpenAI:", storyPrompt);
+
+    // Generate the story
+    const storyResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
@@ -101,7 +115,7 @@ serve(async (req) => {
           },
           {
             role: 'user',
-            content: prompt,
+            content: storyPrompt,
           },
         ],
         temperature: 0.9,
@@ -110,23 +124,57 @@ serve(async (req) => {
       }),
     });
 
-    if (!openAIResponse.ok) {
-      const errorText = await openAIResponse.text();
+    if (!storyResponse.ok) {
+      const errorText = await storyResponse.text();
       console.error("OpenAI API error:", errorText);
       throw new Error(`OpenAI API error: ${errorText}`);
     }
 
-    const data = await openAIResponse.json();
-    console.log("OpenAI response received");
+    const storyData = await storyResponse.json();
+    const generatedStory = storyData.choices[0].message.content;
+
+    // Generate enrichment content
+    const enrichmentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an educational content creator who specializes in creating engaging learning materials based on stories.',
+          },
+          {
+            role: 'user',
+            content: `Here's the story:\n${generatedStory}\n\n${enrichmentPrompt}`,
+          },
+        ],
+        temperature: 0.7,
+      }),
+    });
+
+    if (!enrichmentResponse.ok) {
+      const errorText = await enrichmentResponse.text();
+      console.error("OpenAI API error (enrichment):", errorText);
+      throw new Error(`OpenAI API error: ${errorText}`);
+    }
+
+    const enrichmentData = await enrichmentResponse.json();
+    const enrichmentContent = JSON.parse(enrichmentData.choices[0].message.content);
 
     // Check generated content for inappropriate content
-    const generatedStory = data.choices[0].message.content;
     if (containsInappropriateContent(generatedStory, bannedWords)) {
       throw new Error('Inappropriate content detected in generated story. Please try again.');
     }
 
     return new Response(
-      JSON.stringify({ story: generatedStory }),
+      JSON.stringify({ 
+        story: generatedStory,
+        enrichment: enrichmentContent
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

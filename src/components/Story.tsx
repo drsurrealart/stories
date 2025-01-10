@@ -11,11 +11,17 @@ import { Loading } from "@/components/ui/loading";
 
 interface StoryProps {
   content: string;
+  enrichment: {
+    reflection_questions: string[];
+    action_steps: string[];
+    related_quote: string;
+    discussion_prompts: string[];
+  } | null;
   onReflect: () => void;
   onCreateNew: () => void;
 }
 
-export function Story({ content, onReflect, onCreateNew }: StoryProps) {
+export function Story({ content, enrichment, onReflect, onCreateNew }: StoryProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
@@ -37,7 +43,14 @@ export function Story({ content, onReflect, onCreateNew }: StoryProps) {
         moral={moral}
       />
 
-      <StoryEnrichment moral={moral} />
+      {enrichment && (
+        <StoryEnrichment
+          reflectionQuestions={enrichment.reflection_questions}
+          actionSteps={enrichment.action_steps}
+          relatedQuote={enrichment.related_quote}
+          discussionPrompts={enrichment.discussion_prompts}
+        />
+      )}
 
       <div className="border-t pt-4 md:pt-6 space-y-4">
         <StoryActions

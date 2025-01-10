@@ -8,34 +8,18 @@ import { Card } from "@/components/ui/card";
 import { BookOpen, Footprints, Quote, Users } from "lucide-react";
 
 interface StoryEnrichmentProps {
-  moral: string;
+  reflectionQuestions: string[];
+  actionSteps: string[];
+  relatedQuote: string;
+  discussionPrompts: string[];
 }
 
-export function StoryEnrichment({ moral }: StoryEnrichmentProps) {
-  // Generate reflection questions based on the moral
-  const reflectionQuestions = [
-    `How does the story's message about ${moral.toLowerCase()} relate to your own life?`,
-    `What challenges did the characters face in learning about ${moral.toLowerCase()}?`,
-    `How can you apply the lesson of ${moral.toLowerCase()} in your daily life?`,
-  ];
-
-  // Generate action steps based on the moral
-  const actionSteps = [
-    `Practice ${moral.toLowerCase()} in your daily interactions`,
-    `Keep a journal about moments when you observe ${moral.toLowerCase()}`,
-    `Share this story and its lesson about ${moral.toLowerCase()} with others`,
-  ];
-
-  // Generate a relevant quote based on the moral
-  const relatedQuote = `"The true measure of character is how we handle ${moral.toLowerCase()} in our everyday lives."`;
-
-  // Generate discussion prompts
-  const discussionPrompts = [
-    `Share a time when you experienced a situation similar to the story`,
-    `How would you have handled the situation differently?`,
-    `What other stories or examples remind you of this moral?`,
-  ];
-
+export function StoryEnrichment({ 
+  reflectionQuestions,
+  actionSteps,
+  relatedQuote,
+  discussionPrompts
+}: StoryEnrichmentProps) {
   return (
     <Accordion type="single" collapsible className="w-full space-y-4">
       <AccordionItem value="reflection" className="border-none">

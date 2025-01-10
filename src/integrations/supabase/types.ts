@@ -125,10 +125,12 @@ export type Database = {
       }
       stories: {
         Row: {
+          action_steps: Json | null
           age_group: string
           author_id: string | null
           content: string
           created_at: string
+          discussion_prompts: Json | null
           genre: string
           id: string
           language: string | null
@@ -136,16 +138,20 @@ export type Database = {
           moral: string
           poetic_style: Database["public"]["Enums"]["poetic_style_type"]
           reading_level: Database["public"]["Enums"]["reading_level_type"]
+          reflection_questions: Json | null
+          related_quote: string | null
           slug: string
           title: string
           tone: string | null
           updated_at: string
         }
         Insert: {
+          action_steps?: Json | null
           age_group: string
           author_id?: string | null
           content: string
           created_at?: string
+          discussion_prompts?: Json | null
           genre: string
           id?: string
           language?: string | null
@@ -153,16 +159,20 @@ export type Database = {
           moral: string
           poetic_style?: Database["public"]["Enums"]["poetic_style_type"]
           reading_level?: Database["public"]["Enums"]["reading_level_type"]
+          reflection_questions?: Json | null
+          related_quote?: string | null
           slug: string
           title: string
           tone?: string | null
           updated_at?: string
         }
         Update: {
+          action_steps?: Json | null
           age_group?: string
           author_id?: string | null
           content?: string
           created_at?: string
+          discussion_prompts?: Json | null
           genre?: string
           id?: string
           language?: string | null
@@ -170,6 +180,8 @@ export type Database = {
           moral?: string
           poetic_style?: Database["public"]["Enums"]["poetic_style_type"]
           reading_level?: Database["public"]["Enums"]["reading_level_type"]
+          reflection_questions?: Json | null
+          related_quote?: string | null
           slug?: string
           title?: string
           tone?: string | null
