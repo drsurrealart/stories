@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
 import { StorySocialShare } from "@/components/story/StorySocialShare";
 import { StoryEnrichment } from "@/components/story/StoryEnrichment";
+import { Json } from "@/integrations/supabase/types";
 
 interface SavedStory {
   id: string;
@@ -14,10 +15,10 @@ interface SavedStory {
   content: string;
   moral: string;
   created_at: string;
-  reflection_questions: string[];
-  action_steps: string[];
-  related_quote: string;
-  discussion_prompts: string[];
+  reflection_questions: Json;
+  action_steps: Json;
+  related_quote: string | null;
+  discussion_prompts: Json;
 }
 
 const YourStories = () => {
@@ -131,10 +132,10 @@ const YourStories = () => {
                 )}
                 {story.reflection_questions && (
                   <StoryEnrichment
-                    reflectionQuestions={story.reflection_questions}
-                    actionSteps={story.action_steps}
-                    relatedQuote={story.related_quote}
-                    discussionPrompts={story.discussion_prompts}
+                    reflectionQuestions={story.reflection_questions as string[]}
+                    actionSteps={story.action_steps as string[]}
+                    relatedQuote={story.related_quote || ''}
+                    discussionPrompts={story.discussion_prompts as string[]}
                   />
                 )}
                 <div className="pt-4 border-t">
