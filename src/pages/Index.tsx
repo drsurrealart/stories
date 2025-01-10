@@ -8,6 +8,7 @@ import { BookOpen, History, Plus, Settings, CreditCard, Crown } from "lucide-rea
 import { StoryStats } from "@/components/dashboard/StoryStats";
 import { Loading } from "@/components/ui/loading";
 import { ShareWithFriends } from "@/components/sharing/ShareWithFriends";
+import { StoryMorals } from "@/components/dashboard/StoryMorals";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -225,6 +226,9 @@ const Index = () => {
             </div>
           </Card>
         </div>
+
+        {/* Story Morals Section */}
+        <StoryMorals />
 
         {/* Share with Friends & Family Section */}
         <Card className="p-6">
