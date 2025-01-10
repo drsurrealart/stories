@@ -61,9 +61,10 @@ serve(async (req) => {
       .filter(name => name.length > 0 && name.length <= 20)
       .join(" and ");
     
+    // Updated character prompt with more natural naming guidance
     const characterPrompt = characterNames 
       ? `Use the character names "${characterNames}" as the main characters in the story. Make sure these characters play central roles in the narrative.`
-      : "Create unique and memorable character names for the story. Avoid common or generic names. Each character should have a distinctive name that reflects their personality or role in the story.";
+      : "Create natural, everyday character names for the story. Use common names that feel authentic and relatable, avoiding unusual or overly unique names. Mix traditional and contemporary names, and don't reuse names from previous stories. For example, use names like Sarah, Michael, Emma, James, Sofia, or David - names that are familiar but not too generic. Vary the names between stories to maintain diversity.";
 
     // Add length preference to the prompt
     const lengthPrompt = preferences.lengthPreference === 'short' 
@@ -82,7 +83,7 @@ serve(async (req) => {
       ? "" 
       : `Write the entire story in ${preferences.language}. Make sure to maintain proper grammar and natural flow in the target language.`;
 
-    const storyPrompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} ${lengthPrompt} ${tonePrompt} ${languagePrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Make the characters and their interactions unique and memorable. If creating character names, ensure they are creative and distinctive. Keep it meaningful and family-friendly. Do not use asterisks or other decorative characters in the formatting. Do not start the title with "Title:". The story must be completely family-friendly and appropriate for children.`;
+    const storyPrompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} ${lengthPrompt} ${tonePrompt} ${languagePrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Make the characters and their interactions feel natural and relatable. Keep it meaningful and family-friendly. Do not use asterisks or other decorative characters in the formatting. Do not start the title with "Title:". The story must be completely family-friendly and appropriate for children.`;
 
     // Generate the story first
     const storyResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -96,7 +97,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a skilled storyteller who creates engaging, age-appropriate stories with clear moral lessons. Create unique and memorable character names when no names are provided. Never reuse character names, plot elements, or titles from previous stories. Each story must be completely original with distinctive characters and creative names. Format the output with a Title at the start and a Moral at the end, without using any asterisks or decorative characters. Do not prefix the title with "Title:". The content must be completely family-friendly and appropriate for children.',
+            content: 'You are a skilled storyteller who creates engaging, age-appropriate stories with clear moral lessons. When creating character names, use natural, everyday names that feel authentic and relatable. Mix traditional and contemporary names, and avoid reusing names from previous stories. Each story must be completely original with relatable characters and natural-sounding names. Format the output with a Title at the start and a Moral at the end, without using any asterisks or decorative characters. Do not prefix the title with "Title:". The content must be completely family-friendly and appropriate for children.',
           },
           {
             role: 'user',
@@ -104,8 +105,8 @@ serve(async (req) => {
           },
         ],
         temperature: 0.9,
-        presence_penalty: 0.4,
-        frequency_penalty: 0.4,
+        presence_penalty: 0.6,
+        frequency_penalty: 0.8,
       }),
     });
 
