@@ -40,7 +40,7 @@ const AdminUsers = () => {
         .select('*');
       if (userError) throw userError;
 
-      // Get total stories for each user
+      // Get stories for each user
       const { data: stories, error: storyError } = await supabase
         .from('stories')
         .select('author_id, title, content');
@@ -54,7 +54,12 @@ const AdminUsers = () => {
 
       // Combine and process the data
       return userDetails.map(user => {
-        // Count total saved stories (with both title and content)
+        // Count total stories created (from user_story_counts)
+        const totalStoriesCreated = creditUsage
+          .filter(usage => usage.user_id === user.id)
+          .reduce((sum, usage) => sum + (usage.credits_used || 0), 0);
+
+        // Count saved stories (with both title and content)
         const savedStories = stories.filter(story => 
           story.author_id === user.id && 
           story.title && 
@@ -74,17 +79,12 @@ const AdminUsers = () => {
             usage.month_year === currentMonth
           )?.credits_used || 0;
 
-        // Get total stories (all stories, including drafts)
-        const totalStories = stories.filter(story => 
-          story.author_id === user.id
-        ).length;
-
         return {
           ...user,
           savedStories,
           totalCredits,
           currentMonthUsage,
-          totalStories
+          totalStoriesCreated
         };
       });
     },
@@ -141,7 +141,7 @@ const AdminUsers = () => {
                   <TableHead>Name</TableHead>
                   <TableHead>Subscription</TableHead>
                   <TableHead>AI Credits Used</TableHead>
-                  <TableHead>Total Stories</TableHead>
+                  <TableHead>Stories Created</TableHead>
                   <TableHead>Saved Stories</TableHead>
                   <TableHead>Current Month Credits</TableHead>
                   <TableHead>Member Since</TableHead>
@@ -158,7 +158,7 @@ const AdminUsers = () => {
                       {user.subscription_level}
                     </TableCell>
                     <TableCell>{user.totalCredits}</TableCell>
-                    <TableCell>{user.totalStories}</TableCell>
+                    <TableCell>{user.totalStoriesCreated}</TableCell>
                     <TableCell>{user.savedStories}</TableCell>
                     <TableCell>{user.currentMonthUsage}</TableCell>
                     <TableCell>
