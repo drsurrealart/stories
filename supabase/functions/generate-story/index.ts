@@ -84,22 +84,7 @@ serve(async (req) => {
 
     const storyPrompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} ${lengthPrompt} ${tonePrompt} ${languagePrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Make the characters and their interactions unique and memorable. If creating character names, ensure they are creative and distinctive. Keep it meaningful and family-friendly. Do not use asterisks or other decorative characters in the formatting. Do not start the title with "Title:". The story must be completely family-friendly and appropriate for children.`;
 
-    const enrichmentPrompt = `Based on the story you just created, generate the following enrichment content:
-1. Three thought-provoking reflection questions that help readers deeply understand the story's message
-2. Three specific, actionable steps that readers can take to apply the story's lesson in their lives
-3. An inspirational quote that relates to the story's theme (create an original quote if needed)
-4. Three discussion prompts that encourage meaningful conversations about the story's themes
-Format the response in JSON with the following structure:
-{
-  "reflection_questions": ["question1", "question2", "question3"],
-  "action_steps": ["step1", "step2", "step3"],
-  "related_quote": "The quote here",
-  "discussion_prompts": ["prompt1", "prompt2", "prompt3"]
-}`;
-
-    console.log("Sending prompt to OpenAI:", storyPrompt);
-
-    // Generate the story
+    // Generate the story first
     const storyResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -133,6 +118,20 @@ Format the response in JSON with the following structure:
     const storyData = await storyResponse.json();
     const generatedStory = storyData.choices[0].message.content;
 
+    // Now generate enrichment content with a separate prompt
+    const enrichmentPrompt = `Based on the following story, generate enrichment content. The content should include reflection questions that make readers think deeply about the story's message, specific action steps they can take to apply the lesson, an inspirational quote related to the theme, and discussion prompts that encourage meaningful conversations.
+
+Story:
+${generatedStory}
+
+Generate the content in this exact format (do not include the word 'json' or any backticks):
+{
+  "reflection_questions": ["question1", "question2", "question3"],
+  "action_steps": ["step1", "step2", "step3"],
+  "related_quote": "The quote here",
+  "discussion_prompts": ["prompt1", "prompt2", "prompt3"]
+}`;
+
     // Generate enrichment content
     const enrichmentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -145,11 +144,11 @@ Format the response in JSON with the following structure:
         messages: [
           {
             role: 'system',
-            content: 'You are an educational content creator who specializes in creating engaging learning materials based on stories.',
+            content: 'You are an educational content creator who specializes in creating engaging learning materials based on stories. Always format your response as a valid JSON object without any markdown formatting or additional text.',
           },
           {
             role: 'user',
-            content: `Here's the story:\n${generatedStory}\n\n${enrichmentPrompt}`,
+            content: enrichmentPrompt,
           },
         ],
         temperature: 0.7,
@@ -163,7 +162,18 @@ Format the response in JSON with the following structure:
     }
 
     const enrichmentData = await enrichmentResponse.json();
-    const enrichmentContent = JSON.parse(enrichmentData.choices[0].message.content);
+    const enrichmentContent = enrichmentData.choices[0].message.content;
+    
+    // Parse the enrichment content, making sure to handle any potential JSON parsing errors
+    let parsedEnrichment;
+    try {
+      parsedEnrichment = JSON.parse(enrichmentContent);
+      console.log("Successfully parsed enrichment content:", parsedEnrichment);
+    } catch (error) {
+      console.error("Error parsing enrichment content:", error);
+      console.log("Raw enrichment content:", enrichmentContent);
+      throw new Error('Failed to parse enrichment content');
+    }
 
     // Check generated content for inappropriate content
     if (containsInappropriateContent(generatedStory, bannedWords)) {
@@ -173,7 +183,7 @@ Format the response in JSON with the following structure:
     return new Response(
       JSON.stringify({ 
         story: generatedStory,
-        enrichment: enrichmentContent
+        enrichment: parsedEnrichment
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
