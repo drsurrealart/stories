@@ -131,9 +131,12 @@ export type Database = {
           created_at: string
           genre: string
           id: string
+          language: string | null
+          length_preference: string | null
           moral: string
           slug: string
           title: string
+          tone: string | null
           updated_at: string
         }
         Insert: {
@@ -143,9 +146,12 @@ export type Database = {
           created_at?: string
           genre: string
           id?: string
+          language?: string | null
+          length_preference?: string | null
           moral: string
           slug: string
           title: string
+          tone?: string | null
           updated_at?: string
         }
         Update: {
@@ -155,9 +161,12 @@ export type Database = {
           created_at?: string
           genre?: string
           id?: string
+          language?: string | null
+          length_preference?: string | null
           moral?: string
           slug?: string
           title?: string
+          tone?: string | null
           updated_at?: string
         }
         Relationships: []

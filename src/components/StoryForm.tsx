@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { BookOpen, Wand2 } from "lucide-react";
+import { BookOpen, Settings2, Wand2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { AgeGroupSelect } from "./story/AgeGroupSelect";
 import { GenreSelect } from "./story/GenreSelect";
@@ -10,6 +10,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Loading } from "@/components/ui/loading";
 import { CharacterNameInput } from "./story/CharacterNameInput";
+import { LengthPreferenceSelect } from "./story/LengthPreferenceSelect";
+import { LanguageSelect } from "./story/LanguageSelect";
+import { ToneSelect } from "./story/ToneSelect";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export interface StoryPreferences {
   genre: string;
@@ -17,6 +25,9 @@ export interface StoryPreferences {
   moral: string;
   characterName1?: string;
   characterName2?: string;
+  lengthPreference: string;
+  language: string;
+  tone: string;
 }
 
 interface StoryFormProps {
@@ -31,7 +42,11 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     moral: "",
     characterName1: "",
     characterName2: "",
+    lengthPreference: "medium",
+    language: "english",
+    tone: "standard",
   });
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: userLimits } = useQuery({
@@ -162,6 +177,41 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
             onChange={(value) => setPreferences({ ...preferences, characterName2: value })}
           />
         </div>
+
+        <Collapsible
+          open={isAdvancedOpen}
+          onOpenChange={setIsAdvancedOpen}
+          className="space-y-2"
+        >
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="outline"
+              className="flex items-center w-full justify-between"
+            >
+              <span className="flex items-center">
+                <Settings2 className="w-4 h-4 mr-2" />
+                Advanced Settings
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {isAdvancedOpen ? "Hide" : "Show"}
+              </span>
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4 pt-4">
+            <LengthPreferenceSelect
+              value={preferences.lengthPreference}
+              onChange={(value) => setPreferences({ ...preferences, lengthPreference: value })}
+            />
+            <LanguageSelect
+              value={preferences.language}
+              onChange={(value) => setPreferences({ ...preferences, language: value })}
+            />
+            <ToneSelect
+              value={preferences.tone}
+              onChange={(value) => setPreferences({ ...preferences, tone: value })}
+            />
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
       <Button
