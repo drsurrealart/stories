@@ -134,8 +134,6 @@ export type Database = {
           language: string | null
           length_preference: string | null
           moral: string
-          poetic_style: Database["public"]["Enums"]["poetic_style_type"]
-          reading_level: Database["public"]["Enums"]["reading_level_type"]
           slug: string
           title: string
           tone: string | null
@@ -151,8 +149,6 @@ export type Database = {
           language?: string | null
           length_preference?: string | null
           moral: string
-          poetic_style?: Database["public"]["Enums"]["poetic_style_type"]
-          reading_level?: Database["public"]["Enums"]["reading_level_type"]
           slug: string
           title: string
           tone?: string | null
@@ -168,8 +164,6 @@ export type Database = {
           language?: string | null
           length_preference?: string | null
           moral?: string
-          poetic_style?: Database["public"]["Enums"]["poetic_style_type"]
-          reading_level?: Database["public"]["Enums"]["reading_level_type"]
           slug?: string
           title?: string
           tone?: string | null
@@ -324,19 +318,6 @@ export type Database = {
       }
     }
     Enums: {
-      poetic_style_type:
-        | "prose"
-        | "rhyming"
-        | "haiku"
-        | "limerick"
-        | "free_verse"
-        | "narrative_poem"
-      reading_level_type:
-        | "early_reader"
-        | "beginner"
-        | "intermediate"
-        | "advanced"
-        | "fluent"
       subscription_level: "free" | "basic" | "premium" | "enterprise"
     }
     CompositeTypes: {
