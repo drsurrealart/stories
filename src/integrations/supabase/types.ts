@@ -281,39 +281,17 @@ export type Database = {
       user_details_secure: {
         Row: {
           created_at: string | null
+          credits_purchased: number | null
           credits_used: number | null
           first_name: string | null
           id: string | null
           last_name: string | null
+          renewal_date: string | null
           subscription_level:
             | Database["public"]["Enums"]["subscription_level"]
             | null
           updated_at: string | null
           upgrade_date: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          credits_used?: never
-          first_name?: string | null
-          id?: string | null
-          last_name?: string | null
-          subscription_level?:
-            | Database["public"]["Enums"]["subscription_level"]
-            | null
-          updated_at?: string | null
-          upgrade_date?: never
-        }
-        Update: {
-          created_at?: string | null
-          credits_used?: never
-          first_name?: string | null
-          id?: string | null
-          last_name?: string | null
-          subscription_level?:
-            | Database["public"]["Enums"]["subscription_level"]
-            | null
-          updated_at?: string | null
-          upgrade_date?: never
         }
         Relationships: []
       }

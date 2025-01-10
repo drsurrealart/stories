@@ -71,19 +71,14 @@ const AdminUsers = () => {
           .filter(usage => usage.user_id === user.id)
           .reduce((sum, usage) => sum + (usage.credits_used || 0), 0);
 
-        // Get current month's credit usage
-        const currentMonth = format(new Date(), 'yyyy-MM');
-        const currentMonthUsage = creditUsage
-          .find(usage => 
-            usage.user_id === user.id && 
-            usage.month_year === currentMonth
-          )?.credits_used || 0;
+        // Calculate credits remaining
+        const creditsRemaining = (user.credits_purchased || 0) - totalCredits;
 
         return {
           ...user,
           savedStories,
           totalCredits,
-          currentMonthUsage,
+          creditsRemaining,
           totalStoriesCreated
         };
       });
@@ -139,13 +134,15 @@ const AdminUsers = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Subscription</TableHead>
-                  <TableHead>AI Credits Used</TableHead>
+                  <TableHead>Member Level</TableHead>
+                  <TableHead>Total Credits Used</TableHead>
                   <TableHead>Stories Created</TableHead>
                   <TableHead>Saved Stories</TableHead>
-                  <TableHead>Current Month Credits</TableHead>
+                  <TableHead>Credits Remaining</TableHead>
+                  <TableHead>Credits Purchased</TableHead>
                   <TableHead>Member Since</TableHead>
                   <TableHead>Last Upgrade</TableHead>
+                  <TableHead>Renewal Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -160,7 +157,8 @@ const AdminUsers = () => {
                     <TableCell>{user.totalCredits}</TableCell>
                     <TableCell>{user.totalStoriesCreated}</TableCell>
                     <TableCell>{user.savedStories}</TableCell>
-                    <TableCell>{user.currentMonthUsage}</TableCell>
+                    <TableCell>{user.creditsRemaining}</TableCell>
+                    <TableCell>{user.credits_purchased}</TableCell>
                     <TableCell>
                       {user.created_at 
                         ? format(new Date(user.created_at), 'MM/dd/yyyy')
@@ -170,6 +168,11 @@ const AdminUsers = () => {
                       {user.upgrade_date 
                         ? format(new Date(user.upgrade_date), 'MM/dd/yyyy')
                         : 'Never'}
+                    </TableCell>
+                    <TableCell>
+                      {user.renewal_date 
+                        ? format(new Date(user.renewal_date), 'MM/dd/yyyy')
+                        : 'N/A'}
                     </TableCell>
                   </TableRow>
                 ))}
