@@ -21,14 +21,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+
+// Define the subscription level type
+type SubscriptionLevel = "free" | "basic" | "premium" | "enterprise";
 
 const AdminFunctions = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedUserId, setSelectedUserId] = useState("");
   const [creditsToAdd, setCreditsToAdd] = useState("");
-  const [selectedMembershipLevel, setSelectedMembershipLevel] = useState("");
+  const [selectedMembershipLevel, setSelectedMembershipLevel] = useState<SubscriptionLevel | "">("");
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -121,7 +123,7 @@ const AdminFunctions = () => {
     const { error: updateError } = await supabase
       .from("profiles")
       .update({ 
-        subscription_level: selectedMembershipLevel,
+        subscription_level: selectedMembershipLevel as SubscriptionLevel,
         updated_at: new Date().toISOString()
       })
       .eq("id", selectedUserId);
@@ -243,7 +245,7 @@ const AdminFunctions = () => {
                     <Label htmlFor="membershipLevel">New Membership Level</Label>
                     <Select
                       value={selectedMembershipLevel}
-                      onValueChange={setSelectedMembershipLevel}
+                      onValueChange={(value: SubscriptionLevel) => setSelectedMembershipLevel(value)}
                     >
                       <SelectTrigger id="membershipLevel">
                         <SelectValue placeholder="Select membership level" />
