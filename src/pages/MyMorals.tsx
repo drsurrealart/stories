@@ -1,9 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Lightbulb, ChevronRight } from "lucide-react";
+import { Lightbulb, ChevronRight, Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loading } from "@/components/ui/loading";
 import { NavigationBar } from "@/components/NavigationBar";
+import { Input } from "@/components/ui/input";
 import {
   Accordion,
   AccordionContent,
@@ -25,6 +26,7 @@ const ITEMS_PER_PAGE = 12;
 
 const MyMorals = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
   
   const { data: morals, isLoading } = useQuery({
     queryKey: ['all-morals'],
@@ -47,6 +49,18 @@ const MyMorals = () => {
     await supabase.auth.signOut();
   };
 
+  const filteredMorals = morals?.filter(story => {
+    const searchTerm = searchQuery.toLowerCase();
+    return (
+      story.title.toLowerCase().includes(searchTerm) ||
+      story.moral.toLowerCase().includes(searchTerm) ||
+      (Array.isArray(story.action_steps) && 
+        story.action_steps.some((step: string) => 
+          step.toLowerCase().includes(searchTerm)
+        ))
+    );
+  });
+
   if (isLoading) {
     return (
       <>
@@ -68,10 +82,10 @@ const MyMorals = () => {
   };
 
   // Pagination calculations
-  const totalPages = morals ? Math.ceil(morals.length / ITEMS_PER_PAGE) : 0;
+  const totalPages = filteredMorals ? Math.ceil(filteredMorals.length / ITEMS_PER_PAGE) : 0;
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentMorals = morals?.slice(startIndex, endIndex);
+  const currentMorals = filteredMorals?.slice(startIndex, endIndex);
 
   const PaginationControls = () => (
     <Pagination className="my-6">
@@ -134,47 +148,65 @@ const MyMorals = () => {
           <h1 className="text-3xl font-bold">My Moral Lessons</h1>
         </div>
         
-        <p className="text-muted-foreground mb-4">
-          Here's a collection of all the moral lessons from your stories:
-        </p>
-
-        {totalPages > 1 && <PaginationControls />}
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {currentMorals?.map((story, index) => (
-            <Card key={index} className={`${getRandomColor()} border-none shadow-md transition-transform hover:scale-105`}>
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-lg mb-3 text-gray-800">{story.title}</h3>
-                <p className="text-gray-700 mb-4">{story.moral}</p>
-                
-                {Array.isArray(story.action_steps) && story.action_steps.length > 0 && (
-                  <Accordion type="single" collapsible className="bg-white/50 rounded-lg">
-                    <AccordionItem value="action-steps" className="border-none">
-                      <AccordionTrigger className="px-4 py-2 hover:no-underline">
-                        <div className="flex items-center gap-2 text-sm font-medium">
-                          <ChevronRight className="w-4 h-4" />
-                          Action Steps
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="px-4 pb-3">
-                        <ul className="space-y-2 text-sm">
-                          {story.action_steps.map((step: string, stepIndex: number) => (
-                            <li key={stepIndex} className="flex items-start gap-2">
-                              <span className="font-medium min-w-[20px]">{stepIndex + 1}.</span>
-                              <span>{step}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+        <div className="relative mb-6">
+          <Input
+            type="text"
+            placeholder="Search by title, moral, or action steps..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1); // Reset to first page when searching
+            }}
+            className="pl-10"
+          />
+          <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
         </div>
 
-        {totalPages > 1 && <PaginationControls />}
+        {filteredMorals?.length === 0 ? (
+          <div className="text-center text-gray-500 my-8">
+            {searchQuery ? "No morals found matching your search." : "You haven't saved any morals yet."}
+          </div>
+        ) : (
+          <>
+            {totalPages > 1 && <PaginationControls />}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {currentMorals?.map((story, index) => (
+                <Card key={index} className={`${getRandomColor()} border-none shadow-md transition-transform hover:scale-105`}>
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold text-lg mb-3 text-gray-800">{story.title}</h3>
+                    <p className="text-gray-700 mb-4">{story.moral}</p>
+                    
+                    {Array.isArray(story.action_steps) && story.action_steps.length > 0 && (
+                      <Accordion type="single" collapsible className="bg-white/50 rounded-lg">
+                        <AccordionItem value="action-steps" className="border-none">
+                          <AccordionTrigger className="px-4 py-2 hover:no-underline">
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                              <ChevronRight className="w-4 h-4" />
+                              Action Steps
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-4 pb-3">
+                            <ul className="space-y-2 text-sm">
+                              {story.action_steps.map((step: string, stepIndex: number) => (
+                                <li key={stepIndex} className="flex items-start gap-2">
+                                  <span className="font-medium min-w-[20px]">{stepIndex + 1}.</span>
+                                  <span>{step}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {totalPages > 1 && <PaginationControls />}
+          </>
+        )}
       </div>
     </>
   );
