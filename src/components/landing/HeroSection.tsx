@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 export const HeroSection = () => {
   return (
-    <section className="container mx-auto px-4 pt-12 md:pt-20 pb-16 md:pb-32 text-center bg-gradient-to-b from-secondary/30 to-transparent">
+    <section className="container mx-auto px-4 pt-12 md:pt-20 pb-16 md:pb-32 text-center bg-gradient-to-b from-[#F1F0FB] to-white">
       <div className="max-w-3xl mx-auto">
         <div className="relative mb-8">
           <img 
@@ -12,11 +12,11 @@ export const HeroSection = () => {
             alt="LearnMorals.com Logo" 
             className="w-32 h-32 mx-auto animate-fade-in"
           />
-          <Sparkles className="absolute top-0 right-1/3 text-primary w-6 h-6 animate-pulse" />
-          <Sparkles className="absolute bottom-0 left-1/3 text-primary w-6 h-6 animate-pulse delay-300" />
+          <Sparkles className="absolute top-0 right-1/3 text-[#9b87f5] w-6 h-6 animate-pulse" />
+          <Sparkles className="absolute bottom-0 left-1/3 text-[#9b87f5] w-6 h-6 animate-pulse delay-300" />
         </div>
         
-        <h1 className="text-4xl md:text-6xl font-bold text-primary mb-6 md:mb-8 animate-fade-in">
+        <h1 className="text-4xl md:text-6xl font-bold mb-6 md:mb-8 animate-fade-in bg-gradient-to-r from-[#9b87f5] to-[#E5DEFF] bg-clip-text text-transparent">
           AI Story Time
         </h1>
         
@@ -27,7 +27,7 @@ export const HeroSection = () => {
         <Link to="/auth">
           <Button 
             size="lg" 
-            className="text-base md:text-lg px-8 md:px-12 py-6 md:py-8 bg-primary hover:bg-primary-hover transition-colors duration-300 shadow-lg hover:shadow-xl"
+            className="text-base md:text-lg px-8 md:px-12 py-6 md:py-8 bg-gradient-to-r from-[#9b87f5] to-[#E5DEFF] hover:from-[#E5DEFF] hover:to-[#9b87f5] transition-all duration-500 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
           >
             Start Your Story Journey
             <BookOpen className="ml-2 w-5 h-5 md:w-6 md:h-6" />
