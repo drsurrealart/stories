@@ -6,6 +6,7 @@ import { NavigationBar } from "@/components/NavigationBar";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
 import { StorySocialShare } from "@/components/story/StorySocialShare";
+import { StoryEnrichment } from "@/components/story/StoryEnrichment";
 
 interface SavedStory {
   id: string;
@@ -13,6 +14,10 @@ interface SavedStory {
   content: string;
   moral: string;
   created_at: string;
+  reflection_questions: string[];
+  action_steps: string[];
+  related_quote: string;
+  discussion_prompts: string[];
 }
 
 const YourStories = () => {
@@ -123,6 +128,14 @@ const YourStories = () => {
                     <h3 className="font-semibold mb-2">Moral</h3>
                     <p className="text-story-text">{story.moral}</p>
                   </Card>
+                )}
+                {story.reflection_questions && (
+                  <StoryEnrichment
+                    reflectionQuestions={story.reflection_questions}
+                    actionSteps={story.action_steps}
+                    relatedQuote={story.related_quote}
+                    discussionPrompts={story.discussion_prompts}
+                  />
                 )}
                 <div className="pt-4 border-t">
                   <StorySocialShare
