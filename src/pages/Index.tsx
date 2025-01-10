@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, History, Plus, Settings, CreditCard } from "lucide-react";
+import { BookOpen, History, Plus, Settings, CreditCard, Crown } from "lucide-react";
 import { StoryStats } from "@/components/dashboard/StoryStats";
 import { Loading } from "@/components/ui/loading";
 import { ShareWithFriends } from "@/components/sharing/ShareWithFriends";
@@ -29,20 +29,48 @@ const Index = () => {
     },
   });
 
+  const { data: currentTier, isLoading: tierLoading } = useQuery({
+    queryKey: ['current-tier', profile?.subscription_level],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('subscription_tiers')
+        .select('*')
+        .eq('level', profile?.subscription_level)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.subscription_level,
+  });
+
+  const { data: highestTier } = useQuery({
+    queryKey: ['highest-tier'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('subscription_tiers')
+        .select('level')
+        .order('price', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: credits, isLoading: creditsLoading } = useQuery({
     queryKey: ['user-credits'],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No session');
 
-      // Get subscription tier limits
       const { data: tierLimits } = await supabase
         .from('subscription_tiers')
         .select('monthly_credits')
         .eq('level', profile?.subscription_level || 'free')
         .single();
 
-      // Get current month's credit usage
       const currentMonth = new Date().toISOString().slice(0, 7);
       const { data: creditCount } = await supabase
         .from('user_story_counts')
@@ -81,7 +109,7 @@ const Index = () => {
     await supabase.auth.signOut();
   };
 
-  if (profileLoading || creditsLoading) {
+  if (profileLoading || creditsLoading || tierLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loading size="lg" text="Loading your dashboard..." />
@@ -94,6 +122,29 @@ const Index = () => {
       <NavigationBar onLogout={handleLogout} />
       
       <div className="max-w-6xl mx-auto p-6 space-y-8">
+        {/* Membership Status */}
+        <Card className="p-6 bg-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-primary/10 rounded-lg">
+                <Crown className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">Current Membership</h2>
+                <p className="text-muted-foreground capitalize">{currentTier?.name || 'Free'}</p>
+              </div>
+            </div>
+            {profile?.subscription_level !== highestTier?.level && (
+              <Button 
+                onClick={() => navigate('/my-subscriptions')}
+                className="bg-primary hover:bg-primary-hover text-white"
+              >
+                Upgrade Now
+              </Button>
+            )}
+          </div>
+        </Card>
+
         {/* Story Stats */}
         <StoryStats />
         
