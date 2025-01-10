@@ -10,8 +10,22 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { useState } from "react";
+
+const ITEMS_PER_PAGE = 12;
 
 const MyMorals = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  
   const { data: morals, isLoading } = useQuery({
     queryKey: ['all-morals'],
     queryFn: async () => {
@@ -53,6 +67,64 @@ const MyMorals = () => {
     return colors[Math.floor(Math.random() * colors.length)];
   };
 
+  // Pagination calculations
+  const totalPages = morals ? Math.ceil(morals.length / ITEMS_PER_PAGE) : 0;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentMorals = morals?.slice(startIndex, endIndex);
+
+  const PaginationControls = () => (
+    <Pagination className="my-6">
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+          />
+        </PaginationItem>
+
+        {[...Array(totalPages)].map((_, index) => {
+          const pageNumber = index + 1;
+          // Show first page, current page, last page, and pages around current page
+          if (
+            pageNumber === 1 ||
+            pageNumber === totalPages ||
+            (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+          ) {
+            return (
+              <PaginationItem key={pageNumber}>
+                <PaginationLink
+                  onClick={() => setCurrentPage(pageNumber)}
+                  isActive={currentPage === pageNumber}
+                  className="cursor-pointer"
+                >
+                  {pageNumber}
+                </PaginationLink>
+              </PaginationItem>
+            );
+          } else if (
+            pageNumber === currentPage - 2 ||
+            pageNumber === currentPage + 2
+          ) {
+            return (
+              <PaginationItem key={pageNumber}>
+                <PaginationEllipsis />
+              </PaginationItem>
+            );
+          }
+          return null;
+        })}
+
+        <PaginationItem>
+          <PaginationNext
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
+
   return (
     <>
       <NavigationBar onLogout={handleLogout} />
@@ -62,12 +134,14 @@ const MyMorals = () => {
           <h1 className="text-3xl font-bold">My Moral Lessons</h1>
         </div>
         
-        <p className="text-muted-foreground mb-8">
+        <p className="text-muted-foreground mb-4">
           Here's a collection of all the moral lessons from your stories:
         </p>
+
+        {totalPages > 1 && <PaginationControls />}
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {morals?.map((story, index) => (
+          {currentMorals?.map((story, index) => (
             <Card key={index} className={`${getRandomColor()} border-none shadow-md transition-transform hover:scale-105`}>
               <CardContent className="p-6">
                 <h3 className="font-semibold text-lg mb-3 text-gray-800">{story.title}</h3>
@@ -99,6 +173,8 @@ const MyMorals = () => {
             </Card>
           ))}
         </div>
+
+        {totalPages > 1 && <PaginationControls />}
       </div>
     </>
   );
