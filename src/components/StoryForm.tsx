@@ -13,6 +13,8 @@ import { CharacterNameInput } from "./story/CharacterNameInput";
 import { LengthPreferenceSelect } from "./story/LengthPreferenceSelect";
 import { LanguageSelect } from "./story/LanguageSelect";
 import { ToneSelect } from "./story/ToneSelect";
+import { PoeticStyleSelect } from "./story/PoeticStyleSelect";
+import { ReadingLevelSelect } from "./story/ReadingLevelSelect";
 import {
   Collapsible,
   CollapsibleContent,
@@ -28,6 +30,8 @@ export interface StoryPreferences {
   lengthPreference: string;
   language: string;
   tone: string;
+  poeticStyle: string;
+  readingLevel: string;
 }
 
 interface StoryFormProps {
@@ -45,6 +49,8 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     lengthPreference: "medium",
     language: "english",
     tone: "standard",
+    poeticStyle: "prose",
+    readingLevel: "intermediate",
   });
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const { toast } = useToast();
@@ -209,6 +215,14 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
             <ToneSelect
               value={preferences.tone}
               onChange={(value) => setPreferences({ ...preferences, tone: value })}
+            />
+            <PoeticStyleSelect
+              value={preferences.poeticStyle}
+              onChange={(value) => setPreferences({ ...preferences, poeticStyle: value })}
+            />
+            <ReadingLevelSelect
+              value={preferences.readingLevel}
+              onChange={(value) => setPreferences({ ...preferences, readingLevel: value })}
             />
           </CollapsibleContent>
         </Collapsible>
