@@ -23,6 +23,7 @@ export interface StoryPreferences {
   lengthPreference: string;
   language: string;
   tone: string;
+  readingLevel: string;
 }
 
 interface StoryFormProps {
@@ -40,6 +41,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     lengthPreference: "medium",
     language: "english",
     tone: "standard",
+    readingLevel: "intermediate",
   });
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const { toast } = useToast();
@@ -161,11 +163,13 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
             lengthPreference={preferences.lengthPreference}
             language={preferences.language}
             tone={preferences.tone}
+            readingLevel={preferences.readingLevel}
             onCharacterName1Change={(value) => setPreferences({ ...preferences, characterName1: value })}
             onCharacterName2Change={(value) => setPreferences({ ...preferences, characterName2: value })}
             onLengthPreferenceChange={(value) => setPreferences({ ...preferences, lengthPreference: value })}
             onLanguageChange={(value) => setPreferences({ ...preferences, language: value })}
             onToneChange={(value) => setPreferences({ ...preferences, tone: value })}
+            onReadingLevelChange={(value) => setPreferences({ ...preferences, readingLevel: value })}
           />
         </CollapsibleContent>
       </Collapsible>

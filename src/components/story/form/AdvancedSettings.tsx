@@ -2,6 +2,7 @@ import { CharacterNameInput } from "../CharacterNameInput";
 import { LengthPreferenceSelect } from "../LengthPreferenceSelect";
 import { LanguageSelect } from "../LanguageSelect";
 import { ToneSelect } from "../ToneSelect";
+import { ReadingLevelSelect } from "../ReadingLevelSelect";
 
 interface AdvancedSettingsProps {
   characterName1: string;
@@ -9,11 +10,13 @@ interface AdvancedSettingsProps {
   lengthPreference: string;
   language: string;
   tone: string;
+  readingLevel: string;
   onCharacterName1Change: (value: string) => void;
   onCharacterName2Change: (value: string) => void;
   onLengthPreferenceChange: (value: string) => void;
   onLanguageChange: (value: string) => void;
   onToneChange: (value: string) => void;
+  onReadingLevelChange: (value: string) => void;
 }
 
 export function AdvancedSettings({
@@ -22,11 +25,13 @@ export function AdvancedSettings({
   lengthPreference,
   language,
   tone,
+  readingLevel,
   onCharacterName1Change,
   onCharacterName2Change,
   onLengthPreferenceChange,
   onLanguageChange,
   onToneChange,
+  onReadingLevelChange,
 }: AdvancedSettingsProps) {
   return (
     <div className="space-y-4">
@@ -57,6 +62,11 @@ export function AdvancedSettings({
       <ToneSelect
         value={tone}
         onChange={onToneChange}
+      />
+
+      <ReadingLevelSelect
+        value={readingLevel}
+        onChange={onReadingLevelChange}
       />
     </div>
   );
