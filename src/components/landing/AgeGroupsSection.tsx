@@ -9,7 +9,8 @@ export const AgeGroupsSection = () => {
       key: "preschool",
       displayGenres: 4,
       displayMorals: 4,
-      gradient: "from-[#FFB088] to-[#FDE1D3]"
+      gradient: "bg-[#FDE1D3]",
+      hoverGradient: "hover:bg-[#FEC6A1]"
     },
     {
       title: "Elementary (6-8)",
@@ -17,7 +18,8 @@ export const AgeGroupsSection = () => {
       key: "elementary",
       displayGenres: 4,
       displayMorals: 4,
-      gradient: "from-[#9b87f5] to-[#E5DEFF]"
+      gradient: "bg-[#E5DEFF]",
+      hoverGradient: "hover:bg-[#D3E4FD]"
     },
     {
       title: "Tween (9-12)",
@@ -25,7 +27,8 @@ export const AgeGroupsSection = () => {
       key: "tween",
       displayGenres: 4,
       displayMorals: 4,
-      gradient: "from-[#86D549] to-[#F2FCE2]"
+      gradient: "bg-[#F2FCE2]",
+      hoverGradient: "hover:bg-[#FEF7CD]"
     },
     {
       title: "Teen (13-17)",
@@ -33,7 +36,8 @@ export const AgeGroupsSection = () => {
       key: "teen",
       displayGenres: 4,
       displayMorals: 4,
-      gradient: "from-[#FF719A] to-[#FFE29F]"
+      gradient: "bg-[#FFDEE2]",
+      hoverGradient: "hover:bg-[#FFE29F]"
     },
     {
       title: "Adult (18+)",
@@ -41,7 +45,8 @@ export const AgeGroupsSection = () => {
       key: "adult",
       displayGenres: 4,
       displayMorals: 4,
-      gradient: "from-[#7E69AB] to-[#9b87f5]"
+      gradient: "bg-[#F1F0FB]",
+      hoverGradient: "hover:bg-[#E5DEFF]"
     }
   ];
 
@@ -55,7 +60,7 @@ export const AgeGroupsSection = () => {
           {ageGroups.map((group) => (
             <div 
               key={group.key} 
-              className={`p-6 bg-gradient-to-br ${group.gradient} rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}
+              className={`p-6 ${group.gradient} ${group.hoverGradient} rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}
             >
               <div className="text-center mb-6">
                 <div className="bg-white/90 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">

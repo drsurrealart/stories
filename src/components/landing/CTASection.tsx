@@ -18,7 +18,7 @@ export const CTASection = () => {
         <Link to="/auth">
           <Button 
             size="lg" 
-            className="text-base md:text-lg px-8 md:px-12 py-6 md:py-8 bg-gradient-to-r from-[#9b87f5] to-[#E5DEFF] hover:from-[#E5DEFF] hover:to-[#9b87f5] transition-all duration-500 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            className="text-base md:text-lg px-8 md:px-12 py-6 md:py-8 bg-primary hover:bg-primary-hover transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
           >
             Create Your First Story
             <BookOpen className="ml-2 w-5 h-5 md:w-6 md:h-6" />
