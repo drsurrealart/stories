@@ -1,20 +1,22 @@
 import { HeroSection } from "@/components/landing/HeroSection";
+import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { AgeGroupsSection } from "@/components/landing/AgeGroupsSection";
 import { BenefitsSection } from "@/components/landing/BenefitsSection";
+import { FeaturesShowcase } from "@/components/landing/FeaturesShowcase";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
-import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { CTASection } from "@/components/landing/CTASection";
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
+    <main>
       <HeroSection />
+      <FeaturesSection />
       <AgeGroupsSection />
       <BenefitsSection />
+      <FeaturesShowcase />
       <TestimonialsSection />
-      <FeaturesSection />
       <CTASection />
-    </div>
+    </main>
   );
 };
 
