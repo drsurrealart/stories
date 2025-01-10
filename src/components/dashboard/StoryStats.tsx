@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { BookMarked, BookOpen } from "lucide-react";
+import { BookMarked, BookOpen, Clock, Star, Languages, Target } from "lucide-react";
 import { Loader2 } from "lucide-react";
 
 export const StoryStats = () => {
@@ -30,11 +30,19 @@ export const StoryStats = () => {
       // Sum up all credits_used counts
       const totalGenerated = storyCounts?.reduce((sum, record) => 
         sum + (record.credits_used || 0), 0) || 0;
+
+      // Calculate additional statistics
+      const languages = new Set(stories.map(story => story.language)).size;
+      const avgLength = stories.reduce((sum, story) => sum + story.content.length, 0) / (stories.length || 1);
+      const readingLevels = new Set(stories.map(story => story.reading_level)).size;
       
       return {
         totalStories: totalGenerated,
-        // Only count stories that have both title and content as saved
         savedStories: stories.filter(story => story.title && story.content).length,
+        uniqueLanguages: languages,
+        averageLength: Math.round(avgLength / 100), // Rough estimate of words
+        readingLevels,
+        lastCreated: stories.length > 0 ? new Date(stories[0].created_at).toLocaleDateString() : 'No stories yet'
       };
     },
   });
@@ -50,9 +58,9 @@ export const StoryStats = () => {
   }
 
   return (
-    <Card className="p-6 space-y-4">
+    <Card className="p-6 space-y-6">
       <h2 className="text-xl font-semibold">Your Story Stats</h2>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-primary/10 rounded-lg">
             <BookOpen className="w-5 h-5 text-primary" />
@@ -62,6 +70,7 @@ export const StoryStats = () => {
             <p className="text-sm text-muted-foreground">Stories Created</p>
           </div>
         </div>
+        
         <div className="flex items-center gap-3">
           <div className="p-3 bg-primary/10 rounded-lg">
             <BookMarked className="w-5 h-5 text-primary" />
@@ -69,6 +78,46 @@ export const StoryStats = () => {
           <div>
             <p className="text-2xl font-bold">{stats?.savedStories || 0}</p>
             <p className="text-sm text-muted-foreground">Stories Saved</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-primary/10 rounded-lg">
+            <Languages className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{stats?.uniqueLanguages || 0}</p>
+            <p className="text-sm text-muted-foreground">Languages Used</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-primary/10 rounded-lg">
+            <Clock className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{stats?.averageLength || 0}</p>
+            <p className="text-sm text-muted-foreground">Avg. Words/Story</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-primary/10 rounded-lg">
+            <Target className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{stats?.readingLevels || 0}</p>
+            <p className="text-sm text-muted-foreground">Reading Levels</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-primary/10 rounded-lg">
+            <Star className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-lg font-medium">{stats?.lastCreated}</p>
+            <p className="text-sm text-muted-foreground">Last Created</p>
           </div>
         </div>
       </div>
