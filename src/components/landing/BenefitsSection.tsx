@@ -1,4 +1,4 @@
-import { Heart, Users, Award, Brain, Sparkles, Target } from "lucide-react";
+import { Heart, Brain, Target } from "lucide-react";
 
 export const BenefitsSection = () => {
   const benefits = [
@@ -6,40 +6,43 @@ export const BenefitsSection = () => {
       icon: Heart,
       title: "Build Character",
       description: "Develop empathy, kindness, and strong moral values through engaging narratives",
-      color: "bg-[#FDE1D3]",
-      iconColor: "text-[#F97316]"
+      color: "bg-gradient-to-br from-[#FDE1D3] to-[#FFB088]",
+      iconColor: "text-[#F97316]",
+      hoverColor: "hover:from-[#FFB088] hover:to-[#FDE1D3]"
     },
     {
       icon: Brain,
       title: "Critical Thinking",
       description: "Enhance analytical skills through reflection questions and thoughtful discussions",
-      color: "bg-[#E5DEFF]",
-      iconColor: "text-primary"
+      color: "bg-gradient-to-br from-[#E5DEFF] to-[#9b87f5]",
+      iconColor: "text-primary",
+      hoverColor: "hover:from-[#9b87f5] hover:to-[#E5DEFF]"
     },
     {
       icon: Target,
       title: "Practical Application",
       description: "Transform learning into action with clear, actionable steps for real-life situations",
-      color: "bg-[#F2FCE2]",
-      iconColor: "text-[#4CAF50]"
+      color: "bg-gradient-to-br from-[#F2FCE2] to-[#86D549]",
+      iconColor: "text-[#4CAF50]",
+      hoverColor: "hover:from-[#86D549] hover:to-[#F2FCE2]"
     }
   ];
 
   return (
-    <section className="py-12 md:py-20 bg-gradient-to-b from-white to-secondary/30">
+    <section className="py-12 md:py-20 bg-gradient-to-b from-white via-secondary/30 to-white">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl md:text-4xl font-bold text-center mb-8 md:mb-12 text-primary">
+        <h2 className="text-2xl md:text-4xl font-bold text-center mb-8 md:mb-12 bg-gradient-to-r from-primary to-[#7E69AB] bg-clip-text text-transparent">
           Transform Learning Through Stories
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {benefits.map((benefit, index) => (
             <div 
               key={index} 
-              className={`flex flex-col items-center text-center p-8 rounded-lg transition-all duration-300 hover:-translate-y-1 ${benefit.color}`}
+              className={`flex flex-col items-center text-center p-8 rounded-lg transition-all duration-500 ${benefit.color} ${benefit.hoverColor} hover:-translate-y-2 shadow-lg hover:shadow-xl`}
             >
               <benefit.icon className={`w-12 h-12 ${benefit.iconColor} mb-4`} />
               <h3 className="text-xl font-semibold mb-3 text-gray-800">{benefit.title}</h3>
-              <p className="text-gray-600">{benefit.description}</p>
+              <p className="text-gray-700">{benefit.description}</p>
             </div>
           ))}
         </div>
