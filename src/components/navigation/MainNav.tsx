@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, PenTool, BookOpen } from "lucide-react";
+import { LayoutDashboard, PenTool, BookOpen, Lightbulb } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +9,8 @@ export const MainNav = () => {
   const navigationItems = [
     { title: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
     { title: "Create Story", href: "/create", icon: <PenTool className="h-4 w-4" /> },
-    { title: "Saved Stories", href: "/your-stories", icon: <BookOpen className="h-4 w-4" /> },
+    { title: "My Stories", href: "/your-stories", icon: <BookOpen className="h-4 w-4" /> },
+    { title: "My Morals", href: "/my-morals", icon: <Lightbulb className="h-4 w-4" /> },
   ];
 
   return (

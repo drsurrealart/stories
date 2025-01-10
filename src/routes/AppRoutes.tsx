@@ -6,6 +6,7 @@ import Auth from "@/pages/Auth";
 import Landing from "@/pages/Landing";
 import Create from "@/pages/Create";
 import YourStories from "@/pages/YourStories";
+import MyMorals from "@/pages/MyMorals";
 import AccountSettings from "@/pages/AccountSettings";
 import MySubscriptions from "@/pages/MySubscriptions";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -45,6 +46,14 @@ export const AppRoutes = () => (
         element={
           <ProtectedRoute>
             <YourStories />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-morals"
+        element={
+          <ProtectedRoute>
+            <MyMorals />
           </ProtectedRoute>
         }
       />
