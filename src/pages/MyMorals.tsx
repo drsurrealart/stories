@@ -1,9 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loading } from "@/components/ui/loading";
 import { NavigationBar } from "@/components/NavigationBar";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const MyMorals = () => {
   const { data: morals, isLoading } = useQuery({
@@ -14,7 +20,7 @@ const MyMorals = () => {
       
       const { data, error } = await supabase
         .from('stories')
-        .select('title, moral, created_at')
+        .select('title, moral, created_at, action_steps')
         .eq('author_id', session.user.id)
         .order('created_at', { ascending: false });
         
@@ -65,7 +71,30 @@ const MyMorals = () => {
             <Card key={index} className={`${getRandomColor()} border-none shadow-md transition-transform hover:scale-105`}>
               <CardContent className="p-6">
                 <h3 className="font-semibold text-lg mb-3 text-gray-800">{story.title}</h3>
-                <p className="text-gray-700">{story.moral}</p>
+                <p className="text-gray-700 mb-4">{story.moral}</p>
+                
+                {Array.isArray(story.action_steps) && story.action_steps.length > 0 && (
+                  <Accordion type="single" collapsible className="bg-white/50 rounded-lg">
+                    <AccordionItem value="action-steps" className="border-none">
+                      <AccordionTrigger className="px-4 py-2 hover:no-underline">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <ChevronRight className="w-4 h-4" />
+                          Action Steps
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-3">
+                        <ul className="space-y-2 text-sm">
+                          {story.action_steps.map((step: string, stepIndex: number) => (
+                            <li key={stepIndex} className="flex items-start gap-2">
+                              <span className="font-medium min-w-[20px]">{stepIndex + 1}.</span>
+                              <span>{step}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                )}
               </CardContent>
             </Card>
           ))}
