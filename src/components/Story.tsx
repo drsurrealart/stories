@@ -23,6 +23,8 @@ interface StoryProps {
   genre?: string;
   language?: string;
   tone?: string;
+  readingLevel?: string;
+  lengthPreference?: string;
 }
 
 export function Story({ 
@@ -33,7 +35,9 @@ export function Story({
   ageGroup,
   genre,
   language,
-  tone
+  tone,
+  readingLevel,
+  lengthPreference
 }: StoryProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -58,6 +62,8 @@ export function Story({
         genre={genre}
         language={language}
         tone={tone}
+        readingLevel={readingLevel}
+        lengthPreference={lengthPreference}
       />
 
       {enrichment && (

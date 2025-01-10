@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Lightbulb } from "lucide-react";
+import { BookOpen, Lightbulb, Clock, GraduationCap } from "lucide-react";
 
 interface StoryContentProps {
   title: string;
@@ -10,6 +10,8 @@ interface StoryContentProps {
   genre?: string;
   language?: string;
   tone?: string;
+  readingLevel?: string;
+  lengthPreference?: string;
 }
 
 export function StoryContent({ 
@@ -19,7 +21,9 @@ export function StoryContent({
   ageGroup,
   genre,
   language,
-  tone 
+  tone,
+  readingLevel,
+  lengthPreference
 }: StoryContentProps) {
   return (
     <>
@@ -40,7 +44,7 @@ export function StoryContent({
         </Card>
       )}
 
-      {(ageGroup || genre || language || tone) && (
+      {(ageGroup || genre || language || tone || readingLevel || lengthPreference) && (
         <div className="flex flex-wrap gap-2 mt-4">
           {ageGroup && (
             <Badge variant="secondary" className="capitalize">
@@ -51,6 +55,18 @@ export function StoryContent({
           {genre && (
             <Badge variant="secondary" className="capitalize">
               {genre}
+            </Badge>
+          )}
+          {readingLevel && readingLevel !== "intermediate" && (
+            <Badge variant="secondary" className="capitalize">
+              <GraduationCap className="h-3 w-3 mr-1" />
+              {readingLevel} level
+            </Badge>
+          )}
+          {lengthPreference && lengthPreference !== "medium" && (
+            <Badge variant="secondary" className="capitalize">
+              <Clock className="h-3 w-3 mr-1" />
+              {lengthPreference} length
             </Badge>
           )}
           {language && language !== "english" && (
