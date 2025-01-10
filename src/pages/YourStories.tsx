@@ -4,6 +4,7 @@ import { NavigationBar } from "@/components/NavigationBar";
 import { useToast } from "@/hooks/use-toast";
 import { StoryCard } from "@/components/story/StoryCard";
 import { SavedStory } from "@/types/story";
+import { Loading } from "@/components/ui/loading";
 import {
   Pagination,
   PaginationContent,
@@ -13,7 +14,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-const STORIES_PER_PAGE = 5;
+const STORIES_PER_PAGE = 3; // Changed from 5 to 3
 
 const YourStories = () => {
   const [stories, setStories] = useState<SavedStory[]>([]);
@@ -94,6 +95,39 @@ const YourStories = () => {
 
   const totalPages = Math.ceil(totalStories / STORIES_PER_PAGE);
 
+  const PaginationComponent = () => (
+    <Pagination className="my-4">
+      <PaginationContent>
+        {currentPage > 1 && (
+          <PaginationItem>
+            <PaginationPrevious 
+              onClick={() => setCurrentPage(currentPage - 1)}
+            />
+          </PaginationItem>
+        )}
+        
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <PaginationItem key={page}>
+            <PaginationLink
+              onClick={() => setCurrentPage(page)}
+              isActive={currentPage === page}
+            >
+              {page}
+            </PaginationLink>
+          </PaginationItem>
+        ))}
+
+        {currentPage < totalPages && (
+          <PaginationItem>
+            <PaginationNext 
+              onClick={() => setCurrentPage(currentPage + 1)}
+            />
+          </PaginationItem>
+        )}
+      </PaginationContent>
+    </Pagination>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       <NavigationBar onLogout={async () => {}} />
@@ -101,13 +135,15 @@ const YourStories = () => {
         <h1 className="text-3xl font-bold text-center mb-8">My Stories</h1>
         
         {isLoading ? (
-          <div className="text-center">Loading your stories...</div>
+          <Loading text="Loading your stories..." />
         ) : stories.length === 0 ? (
           <div className="text-center text-gray-500">
             You haven't saved any stories yet.
           </div>
         ) : (
           <div className="space-y-6">
+            {totalPages > 1 && <PaginationComponent />}
+            
             {stories.map((story) => (
               <StoryCard 
                 key={story.id}
@@ -116,38 +152,7 @@ const YourStories = () => {
               />
             ))}
 
-            {totalPages > 1 && (
-              <Pagination className="mt-8">
-                <PaginationContent>
-                  {currentPage > 1 && (
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        onClick={() => setCurrentPage(currentPage - 1)}
-                      />
-                    </PaginationItem>
-                  )}
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <PaginationItem key={page}>
-                      <PaginationLink
-                        onClick={() => setCurrentPage(page)}
-                        isActive={currentPage === page}
-                      >
-                        {page}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
-
-                  {currentPage < totalPages && (
-                    <PaginationItem>
-                      <PaginationNext 
-                        onClick={() => setCurrentPage(currentPage + 1)}
-                      />
-                    </PaginationItem>
-                  )}
-                </PaginationContent>
-              </Pagination>
-            )}
+            {totalPages > 1 && <PaginationComponent />}
           </div>
         )}
       </div>
