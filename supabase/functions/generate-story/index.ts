@@ -63,7 +63,7 @@ serve(async (req) => {
     
     const characterPrompt = characterNames 
       ? `Use the character names "${characterNames}" as the main characters in the story. Make sure these characters play central roles in the narrative.`
-      : "Create appropriate character names for the story.";
+      : "Create unique and memorable character names for the story. Avoid common or generic names. Each character should have a distinctive name that reflects their personality or role in the story.";
 
     // Add length preference to the prompt
     const lengthPrompt = preferences.lengthPreference === 'short' 
@@ -82,7 +82,7 @@ serve(async (req) => {
       ? "" 
       : `Write the entire story in ${preferences.language}. Make sure to maintain proper grammar and natural flow in the target language.`;
 
-    const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} ${lengthPrompt} ${tonePrompt} ${languagePrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Keep it meaningful. Do not use asterisks or other decorative characters in the formatting. Do not start the title with "Title:". The story must be completely family-friendly and appropriate for children.`;
+    const prompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} ${lengthPrompt} ${tonePrompt} ${languagePrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Make the characters and their interactions unique and memorable. If creating character names, ensure they are creative and distinctive. Keep it meaningful and family-friendly. Do not use asterisks or other decorative characters in the formatting. Do not start the title with "Title:". The story must be completely family-friendly and appropriate for children.`;
 
     console.log("Sending prompt to OpenAI:", prompt);
 
@@ -97,16 +97,16 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a skilled storyteller who creates engaging, age-appropriate stories with clear moral lessons. Each story must be completely unique - never reuse character names, plot elements, or titles from previous stories. Create fresh, original content every time. Format the output with a Title at the start and a Moral at the end, without using any asterisks or decorative characters. Do not prefix the title with "Title:". The content must be completely family-friendly and appropriate for children.',
+            content: 'You are a skilled storyteller who creates engaging, age-appropriate stories with clear moral lessons. Create unique and memorable character names when no names are provided. Never reuse character names, plot elements, or titles from previous stories. Each story must be completely original with distinctive characters and creative names. Format the output with a Title at the start and a Moral at the end, without using any asterisks or decorative characters. Do not prefix the title with "Title:". The content must be completely family-friendly and appropriate for children.',
           },
           {
             role: 'user',
             content: prompt,
           },
         ],
-        temperature: 0.8,
-        presence_penalty: 0.3,
-        frequency_penalty: 0.3,
+        temperature: 0.9,
+        presence_penalty: 0.4,
+        frequency_penalty: 0.4,
       }),
     });
 

@@ -221,8 +221,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
       >
         {isLoading ? (
           <div className="flex items-center justify-center">
-            <span className="mr-2">Creating...</span>
-            <Loading size="sm" className="py-1" />
+            <span>Creating...</span>
           </div>
         ) : (
           <>
