@@ -13,6 +13,7 @@ const Create = () => {
   const [appState, setAppState] = useState<AppState>("form");
   const [isLoading, setIsLoading] = useState(false);
   const [story, setStory] = useState("");
+  const [storyPreferences, setStoryPreferences] = useState<StoryPreferences | null>(null);
   const [enrichment, setEnrichment] = useState<{
     reflection_questions: string[];
     action_steps: string[];
@@ -80,6 +81,7 @@ const Create = () => {
       }
 
       setStory(storyContent);
+      setStoryPreferences(preferences);
       setEnrichment(enrichmentData);
       setAppState("story");
     } catch (error) {
@@ -97,6 +99,7 @@ const Create = () => {
   const handleCreateNew = () => {
     setAppState("form");
     setStory("");
+    setStoryPreferences(null);
     setEnrichment(null);
   };
 
@@ -121,6 +124,10 @@ const Create = () => {
               enrichment={enrichment}
               onReflect={() => setAppState("reflection")}
               onCreateNew={handleCreateNew}
+              ageGroup={storyPreferences?.ageGroup}
+              genre={storyPreferences?.genre}
+              language={storyPreferences?.language}
+              tone={storyPreferences?.tone}
             />
           )}
           

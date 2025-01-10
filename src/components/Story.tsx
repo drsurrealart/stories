@@ -19,9 +19,22 @@ interface StoryProps {
   } | null;
   onReflect: () => void;
   onCreateNew: () => void;
+  ageGroup?: string;
+  genre?: string;
+  language?: string;
+  tone?: string;
 }
 
-export function Story({ content, enrichment, onReflect, onCreateNew }: StoryProps) {
+export function Story({ 
+  content, 
+  enrichment, 
+  onReflect, 
+  onCreateNew,
+  ageGroup,
+  genre,
+  language,
+  tone
+}: StoryProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
@@ -41,6 +54,10 @@ export function Story({ content, enrichment, onReflect, onCreateNew }: StoryProp
         title={title}
         content={storyWithoutTitle}
         moral={moral}
+        ageGroup={ageGroup}
+        genre={genre}
+        language={language}
+        tone={tone}
       />
 
       {enrichment && (
