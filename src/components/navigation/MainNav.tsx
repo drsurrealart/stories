@@ -22,7 +22,7 @@ export const MainNav = () => {
             size="sm"
             className={cn(
               "text-gray-300 hover:text-white",
-              item.href === "/create" && "bg-[#E2FCE2] hover:bg-[#D0EBD0] text-gray-800",
+              item.href === "/create" && "bg-[#E2FCE2] hover:bg-[#D0EBD0] text-gray-800 hover:text-gray-800",
               item.href === location.pathname && item.href !== "/create" && "bg-gray-700/50 text-white"
             )}
           >
