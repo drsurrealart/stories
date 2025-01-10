@@ -22,7 +22,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-// Define the subscription level type
 type SubscriptionLevel = "free" | "basic" | "premium" | "enterprise";
 
 const AdminFunctions = () => {
@@ -64,50 +63,55 @@ const AdminFunctions = () => {
 
     const currentMonth = new Date().toISOString().slice(0, 7);
     
-    // First get current credits
-    const { data: currentCount, error: fetchError } = await supabase
-      .from("user_story_counts")
-      .select("credits_used")
-      .eq("user_id", selectedUserId)
-      .eq("month_year", currentMonth)
-      .single();
+    try {
+      // First, try to get the current record
+      const { data: currentRecord, error: fetchError } = await supabase
+        .from("user_story_counts")
+        .select("credits_used")
+        .eq("user_id", selectedUserId)
+        .eq("month_year", currentMonth)
+        .maybeSingle();
 
-    if (fetchError && fetchError.code !== "PGRST116") {
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      const currentCredits = currentRecord?.credits_used || 0;
+      const newCredits = currentCredits + parseInt(creditsToAdd);
+
+      // Use upsert with the ON CONFLICT clause
+      const { error: updateError } = await supabase
+        .from("user_story_counts")
+        .upsert({
+          user_id: selectedUserId,
+          month_year: currentMonth,
+          credits_used: newCredits,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id,month_year'
+        });
+
+      if (updateError) {
+        throw updateError;
+      }
+
       toast({
-        title: "Error fetching current credits",
-        description: fetchError.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const currentCredits = currentCount?.credits_used || 0;
-    const newCredits = currentCredits + parseInt(creditsToAdd);
-
-    const { error: updateError } = await supabase
-      .from("user_story_counts")
-      .upsert({
-        user_id: selectedUserId,
-        month_year: currentMonth,
-        credits_used: newCredits,
-        updated_at: new Date().toISOString(),
+        title: "Credits added successfully",
+        description: `Added ${creditsToAdd} credits to the user's account`,
       });
 
-    if (updateError) {
+      setCreditsToAdd("");
+      
+      // Refresh the users data
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      
+    } catch (error: any) {
       toast({
         title: "Error adding credits",
-        description: updateError.message,
+        description: error.message,
         variant: "destructive",
       });
-      return;
     }
-
-    toast({
-      title: "Credits added successfully",
-      description: `Added ${creditsToAdd} credits to the user's account`,
-    });
-
-    setCreditsToAdd("");
   };
 
   const handleUpdateMembership = async () => {
