@@ -4,10 +4,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NavigationBar } from "@/components/NavigationBar";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2 } from "lucide-react";
+import { Trash2, Lightbulb, BookOpen, Clock, GraduationCap } from "lucide-react";
 import { StorySocialShare } from "@/components/story/StorySocialShare";
 import { StoryEnrichment } from "@/components/story/StoryEnrichment";
 import { Json } from "@/integrations/supabase/types";
+import { Badge } from "@/components/ui/badge";
 
 interface SavedStory {
   id: string;
@@ -19,6 +20,12 @@ interface SavedStory {
   action_steps: Json;
   related_quote: string | null;
   discussion_prompts: Json;
+  age_group: string;
+  genre: string;
+  language: string;
+  tone: string;
+  reading_level: string;
+  length_preference: string;
 }
 
 const YourStories = () => {
@@ -126,10 +133,50 @@ const YourStories = () => {
                 </div>
                 {story.moral && (
                   <Card className="bg-secondary p-4">
-                    <h3 className="font-semibold mb-2">Moral</h3>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Lightbulb className="h-5 w-5 text-primary" />
+                      <h3 className="font-semibold">Moral</h3>
+                    </div>
                     <p className="text-story-text">{story.moral}</p>
                   </Card>
                 )}
+
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {story.age_group && (
+                    <Badge variant="secondary" className="capitalize">
+                      <BookOpen className="h-3 w-3 mr-1" />
+                      {story.age_group}
+                    </Badge>
+                  )}
+                  {story.genre && (
+                    <Badge variant="secondary" className="capitalize">
+                      {story.genre}
+                    </Badge>
+                  )}
+                  {story.reading_level && story.reading_level !== "intermediate" && (
+                    <Badge variant="secondary" className="capitalize">
+                      <GraduationCap className="h-3 w-3 mr-1" />
+                      {story.reading_level} level
+                    </Badge>
+                  )}
+                  {story.length_preference && story.length_preference !== "medium" && (
+                    <Badge variant="secondary" className="capitalize">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {story.length_preference} length
+                    </Badge>
+                  )}
+                  {story.language && story.language !== "english" && (
+                    <Badge variant="secondary" className="capitalize">
+                      {story.language}
+                    </Badge>
+                  )}
+                  {story.tone && story.tone !== "standard" && (
+                    <Badge variant="secondary" className="capitalize">
+                      {story.tone}
+                    </Badge>
+                  )}
+                </div>
+
                 {story.reflection_questions && (
                   <StoryEnrichment
                     reflectionQuestions={story.reflection_questions as string[]}
