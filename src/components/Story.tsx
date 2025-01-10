@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { StoryContent } from "./story/StoryContent";
 import { StoryActions } from "./story/StoryActions";
 import { StorySocialShare } from "./story/StorySocialShare";
+import { StoryEnrichment } from "./story/StoryEnrichment";
 import { useQuery } from "@tanstack/react-query";
 import { Loading } from "@/components/ui/loading";
 
@@ -35,6 +36,8 @@ export function Story({ content, onReflect, onCreateNew }: StoryProps) {
         content={storyWithoutTitle}
         moral={moral}
       />
+
+      <StoryEnrichment moral={moral} />
 
       <div className="border-t pt-4 md:pt-6 space-y-4">
         <StoryActions
