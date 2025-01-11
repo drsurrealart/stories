@@ -22,6 +22,8 @@ export const TierTableRow = ({
   onSave,
   onCancel,
 }: TierTableRowProps) => {
+  const isOneTimePayment = ['lifetime', 'credits'].includes(tier.level);
+
   return (
     <TableRow>
       <TableCell className="font-medium">{tier.name}</TableCell>
@@ -30,10 +32,16 @@ export const TierTableRow = ({
           <EditTierForm tier={tier} onSave={onSave} onCancel={onCancel} />
         ) : (
           <>
-            <div>AI Credits/Month: {tier.monthly_credits}</div>
+            <div>AI Credits: {tier.monthly_credits}</div>
             <div>Saved Stories: {tier.saved_stories_limit}</div>
-            <div>Monthly Price: ${tier.price}</div>
-            <div>Yearly Price: ${tier.yearly_price}</div>
+            {isOneTimePayment ? (
+              <div>One Time Price: ${tier.price}</div>
+            ) : (
+              <>
+                <div>Monthly Price: ${tier.price}</div>
+                <div>Yearly Price: ${tier.yearly_price}</div>
+              </>
+            )}
             <Button onClick={onEdit} size="sm" className="mt-2">
               Edit
             </Button>

@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 
 interface EditTierFormProps {
   tier: {
+    level: string;
     monthly_credits: number;
     saved_stories_limit: number;
     price: number;
@@ -27,10 +28,12 @@ export const EditTierForm = ({ tier, onSave, onCancel }: EditTierFormProps) => {
     yearly_price: tier.yearly_price,
   });
 
+  const isOneTimePayment = ['lifetime', 'credits'].includes(tier.level);
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="monthly_credits">AI Credits/Month</Label>
+        <Label htmlFor="monthly_credits">AI Credits</Label>
         <Input
           id="monthly_credits"
           type="number"
@@ -62,7 +65,9 @@ export const EditTierForm = ({ tier, onSave, onCancel }: EditTierFormProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="price">Monthly Price ($)</Label>
+        <Label htmlFor="price">
+          {isOneTimePayment ? 'One Time Price ($)' : 'Monthly Price ($)'}
+        </Label>
         <Input
           id="price"
           type="number"
@@ -77,21 +82,23 @@ export const EditTierForm = ({ tier, onSave, onCancel }: EditTierFormProps) => {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="yearly_price">Yearly Price ($)</Label>
-        <Input
-          id="yearly_price"
-          type="number"
-          value={formData.yearly_price}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              yearly_price: parseFloat(e.target.value),
-            })
-          }
-          className="w-24"
-        />
-      </div>
+      {!isOneTimePayment && (
+        <div className="space-y-2">
+          <Label htmlFor="yearly_price">Yearly Price ($)</Label>
+          <Input
+            id="yearly_price"
+            type="number"
+            value={formData.yearly_price}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                yearly_price: parseFloat(e.target.value),
+              })
+            }
+            className="w-24"
+          />
+        </div>
+      )}
 
       <div className="space-x-2">
         <Button onClick={() => onSave(formData)} size="sm">
