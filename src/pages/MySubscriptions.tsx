@@ -58,9 +58,9 @@ const MySubscriptions = () => {
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       <NavigationBar onLogout={handleLogout} />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-8">Available Plans</h1>
+        <h1 className="text-4xl font-bold text-center mb-8">Subscription Plans</h1>
         <p className="text-center text-muted-foreground mb-12">
-          Unlock more stories and features with our premium plans
+          Choose the perfect plan for your storytelling journey
         </p>
         {subscriptionTiers && (
           <PricingTable 

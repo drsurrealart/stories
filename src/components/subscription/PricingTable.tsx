@@ -7,7 +7,7 @@ import { Json } from "@/integrations/supabase/types";
 
 interface PricingTier {
   id: string;
-  level: 'free' | 'basic' | 'premium' | 'enterprise';
+  level: 'free' | 'basic' | 'premium' | 'enterprise' | 'lifetime' | 'credits';
   name: string;
   price: number;
   yearly_price: number;
@@ -43,7 +43,6 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
         return;
       }
 
-      // Get the appropriate price ID based on billing interval
       const priceId = isYearly ? tier.stripe_yearly_price_id : tier.stripe_price_id;
       console.log('Using price ID:', priceId);
 
@@ -89,20 +88,53 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
     }
   };
 
+  // Separate tiers into subscriptions and upgrades
+  const subscriptionTiers = tiers.filter(tier => 
+    !['lifetime', 'credits'].includes(tier.level)
+  );
+  
+  const upgradeTiers = tiers.filter(tier => 
+    ['lifetime', 'credits'].includes(tier.level)
+  );
+
   return (
-    <div className="space-y-8">
-      <BillingToggle isYearly={isYearly} setIsYearly={setIsYearly} />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {tiers.map((tier) => (
-          <PricingCard
-            key={tier.id}
-            tier={tier}
-            isYearly={isYearly}
-            currentTier={currentTier}
-            onSubscribe={() => handleSubscribe(tier)}
-          />
-        ))}
+    <div className="space-y-12">
+      <div className="space-y-8">
+        <BillingToggle isYearly={isYearly} setIsYearly={setIsYearly} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {subscriptionTiers.map((tier) => (
+            <PricingCard
+              key={tier.id}
+              tier={tier}
+              isYearly={isYearly}
+              currentTier={currentTier}
+              onSubscribe={() => handleSubscribe(tier)}
+            />
+          ))}
+        </div>
       </div>
+
+      {upgradeTiers.length > 0 && (
+        <div className="space-y-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold">Available Upgrades</h2>
+            <p className="text-muted-foreground mt-2">
+              One-time purchases to enhance your story creation experience
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {upgradeTiers.map((tier) => (
+              <PricingCard
+                key={tier.id}
+                tier={tier}
+                isYearly={isYearly}
+                currentTier={currentTier}
+                onSubscribe={() => handleSubscribe(tier)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

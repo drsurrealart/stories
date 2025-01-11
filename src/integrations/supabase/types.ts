@@ -349,7 +349,13 @@ export type Database = {
         | "intermediate"
         | "advanced"
         | "fluent"
-      subscription_level: "free" | "basic" | "premium" | "enterprise"
+      subscription_level:
+        | "free"
+        | "basic"
+        | "premium"
+        | "enterprise"
+        | "lifetime"
+        | "credits"
     }
     CompositeTypes: {
       [_ in never]: never
