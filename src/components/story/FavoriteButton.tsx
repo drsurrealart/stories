@@ -16,13 +16,17 @@ export const FavoriteButton = ({ storyId }: FavoriteButtonProps) => {
   useEffect(() => {
     const checkFavoriteStatus = async () => {
       try {
+        const { data: session } = await supabase.auth.getSession();
+        if (!session.session) return;
+
         const { data, error } = await supabase
           .from('story_favorites')
           .select('id')
           .eq('story_id', storyId)
-          .single();
+          .eq('user_id', session.session.user.id)
+          .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') throw error;
+        if (error) throw error;
         setIsFavorited(!!data);
       } catch (error) {
         console.error("Error checking favorite status:", error);
@@ -37,11 +41,22 @@ export const FavoriteButton = ({ storyId }: FavoriteButtonProps) => {
   const toggleFavorite = async () => {
     try {
       setIsLoading(true);
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to favorite stories",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (isFavorited) {
         const { error } = await supabase
           .from('story_favorites')
           .delete()
-          .eq('story_id', storyId);
+          .eq('story_id', storyId)
+          .eq('user_id', session.session.user.id);
 
         if (error) throw error;
         
@@ -52,7 +67,10 @@ export const FavoriteButton = ({ storyId }: FavoriteButtonProps) => {
       } else {
         const { error } = await supabase
           .from('story_favorites')
-          .insert({ story_id: storyId });
+          .insert({ 
+            story_id: storyId,
+            user_id: session.session.user.id
+          });
 
         if (error) throw error;
         
