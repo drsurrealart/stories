@@ -84,42 +84,6 @@ export type Database = {
         }
         Relationships: []
       }
-      products: {
-        Row: {
-          created_at: string
-          description: string | null
-          features: Json
-          id: string
-          name: string
-          price: number
-          stripe_price_id: string | null
-          type: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          features?: Json
-          id?: string
-          name: string
-          price: number
-          stripe_price_id?: string | null
-          type: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          features?: Json
-          id?: string
-          name?: string
-          price?: number
-          stripe_price_id?: string | null
-          type?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
