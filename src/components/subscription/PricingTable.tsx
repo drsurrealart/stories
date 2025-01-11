@@ -43,7 +43,8 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
         return;
       }
 
-      const priceId = isYearly ? tier.stripe_yearly_price_id : tier.stripe_price_id;
+      const isOneTimePayment = ['lifetime', 'credits'].includes(tier.level);
+      const priceId = isOneTimePayment ? tier.stripe_price_id : (isYearly ? tier.stripe_yearly_price_id : tier.stripe_price_id);
       console.log('Using price ID:', priceId);
 
       if (!priceId) {
@@ -55,10 +56,14 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
         return;
       }
 
-      console.log('Calling create-checkout-session with:', { priceId, isYearly });
+      console.log('Calling create-checkout-session with:', { priceId, isYearly, isOneTimePayment });
 
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { priceId, isYearly },
+        body: { 
+          priceId, 
+          isYearly,
+          isOneTimePayment 
+        },
       });
 
       console.log('Response from create-checkout-session:', { data, error });

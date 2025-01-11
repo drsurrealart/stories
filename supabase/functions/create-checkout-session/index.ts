@@ -15,8 +15,8 @@ serve(async (req) => {
 
   try {
     // Parse request body
-    const { priceId, isYearly } = await req.json();
-    console.log('Request received with:', { priceId, isYearly });
+    const { priceId, isYearly, isOneTimePayment } = await req.json();
+    console.log('Request received with:', { priceId, isYearly, isOneTimePayment });
 
     if (!priceId) {
       console.error('No priceId provided');
@@ -102,7 +102,7 @@ serve(async (req) => {
       console.log('Created new customer:', customerId);
     }
 
-    // Create checkout session
+    // Create checkout session with appropriate mode based on payment type
     console.log('Creating checkout session with price:', priceId);
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -112,13 +112,11 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      mode: 'subscription',
+      mode: isOneTimePayment ? 'payment' : 'subscription',
       success_url: `${req.headers.get('origin')}/my-subscriptions?success=true`,
       cancel_url: `${req.headers.get('origin')}/my-subscriptions?canceled=true`,
-      subscription_data: {
-        metadata: {
-          supabaseUid: user.id,
-        },
+      metadata: {
+        supabaseUid: user.id,
       },
     });
 
