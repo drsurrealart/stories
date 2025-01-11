@@ -35,13 +35,13 @@ export function StoryContent({
       </div>
 
       {moral && (
-        <Card className="bg-secondary p-4 md:p-6 mt-4">
+        <div className="mt-4 p-4 rounded-lg bg-green-50 border border-green-100">
           <div className="flex items-center gap-2 mb-2">
             <Lightbulb className="h-5 w-5 text-primary" />
             <h3 className="font-semibold text-lg">Moral</h3>
           </div>
           <p className="text-story-text">{moral}</p>
-        </Card>
+        </div>
       )}
 
       {(ageGroup || genre || language || tone || readingLevel || lengthPreference) && (
