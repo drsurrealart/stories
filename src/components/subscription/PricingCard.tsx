@@ -90,7 +90,7 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
 
     if (isYearly) {
       const savingsPercentage = calculateSavings();
-      const yearlyPrice = calculatePrice();
+      const yearlyPrice = tier.yearly_price;
       const monthlyEquivalent = Math.round(yearlyPrice / 12);
       
       return (
