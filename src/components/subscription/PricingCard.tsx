@@ -82,7 +82,7 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
     if (isFree) {
       return (
         <>
-          <span className="text-4xl font-bold">Free</span>
+          <span className="text-4xl font-bold">$0</span>
           <span className="text-muted-foreground">/month</span>
           <div className="text-sm text-muted-foreground mt-1">
             Always free
@@ -120,6 +120,15 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
     );
   };
 
+  const getButtonText = () => {
+    if (currentTier === tier.level) return 'Current Plan';
+    if (isOneTimePayment) return 'Purchase Now';
+    if (!isFree) return 'Upgrade Now';
+    return null;
+  };
+
+  const buttonText = getButtonText();
+
   return (
     <Card className="flex flex-col">
       <CardHeader>
@@ -143,14 +152,16 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
         </ul>
       </CardContent>
       <CardFooter>
-        <Button 
-          className="w-full" 
-          variant={currentTier === tier.level ? 'outline' : 'default'}
-          onClick={onSubscribe}
-          disabled={currentTier === tier.level}
-        >
-          {currentTier === tier.level ? 'Current Plan' : 'Upgrade Now'}
-        </Button>
+        {buttonText && (
+          <Button 
+            className="w-full" 
+            variant={currentTier === tier.level ? 'outline' : 'default'}
+            onClick={onSubscribe}
+            disabled={currentTier === tier.level}
+          >
+            {buttonText}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
