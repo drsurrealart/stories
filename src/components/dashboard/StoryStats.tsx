@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { BookMarked, BookOpen, Languages, Target, Clock, Bookmark } from "lucide-react";
+import { BookMarked, BookOpen, Languages, Target, Clock, Bookmark, Calendar, LineChart, TrendingUp } from "lucide-react";
 import { Loader2 } from "lucide-react";
+import { format } from "date-fns";
 
 export const StoryStats = () => {
   const { data: stats, isLoading } = useQuery({
@@ -22,7 +23,7 @@ export const StoryStats = () => {
       // Get the total count from user_story_counts across all months
       const { data: storyCounts, error: countError } = await supabase
         .from('user_story_counts')
-        .select('credits_used')
+        .select('credits_used, month_year')
         .eq('user_id', session.user.id);
 
       if (countError) throw countError;
@@ -31,14 +32,13 @@ export const StoryStats = () => {
       const totalGenerated = storyCounts?.reduce((sum, record) => 
         sum + (record.credits_used || 0), 0) || 0;
 
-      // Calculate additional statistics - only count non-null values
+      // Calculate additional statistics
       const languages = new Set(stories
         .filter(story => story.language)
         .map(story => story.language)).size;
 
       const totalWords = stories.reduce((sum, story) => sum + story.content.length, 0);
       
-      // Only count non-null reading levels
       const readingLevels = new Set(stories
         .filter(story => story.reading_level)
         .map(story => story.reading_level)).size;
@@ -53,7 +53,24 @@ export const StoryStats = () => {
         (a[1] > b[1] ? a : b), ['None', 0])[0];
 
       // Calculate total reading time (assuming average reading speed of 200 words per minute)
-      const totalReadingMinutes = Math.round((totalWords / 5) / 200); // Approximate words by dividing characters by 5
+      const totalReadingMinutes = Math.round((totalWords / 5) / 200);
+
+      // New stats calculations
+      const averageStoryLength = Math.round(totalWords / (stories.length || 1));
+
+      // Calculate most active month
+      const monthCounts = storyCounts?.reduce((acc, record) => {
+        acc[record.month_year] = record.credits_used || 0;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const mostActiveMonth = Object.entries(monthCounts || {}).reduce((a, b) => 
+        (a[1] > b[1] ? a : b), ['None', 0])[0];
+
+      // Calculate stories this month
+      const currentMonth = format(new Date(), 'yyyy-MM');
+      const storiesThisMonth = storyCounts?.find(record => 
+        record.month_year === currentMonth)?.credits_used || 0;
 
       return {
         totalStories: totalGenerated,
@@ -61,7 +78,10 @@ export const StoryStats = () => {
         uniqueLanguages: languages,
         readingLevels,
         totalReadingTime: totalReadingMinutes,
-        mostUsedGenre: mostUsedGenre || 'None'
+        mostUsedGenre,
+        averageStoryLength,
+        mostActiveMonth,
+        storiesThisMonth
       };
     },
   });
@@ -137,6 +157,37 @@ export const StoryStats = () => {
           <div>
             <p className="text-lg font-medium capitalize">{stats?.mostUsedGenre}</p>
             <p className="text-sm text-muted-foreground">Favorite Genre</p>
+          </div>
+        </div>
+
+        {/* New Stats */}
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-primary/10 rounded-lg">
+            <LineChart className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{stats?.averageStoryLength || 0}</p>
+            <p className="text-sm text-muted-foreground">Avg. Story Length</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-primary/10 rounded-lg">
+            <Calendar className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-lg font-medium">{stats?.mostActiveMonth || 'None'}</p>
+            <p className="text-sm text-muted-foreground">Most Active Month</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-primary/10 rounded-lg">
+            <TrendingUp className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{stats?.storiesThisMonth || 0}</p>
+            <p className="text-sm text-muted-foreground">Stories This Month</p>
           </div>
         </div>
       </div>
