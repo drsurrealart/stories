@@ -31,10 +31,17 @@ export const StoryStats = () => {
       const totalGenerated = storyCounts?.reduce((sum, record) => 
         sum + (record.credits_used || 0), 0) || 0;
 
-      // Calculate additional statistics
-      const languages = new Set(stories.map(story => story.language)).size;
+      // Calculate additional statistics - only count non-null values
+      const languages = new Set(stories
+        .filter(story => story.language)
+        .map(story => story.language)).size;
+
       const totalWords = stories.reduce((sum, story) => sum + story.content.length, 0);
-      const readingLevels = new Set(stories.map(story => story.reading_level)).size;
+      
+      // Only count non-null reading levels
+      const readingLevels = new Set(stories
+        .filter(story => story.reading_level)
+        .map(story => story.reading_level)).size;
       
       // Calculate most used genre
       const genreCounts = stories.reduce((acc, story) => {
