@@ -53,11 +53,26 @@ export function Story({
   const title = titleMatch ? titleMatch[1].trim() : "Untitled Story";
   const storyWithoutTitle = storyContent.replace(/^.+?\n/, '').trim();
 
+  // Fetch the story ID using the title
+  const { data: storyData } = useQuery({
+    queryKey: ['story', title],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('stories')
+        .select('id')
+        .eq('title', title)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
   return (
     <Card className="w-full max-w-2xl p-4 md:p-8 space-y-4 md:space-y-6 animate-fade-in bg-story-background">
       <div className="flex justify-between items-start gap-4">
         <h2 className="text-xl md:text-2xl font-semibold">{title}</h2>
-        <FavoriteButton storyId={title} />
+        {storyData?.id && <FavoriteButton storyId={storyData.id} />}
       </div>
 
       <div className="prose max-w-none">
