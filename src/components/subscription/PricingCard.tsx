@@ -32,6 +32,7 @@ interface PricingCardProps {
 
 export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: PricingCardProps) => {
   const isOneTimePayment = ['lifetime', 'credits'].includes(tier.level);
+  const isFree = tier.price === 0;
 
   const calculatePrice = () => {
     if (isOneTimePayment) {
@@ -44,7 +45,7 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
   };
 
   const calculateSavings = () => {
-    if (isOneTimePayment) return null;
+    if (isOneTimePayment || isFree) return null;
     const monthlyTotal = tier.price * 12;
     const yearlyTotal = tier.yearly_price;
     const savings = ((monthlyTotal - yearlyTotal) / monthlyTotal) * 100;
@@ -73,6 +74,18 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
           <span className="text-muted-foreground">/one time</span>
           <div className="text-sm text-muted-foreground mt-1">
             One-time purchase
+          </div>
+        </>
+      );
+    }
+
+    if (isFree) {
+      return (
+        <>
+          <span className="text-4xl font-bold">Free</span>
+          <span className="text-muted-foreground">/month</span>
+          <div className="text-sm text-muted-foreground mt-1">
+            Always free
           </div>
         </>
       );
