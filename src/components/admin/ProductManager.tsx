@@ -12,6 +12,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { ProductTableRow } from "./products/ProductTableRow";
 
+type ProductType = 'credits' | 'lifetime';
+
+interface Product {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  type: ProductType;
+}
+
 export const ProductManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -30,8 +40,15 @@ export const ProductManager = () => {
         console.error("Error fetching products:", error);
         throw error;
       }
-      console.log("Fetched products:", data);
-      return data;
+      
+      // Validate and transform the data to ensure type is correct
+      const validatedProducts = data.map(product => ({
+        ...product,
+        type: product.type as ProductType // Type assertion since we know the DB constraint ensures this
+      }));
+      
+      console.log("Fetched products:", validatedProducts);
+      return validatedProducts;
     },
   });
 
@@ -41,7 +58,7 @@ export const ProductManager = () => {
       name: string;
       description: string | null;
       price: number;
-      type: 'credits' | 'lifetime';
+      type: ProductType;
     }
   ) => {
     try {
