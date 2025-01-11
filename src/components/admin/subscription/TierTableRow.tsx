@@ -23,6 +23,7 @@ export const TierTableRow = ({
   onCancel,
 }: TierTableRowProps) => {
   const isOneTimePayment = ['lifetime', 'credits'].includes(tier.level);
+  const isCreditsTopup = tier.level === 'credits';
 
   return (
     <TableRow>
@@ -33,7 +34,9 @@ export const TierTableRow = ({
         ) : (
           <>
             <div>AI Credits: {tier.monthly_credits}</div>
-            <div>Saved Stories: {tier.saved_stories_limit}</div>
+            {!isCreditsTopup && (
+              <div>Saved Stories: {tier.saved_stories_limit}</div>
+            )}
             {isOneTimePayment ? (
               <div>One Time Price: ${tier.price}</div>
             ) : (

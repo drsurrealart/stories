@@ -29,6 +29,7 @@ export const EditTierForm = ({ tier, onSave, onCancel }: EditTierFormProps) => {
   });
 
   const isOneTimePayment = ['lifetime', 'credits'].includes(tier.level);
+  const isCreditsTopup = tier.level === 'credits';
 
   return (
     <div className="space-y-4">
@@ -48,21 +49,23 @@ export const EditTierForm = ({ tier, onSave, onCancel }: EditTierFormProps) => {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="saved_stories_limit">Saved Stories Limit</Label>
-        <Input
-          id="saved_stories_limit"
-          type="number"
-          value={formData.saved_stories_limit}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              saved_stories_limit: parseInt(e.target.value),
-            })
-          }
-          className="w-24"
-        />
-      </div>
+      {!isCreditsTopup && (
+        <div className="space-y-2">
+          <Label htmlFor="saved_stories_limit">Saved Stories Limit</Label>
+          <Input
+            id="saved_stories_limit"
+            type="number"
+            value={formData.saved_stories_limit}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                saved_stories_limit: parseInt(e.target.value),
+              })
+            }
+            className="w-24"
+          />
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="price">
