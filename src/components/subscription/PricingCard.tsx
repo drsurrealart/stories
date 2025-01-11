@@ -31,7 +31,12 @@ interface PricingCardProps {
 }
 
 export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: PricingCardProps) => {
+  const isOneTimePayment = ['lifetime', 'credits'].includes(tier.level);
+
   const calculatePrice = () => {
+    if (isOneTimePayment) {
+      return tier.price;
+    }
     if (isYearly) {
       return Math.round(tier.yearly_price / 12);
     }
@@ -39,6 +44,7 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
   };
 
   const calculateSavings = () => {
+    if (isOneTimePayment) return null;
     const monthlyTotal = tier.price * 12;
     const yearlyTotal = tier.yearly_price;
     const savings = ((monthlyTotal - yearlyTotal) / monthlyTotal) * 100;
@@ -60,6 +66,18 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
   };
 
   const getBillingText = () => {
+    if (isOneTimePayment) {
+      return (
+        <>
+          <span className="text-4xl font-bold">${calculatePrice()}</span>
+          <span className="text-muted-foreground">/one time</span>
+          <div className="text-sm text-muted-foreground mt-1">
+            One-time purchase
+          </div>
+        </>
+      );
+    }
+
     if (isYearly) {
       const savingsPercentage = calculateSavings();
       return (
@@ -68,11 +86,16 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
           <span className="text-muted-foreground">/month</span>
           <div className="text-sm text-primary mt-1">
             Billed ${tier.yearly_price} yearly
-            <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary">Save {savingsPercentage}%</Badge>
+            {savingsPercentage && savingsPercentage > 0 && (
+              <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary">
+                Save {savingsPercentage}%
+              </Badge>
+            )}
           </div>
         </>
       );
     }
+
     return (
       <>
         <span className="text-4xl font-bold">${tier.price}</span>

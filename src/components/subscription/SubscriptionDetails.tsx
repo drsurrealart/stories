@@ -33,6 +33,23 @@ export const SubscriptionDetails = () => {
     },
   });
 
+  const { data: subscriptionTier, isLoading: tierLoading } = useQuery({
+    queryKey: ['subscription-tier', profile?.subscription_level],
+    queryFn: async () => {
+      if (!profile?.subscription_level) return null;
+
+      const { data, error } = await supabase
+        .from('subscription_tiers')
+        .select('*')
+        .eq('level', profile.subscription_level)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.subscription_level,
+  });
+
   const { data: stripeData, isLoading: stripeLoading } = useQuery({
     queryKey: ['stripe-subscription'],
     queryFn: async () => {
@@ -90,7 +107,7 @@ export const SubscriptionDetails = () => {
     }
   };
 
-  const isLoading = profileLoading || (profile?.subscription_level !== 'free' && stripeLoading);
+  const isLoading = profileLoading || tierLoading || (profile?.subscription_level !== 'free' && stripeLoading);
 
   if (isLoading) {
     return (
@@ -115,7 +132,7 @@ export const SubscriptionDetails = () => {
         <div className="space-y-6">
           <div>
             <h3 className="font-medium">Current Plan</h3>
-            <p className="text-2xl font-bold capitalize">{profile?.subscription_level || 'Free'}</p>
+            <p className="text-2xl font-bold">{subscriptionTier?.name || 'Free'}</p>
           </div>
 
           {stripeData && (
