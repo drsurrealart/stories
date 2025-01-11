@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, History, Plus, Settings, CreditCard, Crown } from "lucide-react";
+import { BookOpen, History, Plus, Settings, CreditCard, Crown, Sparkles } from "lucide-react";
 import { StoryStats } from "@/components/dashboard/StoryStats";
 import { Loading } from "@/components/ui/loading";
 import { ShareWithFriends } from "@/components/sharing/ShareWithFriends";
@@ -123,6 +123,26 @@ const Index = () => {
       <NavigationBar onLogout={handleLogout} />
       
       <div className="max-w-6xl mx-auto p-6 space-y-8">
+        {/* Welcome Card */}
+        <Card className="p-6 bg-white">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary/10 rounded-lg">
+              <Sparkles className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">
+                Welcome back, {profile?.first_name || "Storyteller"}!
+              </h1>
+              <p className="text-muted-foreground">
+                Ready to create more amazing stories today?
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Story Stats */}
+        <StoryStats />
+
         {/* Membership Status */}
         <Card className="p-6 bg-white">
           <div className="flex items-center justify-between">
@@ -145,9 +165,6 @@ const Index = () => {
             )}
           </div>
         </Card>
-
-        {/* Story Stats */}
-        <StoryStats />
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Quick Actions */}
