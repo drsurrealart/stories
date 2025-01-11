@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { BookOpen, Settings2, Wand2 } from "lucide-react";
+import { BookOpen, Settings2, Wand2, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -180,8 +180,9 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
         disabled={isLoading}
       >
         {isLoading ? (
-          <div className="flex items-center justify-center">
-            <span>Creating...</span>
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Creating... please wait</span>
           </div>
         ) : (
           <>

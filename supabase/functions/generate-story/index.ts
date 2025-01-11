@@ -1,23 +1,10 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-async function loadContentFilters(supabase: any) {
-  const { data: filters } = await supabase
-    .from('content_filters')
-    .select('word');
-  return filters?.map((f: any) => f.word.toLowerCase()) || [];
-}
-
-function containsInappropriateContent(text: string, bannedWords: string[]): boolean {
-  const normalizedText = text.toLowerCase();
-  return bannedWords.some(word => normalizedText.includes(word.toLowerCase()));
-}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -26,51 +13,26 @@ serve(async (req) => {
 
   try {
     const { preferences } = await req.json();
-    console.log('Received preferences:', preferences);
+    console.log('Received story preferences:', preferences);
 
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header');
-    }
+    // Generate the story
+    const storyPrompt = `Create a ${preferences.lengthPreference} length story for ${preferences.ageGroup} about ${preferences.moral}. 
+    Genre: ${preferences.genre}
+    Language: ${preferences.language}
+    Tone: ${preferences.tone}
+    Reading Level: ${preferences.readingLevel}
+    ${preferences.characterName1 ? `Main character name: ${preferences.characterName1}` : ''}
+    ${preferences.characterName2 ? `Secondary character name: ${preferences.characterName2}` : ''}
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    The story should:
+    1. Start with a clear title on the first line
+    2. Include "Moral:" at the end
+    3. Be engaging and appropriate for the age group
+    4. Clearly demonstrate the moral lesson
+    5. Use simple language for young children, or more complex language for older audiences
+    6. Match the specified genre and tone`;
 
-    // Get user ID from the JWT token
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !user) {
-      console.error('User authentication error:', userError);
-      throw new Error('Invalid token');
-    }
-
-    // Load content filters
-    const bannedWords = await loadContentFilters(supabase);
-    console.log('Content filters loaded');
-
-    // Create the story prompt
-    const storyPrompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} about ${preferences.moral}.
-${preferences.characterName1 ? `Use "${preferences.characterName1}" as the main character.` : ''}
-${preferences.characterName2 ? `Include "${preferences.characterName2}" as another character.` : ''}
-
-Guidelines:
-- Write in clear, natural language
-- Keep sentences focused and meaningful
-- Include realistic dialogue and descriptions
-- End with a clear moral lesson
-- Keep it family-friendly and age-appropriate
-- ${preferences.lengthPreference === 'short' ? 'Keep it brief and concise' : preferences.lengthPreference === 'long' ? 'Make it more detailed' : 'Keep it moderate length'}
-${preferences.language !== 'english' ? `- Write in ${preferences.language}` : ''}
-${preferences.tone !== 'standard' ? `- Use a ${preferences.tone} tone` : ''}
-
-Format:
-- Start with a clear title
-- Write the story in clear paragraphs
-- End with "Moral: [the moral lesson]"`;
-
-    console.log('Sending request to OpenAI');
+    console.log('Sending story generation request to OpenAI');
     const storyResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -82,25 +44,22 @@ Format:
         messages: [
           {
             role: 'system',
-            content: 'You are a skilled storyteller who creates clear, engaging stories with meaningful moral lessons. Focus on natural dialogue and descriptions that move the story forward.',
+            content: 'You are a storyteller that creates engaging, age-appropriate stories with clear moral lessons. Write stories in plain text without any markdown formatting.',
           },
           {
             role: 'user',
             content: storyPrompt,
           },
         ],
-        temperature: 0.7,
       }),
     });
 
     if (!storyResponse.ok) {
-      const errorText = await storyResponse.text();
-      console.error("OpenAI API error:", errorText);
-      throw new Error(`OpenAI API error: ${errorText}`);
+      throw new Error(`OpenAI API error: ${storyResponse.statusText}`);
     }
 
     const storyData = await storyResponse.json();
-    const generatedStory = storyData.choices[0].message.content;
+    const generatedStory = storyData.choices[0].message.content.replace(/\*\*/g, '');
     console.log('Story generated successfully');
 
     // Generate enrichment content with explicit JSON format instruction
@@ -109,7 +68,7 @@ Format:
 Story:
 ${generatedStory}`;
 
-    console.log('Generating enrichment content');
+    console.log('Sending enrichment generation request to OpenAI');
     const enrichmentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -128,14 +87,11 @@ ${generatedStory}`;
             content: enrichmentPrompt,
           },
         ],
-        temperature: 0.7,
       }),
     });
 
     if (!enrichmentResponse.ok) {
-      const errorText = await enrichmentResponse.text();
-      console.error("OpenAI API error (enrichment):", errorText);
-      throw new Error(`OpenAI API error: ${errorText}`);
+      throw new Error(`OpenAI API error: ${enrichmentResponse.statusText}`);
     }
 
     const enrichmentData = await enrichmentResponse.json();
@@ -159,20 +115,22 @@ ${generatedStory}`;
     }
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         story: generatedStory,
-        enrichment: parsedEnrichment
+        enrichment: parsedEnrichment,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
     );
   } catch (error) {
     console.error('Error in generate-story function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
+      {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      },
     );
   }
 });
