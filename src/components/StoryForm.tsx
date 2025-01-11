@@ -14,6 +14,15 @@ import { BasicSettings } from "./story/form/BasicSettings";
 import { AdvancedSettings } from "./story/form/AdvancedSettings";
 import { CreditInfo } from "./story/form/CreditInfo";
 
+const DEFAULT_PREFERENCES = {
+  lengthPreference: "medium",
+  language: "english",
+  tone: "standard",
+  readingLevel: "intermediate",
+  characterName1: "",
+  characterName2: "",
+};
+
 export interface StoryPreferences {
   genre: string;
   ageGroup: string;
@@ -36,12 +45,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     genre: "",
     ageGroup: "",
     moral: "",
-    characterName1: "",
-    characterName2: "",
-    lengthPreference: "medium",
-    language: "english",
-    tone: "standard",
-    readingLevel: "intermediate",
+    ...DEFAULT_PREFERENCES,
   });
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const { toast } = useToast();
@@ -109,7 +113,20 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
       return;
     }
 
-    onSubmit(preferences);
+    // Only include modified advanced settings
+    const optimizedPreferences = {
+      genre: preferences.genre,
+      ageGroup: preferences.ageGroup,
+      moral: preferences.moral,
+      ...(preferences.characterName1 && { characterName1: preferences.characterName1 }),
+      ...(preferences.characterName2 && { characterName2: preferences.characterName2 }),
+      ...(preferences.lengthPreference !== DEFAULT_PREFERENCES.lengthPreference && { lengthPreference: preferences.lengthPreference }),
+      ...(preferences.language !== DEFAULT_PREFERENCES.language && { language: preferences.language }),
+      ...(preferences.tone !== DEFAULT_PREFERENCES.tone && { tone: preferences.tone }),
+      ...(preferences.readingLevel !== DEFAULT_PREFERENCES.readingLevel && { readingLevel: preferences.readingLevel }),
+    };
+
+    onSubmit(optimizedPreferences as StoryPreferences);
   };
 
   return (

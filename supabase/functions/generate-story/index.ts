@@ -15,17 +15,26 @@ serve(async (req) => {
     const { preferences } = await req.json();
     console.log('Received story preferences:', preferences);
 
+    // Apply default values for any missing advanced settings
+    const fullPreferences = {
+      lengthPreference: "medium",
+      language: "english",
+      tone: "standard",
+      readingLevel: "intermediate",
+      ...preferences
+    };
+
     // Generate the story
-    const storyPrompt = `Create a ${preferences.lengthPreference} length story for ${preferences.ageGroup} about ${preferences.moral}. 
-    Genre: ${preferences.genre}
-    Language: ${preferences.language}
-    Tone: ${preferences.tone}
-    Reading Level: ${preferences.readingLevel}
-    ${preferences.characterName1 ? `Main character name: ${preferences.characterName1}` : ''}
-    ${preferences.characterName2 ? `Secondary character name: ${preferences.characterName2}` : ''}
+    const storyPrompt = `Create a ${fullPreferences.lengthPreference} length story for ${fullPreferences.ageGroup} about ${fullPreferences.moral}. 
+    Genre: ${fullPreferences.genre}
+    ${fullPreferences.language !== "english" ? `Language: ${fullPreferences.language}` : ''}
+    ${fullPreferences.tone !== "standard" ? `Tone: ${fullPreferences.tone}` : ''}
+    ${fullPreferences.readingLevel !== "intermediate" ? `Reading Level: ${fullPreferences.readingLevel}` : ''}
+    ${fullPreferences.characterName1 ? `Main character name: ${fullPreferences.characterName1}` : ''}
+    ${fullPreferences.characterName2 ? `Secondary character name: ${fullPreferences.characterName2}` : ''}
 
     The story should:
-    1. Start with a clear title on the first line
+    1. Start with a clear title on the first line (no markdown formatting)
     2. Include "Moral:" at the end
     3. Be engaging and appropriate for the age group
     4. Clearly demonstrate the moral lesson
@@ -63,7 +72,7 @@ serve(async (req) => {
     console.log('Story generated successfully');
 
     // Generate enrichment content with explicit JSON format instruction
-    const enrichmentPrompt = `Generate enrichment content for this story in pure JSON format (no markdown, no backticks). The response should be a valid JSON object with these exact keys: reflection_questions (array of 3 strings), action_steps (array of 3 strings), related_quote (string), discussion_prompts (array of 3 strings).
+    const enrichmentPrompt = `Generate enrichment content for this story. Respond with a pure JSON object (no markdown) containing these exact keys: reflection_questions (array of 3 strings), action_steps (array of 3 strings), related_quote (string), discussion_prompts (array of 3 strings).
 
 Story:
 ${generatedStory}`;
