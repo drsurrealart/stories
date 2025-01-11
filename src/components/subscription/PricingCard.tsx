@@ -38,10 +38,7 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
     if (isOneTimePayment) {
       return tier.price;
     }
-    if (isYearly) {
-      return tier.yearly_price;
-    }
-    return tier.price;
+    return isYearly ? tier.yearly_price : tier.price;
   };
 
   const calculateSavings = () => {
@@ -93,12 +90,15 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
 
     if (isYearly) {
       const savingsPercentage = calculateSavings();
+      const yearlyPrice = calculatePrice();
+      const monthlyEquivalent = Math.round(yearlyPrice / 12);
+      
       return (
         <>
-          <span className="text-4xl font-bold">${Math.round(calculatePrice() / 12)}</span>
+          <span className="text-4xl font-bold">${monthlyEquivalent}</span>
           <span className="text-muted-foreground">/month</span>
           <div className="text-sm text-primary mt-1">
-            Billed ${tier.yearly_price} yearly
+            Billed ${yearlyPrice} yearly
             {savingsPercentage && savingsPercentage > 0 && (
               <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary">
                 Save {savingsPercentage}%
