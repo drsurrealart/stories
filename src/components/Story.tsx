@@ -6,6 +6,7 @@ import { StoryContent } from "./story/StoryContent";
 import { StoryActions } from "./story/StoryActions";
 import { StorySocialShare } from "./story/StorySocialShare";
 import { StoryEnrichment } from "./story/StoryEnrichment";
+import { FavoriteButton } from "./story/FavoriteButton";
 import { useQuery } from "@tanstack/react-query";
 import { Loading } from "@/components/ui/loading";
 
@@ -54,17 +55,20 @@ export function Story({
 
   return (
     <Card className="w-full max-w-2xl p-4 md:p-8 space-y-4 md:space-y-6 animate-fade-in bg-story-background">
-      <StoryContent
-        title={title}
-        content={storyWithoutTitle}
-        moral={moral}
-        ageGroup={ageGroup}
-        genre={genre}
-        language={language}
-        tone={tone}
-        readingLevel={readingLevel}
-        lengthPreference={lengthPreference}
-      />
+      <div className="flex justify-between items-start">
+        <StoryContent
+          title={title}
+          content={storyWithoutTitle}
+          moral={moral}
+          ageGroup={ageGroup}
+          genre={genre}
+          language={language}
+          tone={tone}
+          readingLevel={readingLevel}
+          lengthPreference={lengthPreference}
+        />
+        <FavoriteButton storyId={title} />
+      </div>
 
       {enrichment && (
         <StoryEnrichment

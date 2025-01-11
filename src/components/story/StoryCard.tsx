@@ -4,6 +4,7 @@ import { Trash2, Lightbulb, BookOpen, Clock, GraduationCap } from "lucide-react"
 import { Badge } from "@/components/ui/badge";
 import { StorySocialShare } from "@/components/story/StorySocialShare";
 import { StoryEnrichment } from "@/components/story/StoryEnrichment";
+import { FavoriteButton } from "@/components/story/FavoriteButton";
 import { SavedStory } from "@/types/story";
 import { formatDate } from "@/utils/date";
 
@@ -22,14 +23,17 @@ export const StoryCard = ({ story, onDelete }: StoryCardProps) => {
             Saved on {formatDate(story.created_at)}
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onDelete(story.id)}
-          className="text-destructive hover:text-destructive"
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <FavoriteButton storyId={story.id} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onDelete(story.id)}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
       <div className="prose max-w-none">
         <div className="text-story-text whitespace-pre-wrap">
