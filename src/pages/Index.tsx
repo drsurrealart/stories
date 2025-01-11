@@ -125,10 +125,6 @@ const Index = () => {
       <div className="max-w-6xl mx-auto p-6 space-y-8">
         <WelcomeCard firstName={profile?.first_name} />
         <StoryStats />
-        <MembershipCard 
-          currentTierName={currentTier?.name} 
-          showUpgradeButton={profile?.subscription_level !== highestTier?.level}
-        />
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <QuickActions />
@@ -136,6 +132,13 @@ const Index = () => {
             usedCredits={credits?.used}
             totalCredits={credits?.total}
           />
+          <MembershipCard 
+            currentTierName={currentTier?.name} 
+            showUpgradeButton={profile?.subscription_level !== highestTier?.level}
+          />
+        </div>
+
+        <div className="bg-white rounded-lg shadow">
           <RecentStories stories={recentStories} isLoading={storiesLoading} />
         </div>
 
