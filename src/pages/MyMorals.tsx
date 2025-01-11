@@ -39,7 +39,7 @@ const MyMorals = () => {
       
       const { data, error } = await supabase
         .from('stories')
-        .select('title, moral, created_at, action_steps')
+        .select('id, title, moral, created_at, action_steps')
         .eq('author_id', session.user.id)
         .order('created_at', { ascending: false });
         
