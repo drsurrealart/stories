@@ -44,7 +44,11 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
       }
 
       const isOneTimePayment = ['lifetime', 'credits'].includes(tier.level);
-      const priceId = isOneTimePayment ? tier.stripe_price_id : (isYearly ? tier.stripe_yearly_price_id : tier.stripe_price_id);
+      // For one-time payments, always use stripe_price_id regardless of isYearly
+      const priceId = isOneTimePayment 
+        ? tier.stripe_price_id 
+        : (isYearly ? tier.stripe_yearly_price_id : tier.stripe_price_id);
+
       console.log('Using price ID:', priceId);
 
       if (!priceId) {
