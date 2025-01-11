@@ -12,14 +12,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { ProductTableRow } from "./products/ProductTableRow";
 
-type ProductType = 'credits' | 'lifetime';
-
 interface Product {
   id: string;
   name: string;
   description: string | null;
   price: number;
-  type: ProductType;
+  type: 'credits';
 }
 
 export const ProductManager = () => {
@@ -34,31 +32,23 @@ export const ProductManager = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .order('price');
+        .eq('type', 'credits')
+        .single();
       
       if (error) {
         console.error("Error fetching products:", error);
         throw error;
       }
       
-      // Validate and transform the data to ensure type is correct
-      const validatedProducts = data.map(product => ({
-        ...product,
-        type: product.type as ProductType // Type assertion since we know the DB constraint ensures this
-      }));
-      
-      console.log("Fetched products:", validatedProducts);
-      return validatedProducts;
+      console.log("Fetched product:", data);
+      return data as Product;
     },
   });
 
   const handleSave = async (
     productId: string,
     formData: {
-      name: string;
-      description: string | null;
       price: number;
-      type: ProductType;
     }
   ) => {
     try {
@@ -66,10 +56,7 @@ export const ProductManager = () => {
       const { data, error } = await supabase
         .from('products')
         .update({
-          name: formData.name,
-          description: formData.description,
           price: formData.price,
-          type: formData.type,
         })
         .eq('id', productId)
         .select();
@@ -85,7 +72,7 @@ export const ProductManager = () => {
 
       toast({
         title: "Success",
-        description: "Product updated successfully",
+        description: "Credit price updated successfully",
       });
 
       setEditingId(null);
@@ -93,7 +80,7 @@ export const ProductManager = () => {
       console.error("Error in handleSave:", error);
       toast({
         title: "Error",
-        description: "Failed to update product",
+        description: "Failed to update credit price",
         variant: "destructive",
       });
     }
@@ -108,27 +95,29 @@ export const ProductManager = () => {
     );
   }
 
+  if (!products) {
+    return null;
+  }
+
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Manage Products</h2>
+      <h2 className="text-2xl font-bold">Manage Credits</h2>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Product</TableHead>
-            <TableHead>Details</TableHead>
+            <TableHead>Price</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {products?.map((product) => (
-            <ProductTableRow
-              key={product.id}
-              product={product}
-              isEditing={editingId === product.id}
-              onEdit={() => setEditingId(product.id)}
-              onSave={(formData) => handleSave(product.id, formData)}
-              onCancel={() => setEditingId(null)}
-            />
-          ))}
+          <ProductTableRow
+            key={products.id}
+            product={products}
+            isEditing={editingId === products.id}
+            onEdit={() => setEditingId(products.id)}
+            onSave={(formData) => handleSave(products.id, formData)}
+            onCancel={() => setEditingId(null)}
+          />
         </TableBody>
       </Table>
     </div>
