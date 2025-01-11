@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Lightbulb, ChevronRight } from "lucide-react";
+import { Lightbulb, ChevronRight, BookOpen } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loading } from "@/components/ui/loading";
@@ -21,7 +21,7 @@ export function StoryMorals() {
       
       const { data, error } = await supabase
         .from('stories')
-        .select('title, moral, action_steps')
+        .select('id, title, moral, action_steps')
         .eq('author_id', session.user.id)
         .order('created_at', { ascending: false })
         .limit(3);
@@ -76,7 +76,7 @@ export function StoryMorals() {
               <p className="text-gray-700 mb-3">{story.moral}</p>
               
               {Array.isArray(story.action_steps) && story.action_steps.length > 0 && (
-                <Accordion type="single" collapsible className="bg-white/50 rounded-lg">
+                <Accordion type="single" collapsible className="bg-white/50 rounded-lg mb-3">
                   <AccordionItem value="action-steps" className="border-none">
                     <AccordionTrigger className="px-4 py-2 hover:no-underline">
                       <div className="flex items-center gap-2 text-sm font-medium">
@@ -97,6 +97,14 @@ export function StoryMorals() {
                   </AccordionItem>
                 </Accordion>
               )}
+              
+              <button
+                onClick={() => navigate(`/your-stories?story=${story.id}`)}
+                className="flex items-center gap-2 text-sm text-primary hover:text-primary-hover transition-colors"
+              >
+                <BookOpen className="w-4 h-4" />
+                Read Story
+              </button>
             </CardContent>
           </Card>
         ))}
