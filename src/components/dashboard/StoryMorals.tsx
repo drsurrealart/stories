@@ -25,7 +25,7 @@ export function StoryMorals() {
         .select('id, title, moral, action_steps')
         .eq('author_id', session.user.id)
         .order('created_at', { ascending: false })
-        .limit(3);
+        .limit(6);
         
       if (error) throw error;
       return data;
@@ -64,7 +64,7 @@ export function StoryMorals() {
         </button>
       </div>
       
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {recentMorals.map((story, index) => (
           <Card 
             key={index} 
