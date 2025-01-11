@@ -34,13 +34,6 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
   const isOneTimePayment = ['lifetime', 'credits'].includes(tier.level);
   const isFree = tier.price === 0;
 
-  const calculatePrice = () => {
-    if (isOneTimePayment) {
-      return tier.price;
-    }
-    return isYearly ? tier.yearly_price : tier.price;
-  };
-
   const calculateSavings = () => {
     if (isOneTimePayment || isFree) return null;
     const monthlyTotal = tier.price * 12;
@@ -67,7 +60,7 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
     if (isOneTimePayment) {
       return (
         <>
-          <span className="text-4xl font-bold">${calculatePrice()}</span>
+          <span className="text-4xl font-bold">${tier.price}</span>
           <span className="text-muted-foreground">/one time</span>
           <div className="text-sm text-muted-foreground mt-1">
             One-time purchase
@@ -90,15 +83,14 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
 
     if (isYearly) {
       const savingsPercentage = calculateSavings();
-      const yearlyPrice = tier.yearly_price;
-      const monthlyEquivalent = Math.round(yearlyPrice / 12);
+      const monthlyEquivalent = Math.round(tier.yearly_price / 12);
       
       return (
         <>
           <span className="text-4xl font-bold">${monthlyEquivalent}</span>
           <span className="text-muted-foreground">/month</span>
           <div className="text-sm text-primary mt-1">
-            Billed ${yearlyPrice} yearly
+            Billed ${tier.yearly_price} yearly
             {savingsPercentage && savingsPercentage > 0 && (
               <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary">
                 Save {savingsPercentage}%
