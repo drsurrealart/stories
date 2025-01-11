@@ -52,8 +52,6 @@ serve(async (req) => {
       throw new Error('Inappropriate content detected in character name');
     }
 
-    console.log("Received preferences:", preferences);
-
     // Create character names string if provided
     const characterNames = [preferences.characterName1, preferences.characterName2]
       .filter(Boolean)
@@ -61,31 +59,42 @@ serve(async (req) => {
       .filter(name => name.length > 0 && name.length <= 20)
       .join(" and ");
     
-    // Updated character prompt with more natural naming guidance
     const characterPrompt = characterNames 
-      ? `Use the character names "${characterNames}" as the main characters in the story. Make sure these characters play central roles in the narrative.`
-      : "Create natural, everyday character names for the story. Use common names that feel authentic and relatable, avoiding unusual or overly unique names. Mix traditional and contemporary names, and don't reuse names from previous stories. For example, use names like Sarah, Michael, Emma, James, Sofia, or David - names that are familiar but not too generic. Vary the names between stories to maintain diversity.";
+      ? `Use the character names "${characterNames}" as the main characters in the story.`
+      : "Create relatable characters with simple, natural names.";
 
-    // Add length preference to the prompt
     const lengthPrompt = preferences.lengthPreference === 'short' 
-      ? "Keep the story concise and brief, about half the length of a regular story." 
+      ? "Keep the story brief and concise." 
       : preferences.lengthPreference === 'long' 
-        ? "Make the story more detailed and longer than usual, about twice the length of a regular story."
+        ? "Make the story more detailed."
         : "Keep the story at a moderate length.";
 
-    // Add tone preference to the prompt
     const tonePrompt = preferences.tone === 'standard' 
       ? "" 
-      : `Make the story ${preferences.tone} in tone and style.`;
+      : `Make the story ${preferences.tone} in tone.`;
 
-    // Add language instruction
     const languagePrompt = preferences.language === 'english' 
       ? "" 
-      : `Write the entire story in ${preferences.language}. Make sure to maintain proper grammar and natural flow in the target language.`;
+      : `Write the story in ${preferences.language}.`;
 
-    const storyPrompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} age group about ${preferences.moral}. ${characterPrompt} ${lengthPrompt} ${tonePrompt} ${languagePrompt} Format the story with a clear title at the start and a moral lesson at the end. The story should be engaging and end with a clear moral lesson. Make the characters and their interactions feel natural and relatable. Keep it meaningful and family-friendly. Do not use asterisks or other decorative characters in the formatting. Do not start the title with "Title:". The story must be completely family-friendly and appropriate for children.`;
+    const storyPrompt = `Create a ${preferences.genre} story for ${preferences.ageGroup} about ${preferences.moral}. 
+${characterPrompt} ${lengthPrompt} ${tonePrompt} ${languagePrompt}
 
-    // Generate the story first
+Important guidelines:
+- Write clearly and directly
+- Avoid unnecessary words and repetition
+- Keep sentences focused and meaningful
+- Use natural dialogue and descriptions
+- Include a clear moral lesson at the end
+
+Format:
+- Start with a clear title
+- Write the story in clear paragraphs
+- End with "Moral: [the moral lesson]"
+- Do not use decorative characters or "Title:" prefix
+- Keep it family-friendly and age-appropriate`;
+
+    // Generate the story
     const storyResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -97,14 +106,14 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a skilled storyteller who creates engaging, age-appropriate stories with clear moral lessons. When creating character names, use natural, everyday names that feel authentic and relatable. Mix traditional and contemporary names, and avoid reusing names from previous stories. Each story must be completely original with relatable characters and natural-sounding names. Format the output with a Title at the start and a Moral at the end, without using any asterisks or decorative characters. Do not prefix the title with "Title:". The content must be completely family-friendly and appropriate for children.',
+            content: 'You are a skilled storyteller who creates clear, engaging stories with meaningful moral lessons. Write concisely and avoid unnecessary words or repetition. Focus on natural dialogue and descriptions that move the story forward.',
           },
           {
             role: 'user',
             content: storyPrompt,
           },
         ],
-        temperature: 0.9,
+        temperature: 0.7,
         presence_penalty: 0.6,
         frequency_penalty: 0.8,
       }),
@@ -119,21 +128,17 @@ serve(async (req) => {
     const storyData = await storyResponse.json();
     const generatedStory = storyData.choices[0].message.content;
 
-    // Now generate enrichment content with a separate prompt
-    const enrichmentPrompt = `Based on the following story, generate enrichment content. The content should include reflection questions that make readers think deeply about the story's message, specific action steps they can take to apply the lesson, an inspirational quote related to the theme, and discussion prompts that encourage meaningful conversations.
-
-Story:
-${generatedStory}
-
-Generate the content in this exact format (do not include the word 'json' or any backticks):
-{
-  "reflection_questions": ["question1", "question2", "question3"],
-  "action_steps": ["step1", "step2", "step3"],
-  "related_quote": "The quote here",
-  "discussion_prompts": ["prompt1", "prompt2", "prompt3"]
-}`;
+    // Check generated content for inappropriate content
+    if (containsInappropriateContent(generatedStory, bannedWords)) {
+      throw new Error('Inappropriate content detected in generated story. Please try again.');
+    }
 
     // Generate enrichment content
+    const enrichmentPrompt = `Based on this story, generate 3 reflection questions, 3 action steps, and 3 discussion prompts that help readers understand and apply the moral lesson. Format the response as JSON with these keys: reflection_questions, action_steps, discussion_prompts.
+
+Story:
+${generatedStory}`;
+
     const enrichmentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -145,7 +150,7 @@ Generate the content in this exact format (do not include the word 'json' or any
         messages: [
           {
             role: 'system',
-            content: 'You are an educational content creator who specializes in creating engaging learning materials based on stories. Always format your response as a valid JSON object without any markdown formatting or additional text.',
+            content: 'You create clear, practical learning materials from stories. Format your response as valid JSON.',
           },
           {
             role: 'user',
@@ -163,28 +168,23 @@ Generate the content in this exact format (do not include the word 'json' or any
     }
 
     const enrichmentData = await enrichmentResponse.json();
-    const enrichmentContent = enrichmentData.choices[0].message.content;
-    
-    // Parse the enrichment content, making sure to handle any potential JSON parsing errors
     let parsedEnrichment;
     try {
-      parsedEnrichment = JSON.parse(enrichmentContent);
+      parsedEnrichment = JSON.parse(enrichmentData.choices[0].message.content);
       console.log("Successfully parsed enrichment content:", parsedEnrichment);
     } catch (error) {
       console.error("Error parsing enrichment content:", error);
-      console.log("Raw enrichment content:", enrichmentContent);
+      console.log("Raw enrichment content:", enrichmentData.choices[0].message.content);
       throw new Error('Failed to parse enrichment content');
-    }
-
-    // Check generated content for inappropriate content
-    if (containsInappropriateContent(generatedStory, bannedWords)) {
-      throw new Error('Inappropriate content detected in generated story. Please try again.');
     }
 
     return new Response(
       JSON.stringify({ 
         story: generatedStory,
-        enrichment: parsedEnrichment
+        enrichment: {
+          ...parsedEnrichment,
+          related_quote: "" // Keep the structure but don't generate quotes
+        }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
