@@ -138,11 +138,9 @@ const Index = () => {
           />
         </div>
 
-        <div className="bg-white rounded-lg shadow">
-          <RecentStories stories={recentStories} isLoading={storiesLoading} />
-        </div>
-
         <StoryMorals />
+
+        <RecentStories stories={recentStories} isLoading={storiesLoading} />
 
         <Card className="p-6">
           <ShareWithFriends />

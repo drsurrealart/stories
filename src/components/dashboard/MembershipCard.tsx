@@ -13,7 +13,7 @@ export const MembershipCard = ({ currentTierName, showUpgradeButton }: Membershi
   
   return (
     <Card className="p-6 bg-white">
-      <div className="flex items-center justify-between">
+      <div className="space-y-4">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-primary/10 rounded-lg">
             <Crown className="w-6 h-6 text-primary" />
@@ -26,7 +26,7 @@ export const MembershipCard = ({ currentTierName, showUpgradeButton }: Membershi
         {showUpgradeButton && (
           <Button 
             onClick={() => navigate('/my-subscriptions')}
-            className="bg-primary hover:bg-primary-hover text-white"
+            className="w-full bg-primary hover:bg-primary-hover text-white"
           >
             Upgrade Now
           </Button>
