@@ -103,13 +103,8 @@ Format:
     const generatedStory = storyData.choices[0].message.content;
     console.log('Story generated successfully');
 
-    // Generate enrichment content
-    const enrichmentPrompt = `Based on this story, generate:
-1. Three reflection questions that help readers understand the moral lesson
-2. Three action steps readers can take to apply the lesson
-3. Three discussion prompts for group conversations
-
-Format the response as JSON with these keys: reflection_questions (array), action_steps (array), discussion_prompts (array).
+    // Generate enrichment content with explicit JSON format instruction
+    const enrichmentPrompt = `Generate enrichment content for this story in pure JSON format (no markdown, no backticks). The response should be a valid JSON object with these exact keys: reflection_questions (array of 3 strings), action_steps (array of 3 strings), related_quote (string), discussion_prompts (array of 3 strings).
 
 Story:
 ${generatedStory}`;
@@ -126,7 +121,7 @@ ${generatedStory}`;
         messages: [
           {
             role: 'system',
-            content: 'You create clear, practical learning materials from stories. Format your response as valid JSON.',
+            content: 'You are a JSON generator that creates enrichment content for stories. Always respond with pure, valid JSON objects without any markdown formatting or explanation text.',
           },
           {
             role: 'user',
@@ -144,13 +139,22 @@ ${generatedStory}`;
     }
 
     const enrichmentData = await enrichmentResponse.json();
+    const enrichmentContent = enrichmentData.choices[0].message.content;
+    console.log("Raw enrichment content:", enrichmentContent);
+
     let parsedEnrichment;
     try {
-      parsedEnrichment = JSON.parse(enrichmentData.choices[0].message.content);
+      // Clean the response if it contains any markdown artifacts
+      const cleanedContent = enrichmentContent
+        .replace(/```json\s*/, '')  // Remove opening markdown
+        .replace(/```\s*$/, '')     // Remove closing markdown
+        .trim();                    // Remove any extra whitespace
+      
+      parsedEnrichment = JSON.parse(cleanedContent);
       console.log("Successfully parsed enrichment content");
     } catch (error) {
       console.error("Error parsing enrichment content:", error);
-      console.log("Raw enrichment content:", enrichmentData.choices[0].message.content);
+      console.log("Attempted to parse content:", enrichmentContent);
       throw new Error('Failed to parse enrichment content');
     }
 
