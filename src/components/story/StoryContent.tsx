@@ -26,16 +26,9 @@ export function StoryContent({
   lengthPreference
 }: StoryContentProps) {
   return (
-    <>
-      <div className="prose max-w-none">
-        <h2 className="text-xl md:text-2xl font-semibold mb-4">{title}</h2>
-        <div className="text-story-text leading-relaxed whitespace-pre-wrap text-sm md:text-base">
-          {content}
-        </div>
-      </div>
-
+    <div className="space-y-4">
       {moral && (
-        <Card className="bg-secondary p-4 md:p-6 mt-4">
+        <Card className="bg-secondary p-4 md:p-6">
           <div className="flex items-center gap-2 mb-2">
             <Lightbulb className="h-5 w-5 text-primary" />
             <h3 className="font-semibold text-lg">Moral</h3>
@@ -45,7 +38,7 @@ export function StoryContent({
       )}
 
       {(ageGroup || genre || language || tone || readingLevel || lengthPreference) && (
-        <div className="flex flex-wrap gap-2 mt-4">
+        <div className="flex flex-wrap gap-2">
           {ageGroup && (
             <Badge variant="secondary" className="capitalize">
               <BookOpen className="h-3 w-3 mr-1" />
@@ -81,6 +74,6 @@ export function StoryContent({
           )}
         </div>
       )}
-    </>
+    </div>
   );
 }
