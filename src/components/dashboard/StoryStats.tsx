@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { BookMarked, BookOpen, Clock, Star, Languages, Target } from "lucide-react";
+import { BookMarked, BookOpen, Languages, Target, Clock, Bookmark } from "lucide-react";
 import { Loader2 } from "lucide-react";
 
 export const StoryStats = () => {
@@ -33,16 +33,28 @@ export const StoryStats = () => {
 
       // Calculate additional statistics
       const languages = new Set(stories.map(story => story.language)).size;
-      const avgLength = stories.reduce((sum, story) => sum + story.content.length, 0) / (stories.length || 1);
+      const totalWords = stories.reduce((sum, story) => sum + story.content.length, 0);
       const readingLevels = new Set(stories.map(story => story.reading_level)).size;
       
+      // Calculate most used genre
+      const genreCounts = stories.reduce((acc, story) => {
+        acc[story.genre] = (acc[story.genre] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      const mostUsedGenre = Object.entries(genreCounts).reduce((a, b) => 
+        (a[1] > b[1] ? a : b), ['None', 0])[0];
+
+      // Calculate total reading time (assuming average reading speed of 200 words per minute)
+      const totalReadingMinutes = Math.round((totalWords / 5) / 200); // Approximate words by dividing characters by 5
+
       return {
         totalStories: totalGenerated,
         savedStories: stories.filter(story => story.title && story.content).length,
         uniqueLanguages: languages,
-        averageLength: Math.round(avgLength / 100), // Rough estimate of words
         readingLevels,
-        lastCreated: stories.length > 0 ? new Date(stories[0].created_at).toLocaleDateString() : 'No stories yet'
+        totalReadingTime: totalReadingMinutes,
+        mostUsedGenre: mostUsedGenre || 'None'
       };
     },
   });
@@ -96,8 +108,8 @@ export const StoryStats = () => {
             <Clock className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <p className="text-2xl font-bold">{stats?.averageLength || 0}</p>
-            <p className="text-sm text-muted-foreground">Avg. Words/Story</p>
+            <p className="text-2xl font-bold">{stats?.totalReadingTime || 0}</p>
+            <p className="text-sm text-muted-foreground">Total Reading Minutes</p>
           </div>
         </div>
 
@@ -113,11 +125,11 @@ export const StoryStats = () => {
 
         <div className="flex items-center gap-3">
           <div className="p-3 bg-primary/10 rounded-lg">
-            <Star className="w-5 h-5 text-primary" />
+            <Bookmark className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <p className="text-lg font-medium">{stats?.lastCreated}</p>
-            <p className="text-sm text-muted-foreground">Last Created</p>
+            <p className="text-lg font-medium capitalize">{stats?.mostUsedGenre}</p>
+            <p className="text-sm text-muted-foreground">Favorite Genre</p>
           </div>
         </div>
       </div>
