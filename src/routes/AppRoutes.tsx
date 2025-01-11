@@ -9,6 +9,7 @@ import YourStories from "@/pages/YourStories";
 import MyMorals from "@/pages/MyMorals";
 import AccountSettings from "@/pages/AccountSettings";
 import MySubscriptions from "@/pages/MySubscriptions";
+import Share from "@/pages/Share";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminSubscriptions from "@/pages/admin/AdminSubscriptions";
@@ -27,6 +28,7 @@ export const AppRoutes = () => (
       <Route path="/terms" element={<Terms />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/support" element={<Support />} />
+      <Route path="/share" element={<Share />} />
       <Route
         path="/dashboard"
         element={

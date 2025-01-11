@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, Twitter } from "lucide-react";
+import { Mail, Twitter, Share2 } from "lucide-react";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -33,6 +33,11 @@ export const Footer = () => {
               <li>
                 <Link to="/your-stories" className="text-sm text-gray-300 hover:text-white transition-colors">
                   Your Stories
+                </Link>
+              </li>
+              <li>
+                <Link to="/share" className="text-sm text-gray-300 hover:text-white transition-colors">
+                  Share
                 </Link>
               </li>
               <li>
@@ -81,6 +86,12 @@ export const Footer = () => {
               >
                 <Mail className="h-5 w-5" />
               </a>
+              <Link
+                to="/share"
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                <Share2 className="h-5 w-5" />
+              </Link>
             </div>
           </div>
         </div>
