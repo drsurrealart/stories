@@ -1,10 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Lightbulb, ChevronRight, Search } from "lucide-react";
+import { Lightbulb, ChevronRight, Search, BookOpen } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loading } from "@/components/ui/loading";
 import { NavigationBar } from "@/components/NavigationBar";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
@@ -21,10 +22,12 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const ITEMS_PER_PAGE = 12;
 
 const MyMorals = () => {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -155,7 +158,7 @@ const MyMorals = () => {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setCurrentPage(1); // Reset to first page when searching
+              setCurrentPage(1);
             }}
             className="pl-10"
           />
@@ -178,7 +181,7 @@ const MyMorals = () => {
                     <p className="text-gray-700 mb-4">{story.moral}</p>
                     
                     {Array.isArray(story.action_steps) && story.action_steps.length > 0 && (
-                      <Accordion type="single" collapsible className="bg-white/50 rounded-lg">
+                      <Accordion type="single" collapsible className="bg-white/50 rounded-lg mb-4">
                         <AccordionItem value="action-steps" className="border-none">
                           <AccordionTrigger className="px-4 py-2 hover:no-underline">
                             <div className="flex items-center gap-2 text-sm font-medium">
@@ -199,6 +202,16 @@ const MyMorals = () => {
                         </AccordionItem>
                       </Accordion>
                     )}
+                    
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => navigate(`/your-stories?story=${story.id}`)}
+                      className="w-full"
+                    >
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Read Story
+                    </Button>
                   </CardContent>
                 </Card>
               ))}

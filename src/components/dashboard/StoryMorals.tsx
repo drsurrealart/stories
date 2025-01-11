@@ -3,6 +3,7 @@ import { Lightbulb, ChevronRight, BookOpen } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loading } from "@/components/ui/loading";
+import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
@@ -98,13 +99,15 @@ export function StoryMorals() {
                 </Accordion>
               )}
               
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => navigate(`/your-stories?story=${story.id}`)}
-                className="flex items-center gap-2 text-sm text-primary hover:text-primary-hover transition-colors"
+                className="w-full"
               >
-                <BookOpen className="w-4 h-4" />
+                <BookOpen className="w-4 h-4 mr-2" />
                 Read Story
-              </button>
+              </Button>
             </CardContent>
           </Card>
         ))}
