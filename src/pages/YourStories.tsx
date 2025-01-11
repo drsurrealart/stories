@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { NavigationBar } from "@/components/NavigationBar";
 import { useToast } from "@/hooks/use-toast";
@@ -7,6 +7,7 @@ import { SavedStory } from "@/types/story";
 import { Loading } from "@/components/ui/loading";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import {
   Pagination,
   PaginationContent,
@@ -26,13 +27,15 @@ const YourStories = () => {
   const [totalStories, setTotalStories] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const highlightedStoryId = searchParams.get('story');
+  const storyRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   const fetchStories = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // First, get the total count
       const { count } = await supabase
         .from('stories')
         .select('*', { count: 'exact', head: true })
@@ -40,7 +43,6 @@ const YourStories = () => {
 
       setTotalStories(count || 0);
 
-      // Then fetch all stories for searching
       const { data, error } = await supabase
         .from('stories')
         .select('*')
@@ -50,6 +52,15 @@ const YourStories = () => {
       if (error) throw error;
       setStories(data || []);
       setFilteredStories(data || []);
+
+      // If there's a highlighted story, find its page and set it
+      if (highlightedStoryId && data) {
+        const storyIndex = data.findIndex(story => story.id === highlightedStoryId);
+        if (storyIndex !== -1) {
+          const page = Math.floor(storyIndex / STORIES_PER_PAGE) + 1;
+          setCurrentPage(page);
+        }
+      }
     } catch (error) {
       console.error("Error fetching stories:", error);
       toast({
@@ -61,6 +72,17 @@ const YourStories = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchStories();
+  }, []);
+
+  // Scroll to highlighted story when it's available
+  useEffect(() => {
+    if (highlightedStoryId && storyRefs.current[highlightedStoryId]) {
+      storyRefs.current[highlightedStoryId]?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [highlightedStoryId, currentPage, filteredStories]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -116,10 +138,6 @@ const YourStories = () => {
       });
     }
   };
-
-  useEffect(() => {
-    fetchStories();
-  }, []);
 
   const totalPages = Math.ceil(totalStories / STORIES_PER_PAGE);
   const startIndex = (currentPage - 1) * STORIES_PER_PAGE;
@@ -186,11 +204,18 @@ const YourStories = () => {
             {totalPages > 1 && <PaginationComponent />}
             
             {paginatedStories.map((story) => (
-              <StoryCard 
+              <div
                 key={story.id}
-                story={story}
-                onDelete={handleDelete}
-              />
+                ref={el => storyRefs.current[story.id] = el}
+                className={`transition-all duration-300 ${
+                  highlightedStoryId === story.id ? 'ring-2 ring-primary ring-offset-2 rounded-lg' : ''
+                }`}
+              >
+                <StoryCard 
+                  story={story}
+                  onDelete={handleDelete}
+                />
+              </div>
             ))}
 
             {totalPages > 1 && <PaginationComponent />}
