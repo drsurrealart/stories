@@ -39,7 +39,7 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
       return tier.price;
     }
     if (isYearly) {
-      return Math.round(tier.yearly_price / 12);
+      return tier.yearly_price;
     }
     return tier.price;
   };
@@ -95,7 +95,7 @@ export const PricingCard = ({ tier, isYearly, currentTier, onSubscribe }: Pricin
       const savingsPercentage = calculateSavings();
       return (
         <>
-          <span className="text-4xl font-bold">${calculatePrice()}</span>
+          <span className="text-4xl font-bold">${Math.round(calculatePrice() / 12)}</span>
           <span className="text-muted-foreground">/month</span>
           <div className="text-sm text-primary mt-1">
             Billed ${tier.yearly_price} yearly
