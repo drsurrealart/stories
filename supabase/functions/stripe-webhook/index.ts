@@ -61,7 +61,7 @@ serve(async (req) => {
           throw new Error('Subscription tier not found');
         }
 
-        // Update user's subscription level
+        // Update user's subscription level and add timestamp
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ 
@@ -98,6 +98,52 @@ serve(async (req) => {
         }
 
         console.log('Successfully cancelled subscription for user:', customer.email);
+        break;
+      }
+
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        
+        // Handle one-time purchases (credits)
+        if (session.mode === 'payment') {
+          const customer = await stripe.customers.retrieve(session.customer as string);
+          const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+          const priceId = lineItems.data[0]?.price?.id;
+
+          if (!priceId) {
+            throw new Error('No price ID found in checkout session');
+          }
+
+          // Get the credits product details
+          const { data: tier, error: tierError } = await supabase
+            .from('subscription_tiers')
+            .select('level, monthly_credits')
+            .eq('stripe_price_id', priceId)
+            .single();
+
+          if (tierError || !tier) {
+            console.error('Error finding credits tier:', tierError);
+            throw new Error('Credits tier not found');
+          }
+
+          // Add credits to user's current month
+          const currentMonth = new Date().toISOString().slice(0, 7);
+          const { error: creditsError } = await supabase
+            .from('user_story_counts')
+            .upsert({
+              user_id: customer.metadata.supabaseUid,
+              month_year: currentMonth,
+              credits_used: 0,
+              updated_at: new Date().toISOString()
+            });
+
+          if (creditsError) {
+            console.error('Error updating credits:', creditsError);
+            throw creditsError;
+          }
+
+          console.log('Successfully processed credits purchase for user:', customer.email);
+        }
         break;
       }
 
