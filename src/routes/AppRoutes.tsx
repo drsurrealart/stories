@@ -16,6 +16,7 @@ import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminFunctions from "@/pages/admin/AdminFunctions";
 import Terms from "@/pages/Terms";
 import Contact from "@/pages/Contact";
+import Support from "@/pages/Support";
 
 export const AppRoutes = () => (
   <>
@@ -25,6 +26,7 @@ export const AppRoutes = () => (
       <Route path="/auth" element={<Auth />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/support" element={<Support />} />
       <Route
         path="/dashboard"
         element={

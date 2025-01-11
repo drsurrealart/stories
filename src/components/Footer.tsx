@@ -44,11 +44,21 @@ export const Footer = () => {
           </div>
           
           <div className="space-y-3">
-            <h3 className="font-semibold text-white">Legal</h3>
+            <h3 className="font-semibold text-white">Support</h3>
             <ul className="space-y-2">
+              <li>
+                <Link to="/support" className="text-sm text-gray-300 hover:text-white transition-colors">
+                  Help Center
+                </Link>
+              </li>
               <li>
                 <Link to="/terms" className="text-sm text-gray-300 hover:text-white transition-colors">
                   Privacy Policy & Terms
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-sm text-gray-300 hover:text-white transition-colors">
+                  Contact Us
                 </Link>
               </li>
             </ul>
@@ -72,13 +82,7 @@ export const Footer = () => {
                 <Mail className="h-5 w-5" />
               </a>
             </div>
-            <div className="mt-2">
-              <Link to="/contact" className="text-sm text-gray-300 hover:text-white transition-colors">
-                Contact Us
-              </Link>
-            </div>
           </div>
-          
         </div>
         
         <div className="mt-8 pt-8 border-t border-gray-700 text-center text-sm text-gray-300">
