@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +22,7 @@ import { Headphones, Play, Pause, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { Progress } from "@/components/ui/progress";
 
 interface AudioStoryProps {
   storyId: string;
@@ -43,6 +44,7 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [progress, setProgress] = useState(0);
   const { toast } = useToast();
 
   // Fetch existing audio story if any
@@ -78,6 +80,30 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
       return data.audio_credits_cost;
     },
   });
+
+  // Update progress bar during audio playback
+  useEffect(() => {
+    if (audioElement) {
+      const updateProgress = () => {
+        const currentProgress = (audioElement.currentTime / audioElement.duration) * 100;
+        setProgress(currentProgress);
+      };
+
+      audioElement.addEventListener('timeupdate', updateProgress);
+      audioElement.addEventListener('ended', () => {
+        setIsPlaying(false);
+        setProgress(0);
+      });
+
+      return () => {
+        audioElement.removeEventListener('timeupdate', updateProgress);
+        audioElement.removeEventListener('ended', () => {
+          setIsPlaying(false);
+          setProgress(0);
+        });
+      };
+    }
+  }, [audioElement]);
 
   const handleCreateAudio = async () => {
     try {
@@ -215,18 +241,21 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
           </AlertDialog>
         </div>
       ) : (
-        <div className="flex justify-center">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={togglePlayPause}
-          >
-            {isPlaying ? (
-              <Pause className="h-4 w-4" />
-            ) : (
-              <Play className="h-4 w-4" />
-            )}
-          </Button>
+        <div className="space-y-4">
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={togglePlayPause}
+            >
+              {isPlaying ? (
+                <Pause className="h-4 w-4" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <Progress value={progress} className="w-full" />
         </div>
       )}
     </Card>
