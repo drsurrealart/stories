@@ -37,12 +37,10 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
       
       if (data) {
         // Get the signed URL for the audio file
-        const { data: { publicUrl }, error: urlError } = await supabase
+        const { data: { publicUrl } } = await supabase
           .storage
           .from('audio-stories')
           .getPublicUrl(data.audio_url);
-
-        if (urlError) throw urlError;
         
         return { ...data, audio_url: publicUrl };
       }
@@ -111,12 +109,10 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
       if (uploadError) throw uploadError;
 
       // Get the public URL for the uploaded file
-      const { data: { publicUrl }, error: urlError } = await supabase
+      const { data: { publicUrl } } = await supabase
         .storage
         .from('audio-stories')
         .getPublicUrl(filename);
-
-      if (urlError) throw urlError;
 
       // Save to Supabase
       const { error: saveError } = await supabase
