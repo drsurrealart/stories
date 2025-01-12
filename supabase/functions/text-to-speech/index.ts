@@ -10,38 +10,27 @@ const MAX_CHUNK_LENGTH = 4000; // Slightly less than 4096 to be safe
 
 function splitTextIntoChunks(text: string): string[] {
   const chunks: string[] = [];
-  let currentChunk = '';
+  let remainingText = text;
   
-  // Split by sentences (roughly) to avoid cutting mid-sentence
-  const sentences = text.split(/(?<=[.!?])\s+/);
-  
-  for (const sentence of sentences) {
-    if ((currentChunk + sentence).length > MAX_CHUNK_LENGTH) {
-      if (currentChunk) {
-        chunks.push(currentChunk.trim());
-        currentChunk = '';
-      }
-      // If a single sentence is too long, split it by words
-      if (sentence.length > MAX_CHUNK_LENGTH) {
-        const words = sentence.split(' ');
-        for (const word of words) {
-          if ((currentChunk + ' ' + word).length > MAX_CHUNK_LENGTH) {
-            chunks.push(currentChunk.trim());
-            currentChunk = word;
-          } else {
-            currentChunk += (currentChunk ? ' ' : '') + word;
-          }
-        }
-      } else {
-        currentChunk = sentence;
-      }
-    } else {
-      currentChunk += (currentChunk ? ' ' : '') + sentence;
+  while (remainingText.length > 0) {
+    if (remainingText.length <= MAX_CHUNK_LENGTH) {
+      chunks.push(remainingText);
+      break;
     }
-  }
-  
-  if (currentChunk) {
-    chunks.push(currentChunk.trim());
+
+    // Find the last sentence break within the chunk limit
+    let chunkEnd = MAX_CHUNK_LENGTH;
+    const lastPeriod = remainingText.substring(0, MAX_CHUNK_LENGTH).lastIndexOf('.');
+    const lastQuestion = remainingText.substring(0, MAX_CHUNK_LENGTH).lastIndexOf('?');
+    const lastExclamation = remainingText.substring(0, MAX_CHUNK_LENGTH).lastIndexOf('!');
+    
+    // Use the latest sentence break found
+    if (lastPeriod > 0 || lastQuestion > 0 || lastExclamation > 0) {
+      chunkEnd = Math.max(lastPeriod, lastQuestion, lastExclamation) + 1;
+    }
+
+    chunks.push(remainingText.substring(0, chunkEnd).trim());
+    remainingText = remainingText.substring(chunkEnd).trim();
   }
   
   return chunks;
