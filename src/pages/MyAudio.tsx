@@ -6,8 +6,12 @@ import { Card } from "@/components/ui/card";
 import { Loading } from "@/components/ui/loading";
 import { AudioStory } from "@/components/story/AudioStory";
 import { StoryContent } from "@/components/story/StoryContent";
+import { Button } from "@/components/ui/button";
+import { BookOpen } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const MyAudio = () => {
+  const navigate = useNavigate();
   const { data: audioStories, isLoading } = useQuery({
     queryKey: ['audio-stories'],
     queryFn: async () => {
@@ -72,6 +76,17 @@ const MyAudio = () => {
                     storyId={audio.stories.id} 
                     storyContent={audio.stories.content}
                   />
+                </div>
+                <div className="mt-4">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => navigate(`/your-stories?story=${audio.stories.id}`)}
+                    className="w-full"
+                  >
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Read Story
+                  </Button>
                 </div>
               </Card>
             ))}
