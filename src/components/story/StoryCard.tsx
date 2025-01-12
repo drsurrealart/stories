@@ -7,6 +7,7 @@ import { StoryEnrichment } from "@/components/story/StoryEnrichment";
 import { FavoriteButton } from "@/components/story/FavoriteButton";
 import { AudioStory } from "@/components/story/AudioStory";
 import { StoryImage } from "@/components/story/image/StoryImage";
+import { StoryPDF } from "@/components/story/pdf/StoryPDF";
 import { SavedStory } from "@/types/story";
 import { formatDate } from "@/utils/date";
 
@@ -103,6 +104,11 @@ export const StoryCard = ({ story, onDelete }: StoryCardProps) => {
       />
 
       <StoryImage 
+        storyId={story.id}
+        storyContent={story.content}
+      />
+
+      <StoryPDF 
         storyId={story.id}
         storyContent={story.content}
       />
