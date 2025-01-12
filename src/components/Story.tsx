@@ -8,6 +8,7 @@ import { StorySocialShare } from "./story/StorySocialShare";
 import { StoryEnrichment } from "./story/StoryEnrichment";
 import { FavoriteButton } from "./story/FavoriteButton";
 import { AudioStory } from "./story/AudioStory";
+import { StoryImage } from "./story/image/StoryImage";
 import { useQuery } from "@tanstack/react-query";
 import { Loading } from "@/components/ui/loading";
 
@@ -104,10 +105,16 @@ export function Story({
       )}
 
       {storyData?.id && (
-        <AudioStory 
-          storyId={storyData.id} 
-          storyContent={storyWithoutTitle}
-        />
+        <>
+          <AudioStory 
+            storyId={storyData.id} 
+            storyContent={storyWithoutTitle}
+          />
+          <StoryImage
+            storyId={storyData.id}
+            storyContent={storyWithoutTitle}
+          />
+        </>
       )}
 
       <div className="border-t pt-4 md:pt-6 space-y-4">

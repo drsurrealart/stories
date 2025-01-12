@@ -15,6 +15,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          image_credits_cost: number | null
           is_active: boolean | null
           key_name: string
           updated_at: string
@@ -24,6 +25,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_credits_cost?: number | null
           is_active?: boolean | null
           key_name: string
           updated_at?: string
@@ -33,6 +35,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_credits_cost?: number | null
           is_active?: boolean | null
           key_name?: string
           updated_at?: string
@@ -291,6 +294,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "story_favorites_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_images: {
+        Row: {
+          created_at: string
+          credits_used: number
+          id: string
+          image_url: string
+          story_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          credits_used?: number
+          id?: string
+          image_url: string
+          story_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          credits_used?: number
+          id?: string
+          image_url?: string
+          story_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_images_story_id_fkey"
             columns: ["story_id"]
             isOneToOne: false
             referencedRelation: "stories"
