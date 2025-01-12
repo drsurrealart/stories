@@ -103,12 +103,34 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
 
   // Initialize audio element when URL is available
   useEffect(() => {
-    if (audioStory?.audio_url && !audioElement) {
+    if (audioStory?.audio_url) {
+      console.log('Initializing audio with URL:', audioStory.audio_url);
       const audio = new Audio(audioStory.audio_url);
-      audio.addEventListener('loadedmetadata', () => {
+      
+      const handleLoadedMetadata = () => {
+        console.log('Audio metadata loaded, duration:', audio.duration);
         setDuration(audio.duration);
-      });
+      };
+
+      const handleError = (e: ErrorEvent) => {
+        console.error('Audio loading error:', e);
+        toast({
+          title: "Error",
+          description: "Failed to load audio. Please try again.",
+          variant: "destructive",
+        });
+      };
+
+      audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.addEventListener('error', handleError);
       setAudioElement(audio);
+
+      return () => {
+        audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        audio.removeEventListener('error', handleError);
+        audio.pause();
+        setAudioElement(null);
+      };
     }
   }, [audioStory?.audio_url]);
 
@@ -120,20 +142,19 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         setProgress((audioElement.currentTime / audioElement.duration) * 100);
       };
 
-      audioElement.addEventListener('timeupdate', updateProgress);
-      audioElement.addEventListener('ended', () => {
+      const handleEnded = () => {
         setIsPlaying(false);
         setProgress(0);
         setCurrentTime(0);
-      });
+        audioElement.currentTime = 0;
+      };
+
+      audioElement.addEventListener('timeupdate', updateProgress);
+      audioElement.addEventListener('ended', handleEnded);
 
       return () => {
         audioElement.removeEventListener('timeupdate', updateProgress);
-        audioElement.removeEventListener('ended', () => {
-          setIsPlaying(false);
-          setProgress(0);
-          setCurrentTime(0);
-        });
+        audioElement.removeEventListener('ended', handleEnded);
       };
     }
   }, [audioElement]);
@@ -163,15 +184,24 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
     setProgress(pos * 100);
   };
 
-  const togglePlayPause = () => {
+  const togglePlayPause = async () => {
     if (!audioElement) return;
 
-    if (isPlaying) {
-      audioElement.pause();
-    } else {
-      audioElement.play();
+    try {
+      if (isPlaying) {
+        await audioElement.pause();
+      } else {
+        await audioElement.play();
+      }
+      setIsPlaying(!isPlaying);
+    } catch (error) {
+      console.error('Playback error:', error);
+      toast({
+        title: "Playback Error",
+        description: "Failed to play audio. Please try again.",
+        variant: "destructive",
+      });
     }
-    setIsPlaying(!isPlaying);
   };
 
   const toggleMute = () => {
