@@ -1,4 +1,4 @@
-import { Users, BookText, TrendingUp } from "lucide-react";
+import { Users, BookText, TrendingUp, CreditCard, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -8,6 +8,8 @@ interface StatsCardsProps {
     total_users: number;
     total_stories: number;
     stories_last_30_days: number;
+    total_audio_stories: number;
+    average_story_length: number;
   };
 }
 
@@ -52,6 +54,34 @@ export const StatsCards = ({ isLoading, stats }: StatsCardsProps) => {
             <Skeleton className="h-8 w-[100px]" />
           ) : (
             <div className="text-2xl font-bold">{stats?.stories_last_30_days}</div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Audio Stories</CardTitle>
+          <CreditCard className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <Skeleton className="h-8 w-[100px]" />
+          ) : (
+            <div className="text-2xl font-bold">{stats?.total_audio_stories}</div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Avg. Story Length</CardTitle>
+          <Clock className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <Skeleton className="h-8 w-[100px]" />
+          ) : (
+            <div className="text-2xl font-bold">{stats?.average_story_length} words</div>
           )}
         </CardContent>
       </Card>

@@ -12,6 +12,8 @@ interface UserStatistics {
   total_stories: number;
   users_by_subscription: Record<string, number>;
   stories_last_30_days: number;
+  total_audio_stories: number;
+  average_story_length: number;
 }
 
 const AdminDashboard = () => {
@@ -32,7 +34,7 @@ const AdminDashboard = () => {
   const { data: stats, isLoading: isLoadingStats, error } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      // First get all profiles
+      // Get all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('subscription_level');
@@ -42,7 +44,7 @@ const AdminDashboard = () => {
         throw profilesError;
       }
 
-      // Then get all stories
+      // Get all stories
       const { data: stories, error: storiesError } = await supabase
         .from('stories')
         .select('*');
@@ -52,9 +54,20 @@ const AdminDashboard = () => {
         throw storiesError;
       }
 
+      // Get audio stories
+      const { data: audioStories, error: audioError } = await supabase
+        .from('audio_stories')
+        .select('*');
+
+      if (audioError) {
+        console.error("Error fetching audio stories:", audioError);
+        throw audioError;
+      }
+
       // Calculate statistics
       const total_users = profiles.length;
       const total_stories = stories.length;
+      const total_audio_stories = audioStories?.length || 0;
       
       const users_by_subscription = profiles.reduce((acc, profile) => {
         const level = profile.subscription_level || 'free';
@@ -69,11 +82,19 @@ const AdminDashboard = () => {
         new Date(story.created_at) >= thirtyDaysAgo
       ).length;
 
+      // Calculate average story length (in words)
+      const totalWords = stories.reduce((sum, story) => {
+        return sum + (story.content?.split(/\s+/).length || 0);
+      }, 0);
+      const average_story_length = Math.round(totalWords / (stories.length || 1));
+
       return {
         total_users,
         total_stories,
         users_by_subscription,
-        stories_last_30_days
+        stories_last_30_days,
+        total_audio_stories,
+        average_story_length
       } as UserStatistics;
     },
     enabled: !!isAdmin,
