@@ -40,42 +40,61 @@ export const FeaturesShowcase = () => {
     {
       icon: MessageSquare,
       title: "Reflection Questions",
-      description: "Deepen understanding with thoughtful discussion prompts"
+      description: "Deepen understanding with thoughtful discussion prompts",
+      color: "bg-gradient-to-br from-[#FFE8D9] to-[#FFB088]",
+      iconColor: "text-[#FF7F50]"
     },
     {
       icon: Quote,
       title: "Related Quotes",
-      description: "Reinforce moral lessons with inspiring quotes"
+      description: "Reinforce moral lessons with inspiring quotes",
+      color: "bg-gradient-to-br from-[#E0F4FF] to-[#87CEEB]",
+      iconColor: "text-[#4682B4]"
     },
     {
       icon: Footprints,
       title: "Action Steps",
-      description: "Turn lessons into real-world actions"
+      description: "Turn lessons into real-world actions",
+      color: "bg-gradient-to-br from-[#E8FFE0] to-[#98FB98]",
+      iconColor: "text-[#3CB371]"
     },
     {
       icon: Sparkles,
       title: "Multiple Languages",
-      description: "Create stories in 11 different languages"
+      description: "Create stories in 11 different languages",
+      color: "bg-gradient-to-br from-[#FFE1F9] to-[#FF69B4]",
+      iconColor: "text-[#FF1493]"
     }
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-white via-[#F1F0FB] to-white">
+    <section className="py-24 md:py-32 bg-gradient-to-b from-white via-[#F1F0FB] to-white">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl md:text-4xl font-bold text-center mb-8 md:mb-16 bg-gradient-to-r from-[#9b87f5] to-[#E5DEFF] bg-clip-text text-transparent">
-          Everything You Need to Create Amazing Stories
-        </h2>
+        <div className="max-w-3xl mx-auto text-center mb-16">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-[#9b87f5] to-[#E5DEFF] bg-clip-text text-transparent">
+            Everything You Need to Create Amazing Stories
+          </h2>
+          <p className="text-lg text-gray-600 leading-relaxed">
+            Powerful tools and features to bring your stories to life
+          </p>
+        </div>
 
         {/* Main Features */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           {mainFeatures.map((feature, index) => (
             <div 
               key={index}
-              className={`flex flex-col items-center text-center p-8 rounded-xl transition-all duration-500 ${feature.color} ${feature.hoverColor} hover:-translate-y-2 shadow-lg hover:shadow-xl`}
+              className={`group flex flex-col items-center text-center p-8 rounded-2xl transition-all duration-500 
+                ${feature.color} ${feature.hoverColor} hover:-translate-y-2 shadow-lg hover:shadow-xl
+                animate-fade-in opacity-0`}
+              style={{ animationDelay: `${index * 150}ms`, animationFillMode: 'forwards' }}
             >
-              <feature.icon className={`w-12 h-12 ${feature.iconColor} mb-4`} />
-              <h3 className="text-xl font-semibold mb-3 text-gray-800">{feature.title}</h3>
-              <p className="text-gray-700">{feature.description}</p>
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-6 
+                bg-white/80 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                <feature.icon className={`w-8 h-8 ${feature.iconColor}`} />
+              </div>
+              <h3 className="text-2xl font-semibold mb-4 text-gray-800">{feature.title}</h3>
+              <p className="text-gray-700 leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>
@@ -85,12 +104,17 @@ export const FeaturesShowcase = () => {
           {enrichmentFeatures.map((feature, index) => (
             <div 
               key={index}
-              className="group p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+              className={`group p-6 rounded-xl ${feature.color} shadow-sm hover:shadow-md 
+                transition-all duration-300 hover:-translate-y-1 animate-fade-in opacity-0`}
+              style={{ animationDelay: `${(index + 4) * 150}ms`, animationFillMode: 'forwards' }}
             >
               <div className="flex flex-col items-center text-center">
-                <feature.icon className="w-8 h-8 text-primary mb-4 group-hover:scale-110 transition-transform duration-300" />
-                <h3 className="text-lg font-semibold mb-2 text-gray-800">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4 
+                  bg-white/80 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                  <feature.icon className={`w-7 h-7 ${feature.iconColor}`} />
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-gray-800">{feature.title}</h3>
+                <p className="text-gray-700">{feature.description}</p>
               </div>
             </div>
           ))}
