@@ -106,9 +106,9 @@ export const StoryStats = () => {
   return (
     <Card className="p-6 space-y-6">
       <h2 className="text-xl font-semibold">Your Story Stats</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 rounded-lg">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary/30">
+          <div className="p-3 bg-primary/10 rounded-lg shrink-0">
             <BookOpen className="w-5 h-5 text-primary" />
           </div>
           <div>
@@ -117,8 +117,8 @@ export const StoryStats = () => {
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 rounded-lg">
+        <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary/30">
+          <div className="p-3 bg-primary/10 rounded-lg shrink-0">
             <BookMarked className="w-5 h-5 text-primary" />
           </div>
           <div>
@@ -127,8 +127,8 @@ export const StoryStats = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 rounded-lg">
+        <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary/30">
+          <div className="p-3 bg-primary/10 rounded-lg shrink-0">
             <Music className="w-5 h-5 text-primary" />
           </div>
           <div>
@@ -137,8 +137,8 @@ export const StoryStats = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 rounded-lg">
+        <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary/30">
+          <div className="p-3 bg-primary/10 rounded-lg shrink-0">
             <Clock className="w-5 h-5 text-primary" />
           </div>
           <div>
@@ -147,8 +147,8 @@ export const StoryStats = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 rounded-lg">
+        <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary/30">
+          <div className="p-3 bg-primary/10 rounded-lg shrink-0">
             <Heart className="w-5 h-5 text-primary" />
           </div>
           <div>
@@ -157,8 +157,8 @@ export const StoryStats = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 rounded-lg">
+        <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary/30">
+          <div className="p-3 bg-primary/10 rounded-lg shrink-0">
             <Bookmark className="w-5 h-5 text-primary" />
           </div>
           <div>
@@ -167,8 +167,8 @@ export const StoryStats = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 rounded-lg">
+        <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary/30">
+          <div className="p-3 bg-primary/10 rounded-lg shrink-0">
             <LineChart className="w-5 h-5 text-primary" />
           </div>
           <div>
@@ -177,8 +177,8 @@ export const StoryStats = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 rounded-lg">
+        <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary/30">
+          <div className="p-3 bg-primary/10 rounded-lg shrink-0">
             <Calendar className="w-5 h-5 text-primary" />
           </div>
           <div>
@@ -187,8 +187,8 @@ export const StoryStats = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/10 rounded-lg">
+        <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary/30">
+          <div className="p-3 bg-primary/10 rounded-lg shrink-0">
             <TrendingUp className="w-5 h-5 text-primary" />
           </div>
           <div>
