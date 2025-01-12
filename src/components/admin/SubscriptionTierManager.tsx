@@ -21,7 +21,9 @@ export const SubscriptionTierManager = () => {
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [audioCreditCost, setAudioCreditCost] = useState<number>(3);
-  const [isUpdatingCredits, setIsUpdatingCredits] = useState(false);
+  const [imageCreditCost, setImageCreditCost] = useState<number>(5);
+  const [isUpdatingAudioCredits, setIsUpdatingAudioCredits] = useState(false);
+  const [isUpdatingImageCredits, setIsUpdatingImageCredits] = useState(false);
 
   const { data: tiers, isLoading: tiersLoading } = useQuery({
     queryKey: ['admin-subscription-tiers'],
@@ -53,6 +55,7 @@ export const SubscriptionTierManager = () => {
       if (error) throw error;
       
       setAudioCreditCost(data.audio_credits_cost);
+      setImageCreditCost(data.image_credits_cost);
       return data;
     },
   });
@@ -105,7 +108,7 @@ export const SubscriptionTierManager = () => {
   };
 
   const handleUpdateAudioCredits = async () => {
-    setIsUpdatingCredits(true);
+    setIsUpdatingAudioCredits(true);
     try {
       const { error } = await supabase
         .from('api_configurations')
@@ -128,7 +131,35 @@ export const SubscriptionTierManager = () => {
         variant: "destructive",
       });
     } finally {
-      setIsUpdatingCredits(false);
+      setIsUpdatingAudioCredits(false);
+    }
+  };
+
+  const handleUpdateImageCredits = async () => {
+    setIsUpdatingImageCredits(true);
+    try {
+      const { error } = await supabase
+        .from('api_configurations')
+        .update({ image_credits_cost: imageCreditCost })
+        .eq('key_name', 'AUDIO_STORY_CREDITS');
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ['audio-credits-config'] });
+
+      toast({
+        title: "Success",
+        description: "Image credits cost updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating image credits cost:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update image credits cost",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingImageCredits(false);
     }
   };
 
@@ -145,27 +176,51 @@ export const SubscriptionTierManager = () => {
     <div className="space-y-8">
       <h2 className="text-2xl font-bold">Manage Subscription Tiers</h2>
       
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Audio Story Settings</h3>
-        <div className="flex items-end gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="audioCreditCost">Credits Required per Audio Story</Label>
-            <Input
-              id="audioCreditCost"
-              type="number"
-              value={audioCreditCost}
-              onChange={(e) => setAudioCreditCost(Number(e.target.value))}
-              className="w-32"
-            />
+      <div className="grid gap-6">
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Audio Story Settings</h3>
+          <div className="flex items-end gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="audioCreditCost">Credits Required per Audio Story</Label>
+              <Input
+                id="audioCreditCost"
+                type="number"
+                value={audioCreditCost}
+                onChange={(e) => setAudioCreditCost(Number(e.target.value))}
+                className="w-32"
+              />
+            </div>
+            <Button 
+              onClick={handleUpdateAudioCredits}
+              disabled={isUpdatingAudioCredits}
+            >
+              {isUpdatingAudioCredits ? "Updating..." : "Update Credits"}
+            </Button>
           </div>
-          <Button 
-            onClick={handleUpdateAudioCredits}
-            disabled={isUpdatingCredits}
-          >
-            {isUpdatingCredits ? "Updating..." : "Update Credits"}
-          </Button>
-        </div>
-      </Card>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Story Image Settings</h3>
+          <div className="flex items-end gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="imageCreditCost">Credits Required per Story Image</Label>
+              <Input
+                id="imageCreditCost"
+                type="number"
+                value={imageCreditCost}
+                onChange={(e) => setImageCreditCost(Number(e.target.value))}
+                className="w-32"
+              />
+            </div>
+            <Button 
+              onClick={handleUpdateImageCredits}
+              disabled={isUpdatingImageCredits}
+            >
+              {isUpdatingImageCredits ? "Updating..." : "Update Credits"}
+            </Button>
+          </div>
+        </Card>
+      </div>
 
       <Table>
         <TableHeader>
