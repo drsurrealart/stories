@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { StorySocialShare } from "@/components/story/StorySocialShare";
 import { StoryEnrichment } from "@/components/story/StoryEnrichment";
 import { FavoriteButton } from "@/components/story/FavoriteButton";
+import { AudioStory } from "@/components/story/AudioStory";
 import { SavedStory } from "@/types/story";
 import { formatDate } from "@/utils/date";
 
@@ -94,6 +95,12 @@ export const StoryCard = ({ story, onDelete }: StoryCardProps) => {
           discussionPrompts={story.discussion_prompts as string[]}
         />
       )}
+
+      <AudioStory 
+        storyId={story.id}
+        storyContent={story.content}
+      />
+
       <div className="pt-4 border-t">
         <StorySocialShare
           title={story.title}
