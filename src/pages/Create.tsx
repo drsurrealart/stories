@@ -45,6 +45,7 @@ const Create = () => {
       // Save the story to the database
       const storyContent = response.data.story;
       const enrichmentData = response.data.enrichment;
+      const imagePrompt = response.data.imagePrompt;
       const parts = storyContent.split("\n");
       const title = parts[0].trim();
       const remainingContent = parts.slice(1).join("\n").trim();
@@ -73,7 +74,8 @@ const Create = () => {
           reflection_questions: enrichmentData.reflection_questions,
           action_steps: enrichmentData.action_steps,
           related_quote: enrichmentData.related_quote,
-          discussion_prompts: enrichmentData.discussion_prompts
+          discussion_prompts: enrichmentData.discussion_prompts,
+          image_prompt: imagePrompt
         });
 
       if (saveError) {

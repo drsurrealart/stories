@@ -71,6 +71,53 @@ serve(async (req) => {
     const generatedStory = storyData.choices[0].message.content.replace(/\*\*/g, '');
     console.log('Story generated successfully');
 
+    // Generate image prompt based on story and preferences
+    const imagePromptRequest = `Create a concise, detailed image generation prompt for DALL-E based on this story and these parameters:
+    Age group: ${fullPreferences.ageGroup}
+    Genre: ${fullPreferences.genre}
+    Tone: ${fullPreferences.tone}
+    
+    Story:
+    ${generatedStory}
+    
+    Create a prompt that:
+    1. Captures the main visual scene or character from the story
+    2. Is appropriate for the age group
+    3. Matches the genre and tone
+    4. Is specific but concise (max 100 words)
+    5. Includes artistic style guidance appropriate for children's illustration if it's for young audiences
+    6. Only return the prompt itself, no explanations or additional text`;
+
+    console.log('Generating image prompt');
+    const imagePromptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert at creating clear, specific image generation prompts that capture the essence of stories while being appropriate for the target age group.',
+          },
+          {
+            role: 'user',
+            content: imagePromptRequest,
+          },
+        ],
+      }),
+    });
+
+    if (!imagePromptResponse.ok) {
+      throw new Error(`OpenAI API error: ${imagePromptResponse.statusText}`);
+    }
+
+    const imagePromptData = await imagePromptResponse.json();
+    const imagePrompt = imagePromptData.choices[0].message.content.trim();
+    console.log('Image prompt generated:', imagePrompt);
+
     // Generate enrichment content with explicit JSON format instruction
     const enrichmentPrompt = `Generate enrichment content for this story. Respond with a pure JSON object (no markdown) containing these exact keys: reflection_questions (array of 3 strings), action_steps (array of 3 strings), related_quote (string), discussion_prompts (array of 3 strings).
 
@@ -127,6 +174,7 @@ ${generatedStory}`;
       JSON.stringify({
         story: generatedStory,
         enrichment: parsedEnrichment,
+        imagePrompt: imagePrompt,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

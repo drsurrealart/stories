@@ -216,6 +216,7 @@ export type Database = {
           discussion_prompts: Json | null
           genre: string
           id: string
+          image_prompt: string | null
           language: string | null
           length_preference: string | null
           moral: string
@@ -237,6 +238,7 @@ export type Database = {
           discussion_prompts?: Json | null
           genre: string
           id?: string
+          image_prompt?: string | null
           language?: string | null
           length_preference?: string | null
           moral: string
@@ -258,6 +260,7 @@ export type Database = {
           discussion_prompts?: Json | null
           genre?: string
           id?: string
+          image_prompt?: string | null
           language?: string | null
           length_preference?: string | null
           moral?: string
