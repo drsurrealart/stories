@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ImageGenerationForm } from "./ImageGenerationForm";
+import { ImageControls } from "./ImageControls";
 
 interface StoryImageProps {
   storyId: string;
@@ -12,8 +13,8 @@ interface StoryImageProps {
 }
 
 export function StoryImage({ storyId, storyContent }: StoryImageProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -153,13 +154,19 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
           creditCost={creditInfo?.creditCost}
         />
       ) : (
-        <div className="relative aspect-square w-full rounded-lg overflow-hidden">
-          <img
-            src={storyImage.image_url}
-            alt="Story illustration"
-            className="object-cover w-full h-full"
+        <>
+          <div className="relative aspect-square w-full rounded-lg overflow-hidden">
+            <img
+              src={storyImage.image_url}
+              alt="Story illustration"
+              className="object-cover w-full h-full"
+            />
+          </div>
+          <ImageControls 
+            storyId={storyId} 
+            imageUrl={storyImage.image_url} 
           />
-        </div>
+        </>
       )}
     </Card>
   );

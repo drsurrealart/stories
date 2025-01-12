@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AudioPlayer } from "./audio/AudioPlayer";
 import { AudioGenerationForm } from "./audio/AudioGenerationForm";
+import { AudioControls } from "./audio/AudioControls";
 
 interface AudioStoryProps {
   storyId: string;
@@ -198,7 +199,13 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
           creditCost={creditInfo?.creditCost}
         />
       ) : (
-        <AudioPlayer audioUrl={audioStory.audio_url} />
+        <>
+          <AudioPlayer audioUrl={audioStory.audio_url} />
+          <AudioControls 
+            storyId={storyId} 
+            audioUrl={audioStory.audio_url} 
+          />
+        </>
       )}
     </Card>
   );
