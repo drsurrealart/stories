@@ -1,8 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import PDFDocument from 'https://cdn.skypack.dev/pdfkit';
-import { Buffer } from "https://deno.land/std@0.168.0/node/buffer.ts";
+import { jsPDF } from "https://esm.sh/jspdf@2.5.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,68 +25,82 @@ serve(async (req) => {
     // Fetch story data
     const { data: story, error: storyError } = await supabase
       .from('stories')
-      .select(`
-        *,
-        story_images (
-          image_url
-        )
-      `)
+      .select('*')
       .eq('id', storyId)
       .single();
 
     if (storyError) throw storyError;
 
     // Create PDF
-    const doc = new PDFDocument();
-    let buffers: Uint8Array[] = [];
-    doc.on('data', (chunk) => buffers.push(chunk));
+    const doc = new jsPDF();
+    const lineHeight = 10;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const maxWidth = pageWidth - 2 * margin;
 
-    // Add content to PDF
-    doc.fontSize(24).text(story.title, { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(12).text(story.content);
-    
+    // Add title
+    doc.setFontSize(24);
+    doc.text(story.title, pageWidth / 2, 20, { align: 'center' });
+
+    // Add content
+    doc.setFontSize(12);
+    let y = 40;
+
+    // Split content into lines that fit the page width
+    const splitContent = doc.splitTextToSize(story.content, maxWidth);
+    splitContent.forEach(line => {
+      if (y > 280) { // Check if we need a new page
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(line, margin, y);
+      y += lineHeight;
+    });
+
+    // Add moral if exists
     if (story.moral) {
-      doc.moveDown();
-      doc.fontSize(16).text('Moral:', { underline: true });
-      doc.fontSize(12).text(story.moral);
-    }
-
-    if (story.reflection_questions) {
-      doc.moveDown();
-      doc.fontSize(16).text('Reflection Questions:', { underline: true });
-      story.reflection_questions.forEach((question: string, index: number) => {
-        doc.fontSize(12).text(`${index + 1}. ${question}`);
+      if (y > 250) { // Check if we need a new page
+        doc.addPage();
+        y = 20;
+      }
+      y += lineHeight;
+      doc.setFontSize(16);
+      doc.text('Moral:', margin, y);
+      y += lineHeight;
+      doc.setFontSize(12);
+      const splitMoral = doc.splitTextToSize(story.moral, maxWidth);
+      splitMoral.forEach(line => {
+        doc.text(line, margin, y);
+        y += lineHeight;
       });
     }
 
-    if (story.action_steps) {
-      doc.moveDown();
-      doc.fontSize(16).text('Action Steps:', { underline: true });
-      story.action_steps.forEach((step: string, index: number) => {
-        doc.fontSize(12).text(`${index + 1}. ${step}`);
+    // Add reflection questions if they exist
+    if (story.reflection_questions?.length > 0) {
+      if (y > 250) {
+        doc.addPage();
+        y = 20;
+      }
+      y += lineHeight;
+      doc.setFontSize(16);
+      doc.text('Reflection Questions:', margin, y);
+      y += lineHeight;
+      doc.setFontSize(12);
+      story.reflection_questions.forEach((question, index) => {
+        const splitQuestion = doc.splitTextToSize(`${index + 1}. ${question}`, maxWidth);
+        splitQuestion.forEach(line => {
+          if (y > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(line, margin, y);
+          y += lineHeight;
+        });
       });
     }
 
-    if (story.related_quote) {
-      doc.moveDown();
-      doc.fontSize(16).text('Related Quote:', { underline: true });
-      doc.fontSize(12).text(story.related_quote);
-    }
-
-    if (story.discussion_prompts) {
-      doc.moveDown();
-      doc.fontSize(16).text('Discussion Prompts:', { underline: true });
-      story.discussion_prompts.forEach((prompt: string, index: number) => {
-        doc.fontSize(12).text(`${index + 1}. ${prompt}`);
-      });
-    }
-
-    // Finalize PDF
-    doc.end();
-
-    // Convert to single buffer
-    const pdfBuffer = Buffer.concat(buffers);
+    // Convert to buffer
+    const pdfBuffer = doc.output('arraybuffer');
 
     // Upload to Supabase Storage
     const timestamp = new Date().getTime();
