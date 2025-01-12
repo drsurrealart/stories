@@ -1,20 +1,11 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileDown, FileText } from "lucide-react";
+import { FileDown, FileText, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { DeleteMediaDialog } from "../media/DeleteMediaDialog";
 
 interface StoryPDFProps {
   storyId: string;
@@ -23,7 +14,9 @@ interface StoryPDFProps {
 
 export function StoryPDF({ storyId }: StoryPDFProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { toast } = useToast();
 
   // Fetch existing PDF if any
@@ -101,6 +94,50 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
     }
   };
 
+  const handleDeletePDF = async () => {
+    try {
+      setIsDeleting(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Delete the file from storage
+      const filePath = new URL(pdfData.pdf_url).pathname.split('/').pop();
+      if (filePath) {
+        const { error: storageError } = await supabase
+          .storage
+          .from('story-pdfs')
+          .remove([`${session.user.id}/${filePath}`]);
+
+        if (storageError) throw storageError;
+      }
+
+      // Delete the database record
+      const { error: dbError } = await supabase
+        .from('story_pdfs')
+        .delete()
+        .eq('id', pdfData.id);
+
+      if (dbError) throw dbError;
+
+      await refetchPDF();
+      
+      toast({
+        title: "Success",
+        description: "PDF deleted successfully",
+      });
+    } catch (error: any) {
+      console.error('Error deleting PDF:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
   return (
     <Card className="p-4 md:p-6 space-y-4 bg-card">
       <div className="flex items-center gap-2 mb-4">
@@ -121,14 +158,25 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
           )}
         </Button>
       ) : (
-        <Button
-          onClick={() => window.open(pdfData.pdf_url, '_blank')}
-          className="w-full"
-          variant="secondary"
-        >
-          <FileDown className="w-4 h-4 mr-2" />
-          Download Story PDF
-        </Button>
+        <div className="space-y-2">
+          <Button
+            onClick={() => window.open(pdfData.pdf_url, '_blank')}
+            className="w-full"
+            variant="secondary"
+          >
+            <FileDown className="w-4 h-4 mr-2" />
+            Download Story PDF
+          </Button>
+          <Button
+            onClick={() => setShowDeleteDialog(true)}
+            className="w-full"
+            variant="destructive"
+            disabled={isDeleting}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete PDF
+          </Button>
+        </div>
       )}
 
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
@@ -148,6 +196,15 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <DeleteMediaDialog
+        isOpen={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDeletePDF}
+        title="Delete PDF"
+        description="Are you sure you want to delete this PDF? This action cannot be undone."
+        isDeleting={isDeleting}
+      />
     </Card>
   );
 }
