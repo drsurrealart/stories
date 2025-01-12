@@ -15,14 +15,14 @@ serve(async (req) => {
 
   try {
     const { storyId, userId } = await req.json();
-    console.log('Generating PDF for story:', storyId);
+    console.log('Generating enhanced PDF for story:', storyId);
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch story data
+    // Fetch complete story data including enrichment content
     const { data: story, error: storyError } = await supabase
       .from('stories')
       .select('*')
@@ -30,6 +30,14 @@ serve(async (req) => {
       .single();
 
     if (storyError) throw storyError;
+
+    // Fetch story image if it exists
+    const { data: storyImage } = await supabase
+      .from('story_images')
+      .select('image_url')
+      .eq('story_id', storyId)
+      .eq('user_id', userId)
+      .maybeSingle();
 
     // Create PDF
     const doc = new jsPDF();
@@ -42,14 +50,32 @@ serve(async (req) => {
     doc.setFontSize(24);
     doc.text(story.title, pageWidth / 2, 20, { align: 'center' });
 
-    // Add content
-    doc.setFontSize(12);
     let y = 40;
 
-    // Split content into lines that fit the page width
+    // Add metadata (age group, genre, etc.)
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'italic');
+    const metadata = [
+      `Age Group: ${story.age_group}`,
+      `Genre: ${story.genre}`,
+      story.language !== 'english' && `Language: ${story.language}`,
+      story.tone !== 'standard' && `Tone: ${story.tone}`,
+      story.reading_level !== 'intermediate' && `Reading Level: ${story.reading_level}`,
+      story.length_preference !== 'medium' && `Length: ${story.length_preference}`,
+    ].filter(Boolean);
+
+    metadata.forEach(item => {
+      doc.text(item, margin, y);
+      y += lineHeight;
+    });
+
+    y += lineHeight; // Add extra space after metadata
+
+    // Add story content
+    doc.setFont(undefined, 'normal');
     const splitContent = doc.splitTextToSize(story.content, maxWidth);
     splitContent.forEach(line => {
-      if (y > 280) { // Check if we need a new page
+      if (y > 280) {
         doc.addPage();
         y = 20;
       }
@@ -59,7 +85,7 @@ serve(async (req) => {
 
     // Add moral if exists
     if (story.moral) {
-      if (y > 250) { // Check if we need a new page
+      if (y > 250) {
         doc.addPage();
         y = 20;
       }
@@ -97,6 +123,105 @@ serve(async (req) => {
           y += lineHeight;
         });
       });
+    }
+
+    // Add action steps if they exist
+    if (story.action_steps?.length > 0) {
+      if (y > 250) {
+        doc.addPage();
+        y = 20;
+      }
+      y += lineHeight;
+      doc.setFontSize(16);
+      doc.text('Action Steps:', margin, y);
+      y += lineHeight;
+      doc.setFontSize(12);
+      story.action_steps.forEach((step, index) => {
+        const splitStep = doc.splitTextToSize(`${index + 1}. ${step}`, maxWidth);
+        splitStep.forEach(line => {
+          if (y > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(line, margin, y);
+          y += lineHeight;
+        });
+      });
+    }
+
+    // Add related quote if it exists
+    if (story.related_quote) {
+      if (y > 250) {
+        doc.addPage();
+        y = 20;
+      }
+      y += lineHeight * 2;
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'italic');
+      const splitQuote = doc.splitTextToSize(`"${story.related_quote}"`, maxWidth);
+      splitQuote.forEach(line => {
+        doc.text(line, margin, y, { align: 'center' });
+        y += lineHeight;
+      });
+      doc.setFont(undefined, 'normal');
+    }
+
+    // Add discussion prompts if they exist
+    if (story.discussion_prompts?.length > 0) {
+      if (y > 250) {
+        doc.addPage();
+        y = 20;
+      }
+      y += lineHeight;
+      doc.setFontSize(16);
+      doc.text('Discussion Prompts:', margin, y);
+      y += lineHeight;
+      doc.setFontSize(12);
+      story.discussion_prompts.forEach((prompt, index) => {
+        const splitPrompt = doc.splitTextToSize(`${index + 1}. ${prompt}`, maxWidth);
+        splitPrompt.forEach(line => {
+          if (y > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(line, margin, y);
+          y += lineHeight;
+        });
+      });
+    }
+
+    // Add story image if it exists
+    if (storyImage?.image_url) {
+      try {
+        const imageResponse = await fetch(storyImage.image_url);
+        const imageBlob = await imageResponse.blob();
+        const imageBase64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(imageBlob);
+        });
+
+        // Add a new page for the image
+        doc.addPage();
+        const imgWidth = 170; // Slightly smaller than page width
+        const imgHeight = 170; // Keep aspect ratio square
+        const xOffset = (pageWidth - imgWidth) / 2;
+        
+        doc.addImage(
+          imageBase64 as string,
+          'PNG',
+          xOffset,
+          20,
+          imgWidth,
+          imgHeight
+        );
+        
+        // Add caption
+        doc.setFontSize(12);
+        doc.text('Story Illustration', pageWidth / 2, 200, { align: 'center' });
+      } catch (imageError) {
+        console.error('Error adding image to PDF:', imageError);
+      }
     }
 
     // Convert to buffer
