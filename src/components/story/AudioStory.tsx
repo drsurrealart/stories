@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,11 +18,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Headphones, Play, Pause, Loader2 } from "lucide-react";
+import { Headphones, Play, Pause, Loader2, Volume2, VolumeX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Progress } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
 
 interface AudioStoryProps {
   storyId: string;
@@ -45,6 +46,11 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const progressBarRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -95,18 +101,30 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
     },
   });
 
+  // Initialize audio element when URL is available
+  useEffect(() => {
+    if (audioStory?.audio_url && !audioElement) {
+      const audio = new Audio(audioStory.audio_url);
+      audio.addEventListener('loadedmetadata', () => {
+        setDuration(audio.duration);
+      });
+      setAudioElement(audio);
+    }
+  }, [audioStory?.audio_url]);
+
   // Update progress bar during audio playback
   useEffect(() => {
     if (audioElement) {
       const updateProgress = () => {
-        const currentProgress = (audioElement.currentTime / audioElement.duration) * 100;
-        setProgress(currentProgress);
+        setCurrentTime(audioElement.currentTime);
+        setProgress((audioElement.currentTime / audioElement.duration) * 100);
       };
 
       audioElement.addEventListener('timeupdate', updateProgress);
       audioElement.addEventListener('ended', () => {
         setIsPlaying(false);
         setProgress(0);
+        setCurrentTime(0);
       });
 
       return () => {
@@ -114,10 +132,51 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         audioElement.removeEventListener('ended', () => {
           setIsPlaying(false);
           setProgress(0);
+          setCurrentTime(0);
         });
       };
     }
   }, [audioElement]);
+
+  // Handle volume changes
+  useEffect(() => {
+    if (audioElement) {
+      audioElement.volume = isMuted ? 0 : volume;
+    }
+  }, [volume, isMuted, audioElement]);
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleProgressClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!audioElement || !progressBarRef.current) return;
+    
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const pos = (event.clientX - rect.left) / rect.width;
+    const newTime = pos * audioElement.duration;
+    
+    audioElement.currentTime = newTime;
+    setCurrentTime(newTime);
+    setProgress(pos * 100);
+  };
+
+  const togglePlayPause = () => {
+    if (!audioElement) return;
+
+    if (isPlaying) {
+      audioElement.pause();
+    } else {
+      audioElement.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
 
   const handleCreateAudio = async () => {
     try {
@@ -210,19 +269,8 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
     }
   };
 
-  const togglePlayPause = () => {
-    if (!audioElement) return;
-
-    if (isPlaying) {
-      audioElement.pause();
-    } else {
-      audioElement.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
-
   return (
-    <Card className="p-4 md:p-6 space-y-4">
+    <Card className="p-4 md:p-6 space-y-4 bg-card">
       <div className="flex items-center gap-2 mb-4">
         <Headphones className="h-5 w-5 text-primary" />
         <h3 className="font-semibold text-lg">Audio Story</h3>
@@ -278,20 +326,60 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex justify-center">
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-500">{formatTime(currentTime)}</span>
+              <span className="text-sm text-gray-500">{formatTime(duration)}</span>
+            </div>
+            <div 
+              ref={progressBarRef}
+              className="relative h-2 bg-secondary rounded-full cursor-pointer"
+              onClick={handleProgressClick}
+            >
+              <div 
+                className="absolute h-full bg-primary rounded-full transition-all"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between">
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={togglePlayPause}
+              className="hover:bg-secondary/50"
             >
               {isPlaying ? (
-                <Pause className="h-4 w-4" />
+                <Pause className="h-6 w-6" />
               ) : (
-                <Play className="h-4 w-4" />
+                <Play className="h-6 w-6" />
               )}
             </Button>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleMute}
+                className="hover:bg-secondary/50"
+              >
+                {isMuted ? (
+                  <VolumeX className="h-4 w-4" />
+                ) : (
+                  <Volume2 className="h-4 w-4" />
+                )}
+              </Button>
+              <Slider
+                className="w-24"
+                value={[volume * 100]}
+                min={0}
+                max={100}
+                step={1}
+                onValueChange={(value) => setVolume(value[0] / 100)}
+              />
+            </div>
           </div>
-          <Progress value={progress} className="w-full" />
         </div>
       )}
     </Card>
