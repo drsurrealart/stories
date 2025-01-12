@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Headphones, Play, Pause } from "lucide-react";
+import { Headphones, Play, Pause, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -42,6 +42,7 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
   // Fetch existing audio story if any
@@ -56,9 +57,9 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         .select('*')
         .eq('story_id', storyId)
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
       return data;
     },
   });
@@ -80,6 +81,7 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
 
   const handleCreateAudio = async () => {
     try {
+      setIsGenerating(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({
@@ -140,6 +142,8 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         description: error.message || "Failed to create audio story. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsGenerating(false);
       setShowConfirmDialog(false);
     }
   };
@@ -180,8 +184,16 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
           <Button 
             className="w-full" 
             onClick={() => setShowConfirmDialog(true)}
+            disabled={isGenerating}
           >
-            Create Audio Story
+            {isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating Audio...
+              </>
+            ) : (
+              'Create Audio Story'
+            )}
           </Button>
 
           <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
