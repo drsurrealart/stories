@@ -130,6 +130,7 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
       if (saveError) throw saveError;
 
       // Invalidate queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['audio-story', storyId] });
       queryClient.invalidateQueries({ queryKey: ['audio-credits-info'] });
       queryClient.invalidateQueries({ queryKey: ['user-story-limits'] });
 

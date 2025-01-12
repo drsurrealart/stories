@@ -1,17 +1,32 @@
 import { useState } from "react";
 import { NavigationBar } from "@/components/NavigationBar";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Loading } from "@/components/ui/loading";
 import { AudioStory } from "@/components/story/AudioStory";
 import { StoryContent } from "@/components/story/StoryContent";
 import { Button } from "@/components/ui/button";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+
+const pastelColors = [
+  "bg-[#F2FCE2]", // Soft Green
+  "bg-[#FEF7CD]", // Soft Yellow
+  "bg-[#FEC6A1]", // Soft Orange
+  "bg-[#E5DEFF]", // Soft Purple
+  "bg-[#FFDEE2]", // Soft Pink
+  "bg-[#FDE1D3]", // Soft Peach
+  "bg-[#D3E4FD]", // Soft Blue
+  "bg-[#F1F0FB]", // Soft Gray
+];
 
 const MyAudio = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const { data: audioStories, isLoading } = useQuery({
     queryKey: ['audio-stories'],
     queryFn: async () => {
@@ -43,6 +58,30 @@ const MyAudio = () => {
     },
   });
 
+  const handleDeleteAudio = async (audioId: string) => {
+    try {
+      const { error } = await supabase
+        .from('audio_stories')
+        .delete()
+        .eq('id', audioId);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['audio-stories'] });
+      
+      toast({
+        title: "Success",
+        description: "Audio story deleted successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete audio story",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       <NavigationBar onLogout={async () => {}} />
@@ -57,9 +96,22 @@ const MyAudio = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {audioStories.map((audio) => (
-              <Card key={audio.id} className="p-6">
-                <h2 className="text-2xl font-semibold mb-4">{audio.stories.title}</h2>
+            {audioStories.map((audio, index) => (
+              <Card 
+                key={audio.id} 
+                className={`p-6 ${pastelColors[index % pastelColors.length]} hover:shadow-lg transition-shadow`}
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <h2 className="text-2xl font-semibold">{audio.stories.title}</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteAudio(audio.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
                 <StoryContent 
                   title={audio.stories.title}
                   content={audio.stories.content}
