@@ -11,6 +11,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { VoiceSelector } from "./VoiceSelector";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AudioGenerationFormProps {
   selectedVoice: string;
@@ -29,8 +31,21 @@ export function AudioGenerationForm({
   showConfirmDialog,
   onConfirmDialogChange,
   onGenerate,
-  creditCost = 3
 }: AudioGenerationFormProps) {
+  const { data: audioCreditCost } = useQuery({
+    queryKey: ['audio-credits-cost'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('api_configurations')
+        .select('audio_credits_cost')
+        .eq('key_name', 'AUDIO_STORY_CREDITS')
+        .single();
+
+      if (error) throw error;
+      return data?.audio_credits_cost || 3; // Default to 3 if not set
+    },
+  });
+
   return (
     <div className="space-y-4">
       <VoiceSelector
@@ -49,7 +64,7 @@ export function AudioGenerationForm({
             Generating Audio...
           </>
         ) : (
-          'Create Audio Story'
+          `Create Audio Story (Uses ${audioCreditCost} Credits)`
         )}
       </Button>
 
@@ -58,7 +73,7 @@ export function AudioGenerationForm({
           <AlertDialogHeader>
             <AlertDialogTitle>Create Audio Story</AlertDialogTitle>
             <AlertDialogDescription>
-              This will use {creditCost} AI credits to generate an audio version of your story. 
+              This will use {audioCreditCost} AI credits to generate an audio version of your story. 
               Would you like to proceed?
             </AlertDialogDescription>
           </AlertDialogHeader>
