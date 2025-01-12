@@ -24,7 +24,11 @@ const MyAudio = () => {
             content,
             moral,
             age_group,
-            genre
+            genre,
+            language,
+            tone,
+            reading_level,
+            length_preference
           )
         `)
         .eq('user_id', session.user.id)
@@ -52,12 +56,21 @@ const MyAudio = () => {
             {audioStories.map((audio) => (
               <Card key={audio.id} className="p-6">
                 <h2 className="text-2xl font-semibold mb-4">{audio.stories.title}</h2>
-                <StoryContent content={audio.stories.content} />
+                <StoryContent 
+                  title={audio.stories.title}
+                  content={audio.stories.content}
+                  moral={audio.stories.moral}
+                  ageGroup={audio.stories.age_group}
+                  genre={audio.stories.genre}
+                  language={audio.stories.language}
+                  tone={audio.stories.tone}
+                  readingLevel={audio.stories.reading_level}
+                  lengthPreference={audio.stories.length_preference}
+                />
                 <div className="mt-4">
                   <AudioStory 
                     storyId={audio.stories.id} 
                     storyContent={audio.stories.content}
-                    existingAudioUrl={audio.audio_url}
                   />
                 </div>
               </Card>
