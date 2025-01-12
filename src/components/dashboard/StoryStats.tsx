@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { BookMarked, BookOpen, Languages, Target, Clock, Bookmark, Calendar, LineChart, TrendingUp } from "lucide-react";
+import { BookMarked, BookOpen, Target, Clock, Bookmark, Calendar, LineChart, TrendingUp, Music, Heart } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -27,21 +27,28 @@ export const StoryStats = () => {
         .eq('user_id', session.user.id);
 
       if (countError) throw countError;
+
+      // Get audio stories count
+      const { data: audioStories, error: audioError } = await supabase
+        .from('audio_stories')
+        .select('id')
+        .eq('user_id', session.user.id);
+
+      if (audioError) throw audioError;
+
+      // Get favorites count
+      const { data: favorites, error: favoritesError } = await supabase
+        .from('story_favorites')
+        .select('id')
+        .eq('user_id', session.user.id);
+
+      if (favoritesError) throw favoritesError;
       
       // Sum up all credits_used counts
       const totalGenerated = storyCounts?.reduce((sum, record) => 
         sum + (record.credits_used || 0), 0) || 0;
 
-      // Calculate additional statistics
-      const languages = new Set(stories
-        .filter(story => story.language)
-        .map(story => story.language)).size;
-
       const totalWords = stories.reduce((sum, story) => sum + story.content.length, 0);
-      
-      const readingLevels = new Set(stories
-        .filter(story => story.reading_level)
-        .map(story => story.reading_level)).size;
       
       // Calculate most used genre
       const genreCounts = stories.reduce((acc, story) => {
@@ -75,8 +82,8 @@ export const StoryStats = () => {
       return {
         totalStories: totalGenerated,
         savedStories: stories.filter(story => story.title && story.content).length,
-        uniqueLanguages: languages,
-        readingLevels,
+        audioStoriesCount: audioStories?.length || 0,
+        favoritesCount: favorites?.length || 0,
         totalReadingTime: totalReadingMinutes,
         mostUsedGenre,
         averageStoryLength,
@@ -122,11 +129,11 @@ export const StoryStats = () => {
 
         <div className="flex items-center gap-3">
           <div className="p-3 bg-primary/10 rounded-lg">
-            <Languages className="w-5 h-5 text-primary" />
+            <Music className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <p className="text-2xl font-bold">{stats?.uniqueLanguages || 0}</p>
-            <p className="text-sm text-muted-foreground">Languages Used</p>
+            <p className="text-2xl font-bold">{stats?.audioStoriesCount || 0}</p>
+            <p className="text-sm text-muted-foreground">Audio Stories Created</p>
           </div>
         </div>
 
@@ -142,11 +149,11 @@ export const StoryStats = () => {
 
         <div className="flex items-center gap-3">
           <div className="p-3 bg-primary/10 rounded-lg">
-            <Target className="w-5 h-5 text-primary" />
+            <Heart className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <p className="text-2xl font-bold">{stats?.readingLevels || 0}</p>
-            <p className="text-sm text-muted-foreground">Reading Levels</p>
+            <p className="text-2xl font-bold">{stats?.favoritesCount || 0}</p>
+            <p className="text-sm text-muted-foreground">Stories Favorited</p>
           </div>
         </div>
 
@@ -160,7 +167,6 @@ export const StoryStats = () => {
           </div>
         </div>
 
-        {/* New Stats */}
         <div className="flex items-center gap-3">
           <div className="p-3 bg-primary/10 rounded-lg">
             <LineChart className="w-5 h-5 text-primary" />
