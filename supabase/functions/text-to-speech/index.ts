@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import OpenAI from "https://esm.sh/openai@4.20.1"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,19 +7,25 @@ const corsHeaders = {
 
 // Limit to ~1000 characters, ending at a complete sentence
 function getFirstSentences(text: string, maxLength = 1000): string {
-  if (text.length <= maxLength) return text;
+  console.log(`Original text length: ${text.length}`);
+  
+  if (text.length <= maxLength) {
+    console.log('Text is within limit, returning full text');
+    return text;
+  }
   
   // Find the last sentence break before maxLength
   const subset = text.substring(0, maxLength);
   const lastPeriod = subset.lastIndexOf('.');
   
-  // If no period found, just return the first maxLength characters
   if (lastPeriod === -1) {
+    console.log('No period found, returning truncated text');
     return subset;
   }
   
-  // Return up to the last period
-  return text.substring(0, lastPeriod + 1);
+  const result = text.substring(0, lastPeriod + 1);
+  console.log(`Truncated text length: ${result.length}`);
+  return result;
 }
 
 serve(async (req) => {
@@ -44,13 +49,7 @@ serve(async (req) => {
     const processedText = getFirstSentences(text);
     console.log(`Processing text of length: ${processedText.length}`);
 
-    // Initialize OpenAI
-    const openai = new OpenAI({
-      apiKey: Deno.env.get('OPENAI_API_KEY'),
-    });
-
-    console.log('Making request to OpenAI API...');
-    
+    // Make request to OpenAI TTS API
     const response = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
       headers: {
@@ -73,6 +72,7 @@ serve(async (req) => {
 
     console.log('Successfully received audio response');
     
+    // Convert audio buffer to base64
     const arrayBuffer = await response.arrayBuffer();
     const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
