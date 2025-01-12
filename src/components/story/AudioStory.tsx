@@ -21,7 +21,7 @@ import {
 import { Headphones, Play, Pause, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Progress } from "@/components/ui/progress";
 
 interface AudioStoryProps {
@@ -46,6 +46,7 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch existing audio story if any
   const { data: audioStory, isLoading } = useQuery({
@@ -66,18 +67,31 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
     },
   });
 
-  // Fetch credit cost
-  const { data: creditCost } = useQuery({
-    queryKey: ['audio-credits-cost'],
+  // Fetch credit cost and user's current credits
+  const { data: creditInfo } = useQuery({
+    queryKey: ['audio-credits-info'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('api_configurations')
-        .select('audio_credits_cost')
-        .eq('key_name', 'AUDIO_STORY_CREDITS')
-        .single();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
 
-      if (error) throw error;
-      return data.audio_credits_cost;
+      const [{ data: config }, { data: userCredits }] = await Promise.all([
+        supabase
+          .from('api_configurations')
+          .select('audio_credits_cost')
+          .eq('key_name', 'AUDIO_STORY_CREDITS')
+          .single(),
+        supabase
+          .from('user_story_counts')
+          .select('credits_used')
+          .eq('user_id', session.user.id)
+          .eq('month_year', new Date().toISOString().slice(0, 7))
+          .single()
+      ]);
+
+      return {
+        creditCost: config?.audio_credits_cost || 3,
+        creditsUsed: userCredits?.credits_used || 0
+      };
     },
   });
 
@@ -118,6 +132,23 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         return;
       }
 
+      // Update credits before generating audio
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const { error: creditError } = await supabase
+        .from('user_story_counts')
+        .upsert({
+          user_id: session.user.id,
+          month_year: currentMonth,
+          credits_used: (creditInfo?.creditsUsed || 0) + (creditInfo?.creditCost || 3),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,month_year'
+        });
+
+      if (creditError) {
+        throw new Error('Failed to update credits');
+      }
+
       // Generate audio using the edge function
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
         body: { text: storyContent, voice: selectedVoice },
@@ -150,9 +181,14 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
           user_id: session.user.id,
           audio_url: audioUrl,
           voice_id: selectedVoice,
+          credits_used: creditInfo?.creditCost || 3
         });
 
       if (saveError) throw saveError;
+
+      // Invalidate queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['audio-credits-info'] });
+      queryClient.invalidateQueries({ queryKey: ['user-story-limits'] });
 
       toast({
         title: "Success",
@@ -227,7 +263,7 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
               <AlertDialogHeader>
                 <AlertDialogTitle>Create Audio Story</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will use {creditCost || 3} AI credits to generate an audio version of your story. 
+                  This will use {creditInfo?.creditCost || 3} AI credits to generate an audio version of your story. 
                   Would you like to proceed?
                 </AlertDialogDescription>
               </AlertDialogHeader>
