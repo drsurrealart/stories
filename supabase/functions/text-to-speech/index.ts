@@ -6,8 +6,27 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// OpenAI recommends max 4096 tokens, we'll use 3000 to be safe
-const MAX_TEXT_LENGTH = 3000;
+// Limit to ~1000 characters, ending at a complete sentence
+function getFirstSentences(text: string, maxLength = 1000): string {
+  if (text.length <= maxLength) return text;
+  
+  // Find the last sentence break before maxLength
+  const subset = text.substring(0, maxLength);
+  const lastPeriod = subset.lastIndexOf('.');
+  const lastQuestion = subset.lastIndexOf('?');
+  const lastExclamation = subset.lastIndexOf('!');
+  
+  // Get the last sentence break position
+  const lastBreak = Math.max(lastPeriod, lastQuestion, lastExclamation);
+  
+  // If no sentence break found, just return the first maxLength characters
+  if (lastBreak === -1) {
+    return subset + "...";
+  }
+  
+  // Return up to the last sentence break
+  return text.substring(0, lastBreak + 1);
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -26,11 +45,8 @@ serve(async (req) => {
 
     console.log(`Using voice: ${voice}`);
     
-    // If text is too long, only use the first chunk
-    const processedText = text.length > MAX_TEXT_LENGTH 
-      ? text.substring(0, MAX_TEXT_LENGTH) + "..."
-      : text;
-
+    // Get just the first few sentences
+    const processedText = getFirstSentences(text);
     console.log(`Processing text of length: ${processedText.length}`);
 
     // Initialize OpenAI
