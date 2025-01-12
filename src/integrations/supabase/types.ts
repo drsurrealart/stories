@@ -342,6 +342,44 @@ export type Database = {
           },
         ]
       }
+      story_pdfs: {
+        Row: {
+          created_at: string
+          credits_used: number
+          id: string
+          pdf_url: string
+          story_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          credits_used?: number
+          id?: string
+          pdf_url: string
+          story_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          credits_used?: number
+          id?: string
+          pdf_url?: string
+          story_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_pdfs_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_tiers: {
         Row: {
           created_at: string

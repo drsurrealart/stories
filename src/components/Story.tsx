@@ -9,6 +9,7 @@ import { StoryEnrichment } from "./story/StoryEnrichment";
 import { FavoriteButton } from "./story/FavoriteButton";
 import { AudioStory } from "./story/AudioStory";
 import { StoryImage } from "./story/image/StoryImage";
+import { StoryPDF } from "./story/pdf/StoryPDF";
 import { useQuery } from "@tanstack/react-query";
 import { Loading } from "@/components/ui/loading";
 
@@ -111,6 +112,10 @@ export function Story({
             storyContent={storyWithoutTitle}
           />
           <StoryImage
+            storyId={storyData.id}
+            storyContent={storyWithoutTitle}
+          />
+          <StoryPDF
             storyId={storyData.id}
             storyContent={storyWithoutTitle}
           />
