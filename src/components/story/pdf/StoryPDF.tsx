@@ -27,7 +27,7 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
   const { toast } = useToast();
 
   // Fetch existing PDF if any
-  const { data: pdfData } = useQuery({
+  const { data: pdfData, refetch: refetchPDF } = useQuery({
     queryKey: ['story-pdf', storyId],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -80,6 +80,9 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
 
       if (response.error) throw response.error;
 
+      // Refetch PDF data after successful generation
+      await refetchPDF();
+
       toast({
         title: "Success",
         description: "PDF generated successfully!",
@@ -111,15 +114,20 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
           disabled={isGenerating}
           className="w-full"
         >
-          Create Printable Story (Uses 1 Credit)
+          {isGenerating ? (
+            "Generating PDF..."
+          ) : (
+            <>Create Printable Story (Uses 1 Credit)</>
+          )}
         </Button>
       ) : (
         <Button
           onClick={() => window.open(pdfData.pdf_url, '_blank')}
           className="w-full"
+          variant="secondary"
         >
           <FileDown className="w-4 h-4 mr-2" />
-          Download PDF
+          Download Story PDF
         </Button>
       )}
 
