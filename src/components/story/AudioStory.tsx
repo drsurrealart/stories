@@ -34,35 +34,20 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         .maybeSingle();
 
       if (error) throw error;
-      return data;
-    },
-  });
+      
+      if (data) {
+        // Get the signed URL for the audio file
+        const { data: { publicUrl }, error: urlError } = await supabase
+          .storage
+          .from('audio-stories')
+          .getPublicUrl(data.audio_url);
 
-  // Fetch credit cost and user's current credits
-  const { data: creditInfo } = useQuery({
-    queryKey: ['audio-credits-info'],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return null;
-
-      const [{ data: config }, { data: userCredits }] = await Promise.all([
-        supabase
-          .from('api_configurations')
-          .select('audio_credits_cost')
-          .eq('key_name', 'AUDIO_STORY_CREDITS')
-          .single(),
-        supabase
-          .from('user_story_counts')
-          .select('credits_used')
-          .eq('user_id', session.user.id)
-          .eq('month_year', new Date().toISOString().slice(0, 7))
-          .single()
-      ]);
-
-      return {
-        creditCost: config?.audio_credits_cost || 3,
-        creditsUsed: userCredits?.credits_used || 0
-      };
+        if (urlError) throw urlError;
+        
+        return { ...data, audio_url: publicUrl };
+      }
+      
+      return null;
     },
   });
 
@@ -109,12 +94,29 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         throw new Error('No audio content received');
       }
 
-      // Convert base64 to blob URL
+      // Convert base64 to blob
       const audioBlob = new Blob(
         [Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))],
         { type: 'audio/mp3' }
       );
-      const audioUrl = URL.createObjectURL(audioBlob);
+
+      // Generate a unique filename
+      const filename = `${crypto.randomUUID()}.mp3`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('audio-stories')
+        .upload(filename, audioBlob);
+
+      if (uploadError) throw uploadError;
+
+      // Get the public URL for the uploaded file
+      const { data: { publicUrl }, error: urlError } = await supabase
+        .storage
+        .from('audio-stories')
+        .getPublicUrl(filename);
+
+      if (urlError) throw urlError;
 
       // Save to Supabase
       const { error: saveError } = await supabase
@@ -122,7 +124,7 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         .insert({
           story_id: storyId,
           user_id: session.user.id,
-          audio_url: audioUrl,
+          audio_url: filename, // Store the filename as reference
           voice_id: selectedVoice,
           credits_used: creditInfo?.creditCost || 3
         });
@@ -153,6 +155,34 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
       setShowConfirmDialog(false);
     }
   };
+
+  // Fetch credit cost and user's current credits
+  const { data: creditInfo } = useQuery({
+    queryKey: ['audio-credits-info'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+
+      const [{ data: config }, { data: userCredits }] = await Promise.all([
+        supabase
+          .from('api_configurations')
+          .select('audio_credits_cost')
+          .eq('key_name', 'AUDIO_STORY_CREDITS')
+          .single(),
+        supabase
+          .from('user_story_counts')
+          .select('credits_used')
+          .eq('user_id', session.user.id)
+          .eq('month_year', new Date().toISOString().slice(0, 7))
+          .single()
+      ]);
+
+      return {
+        creditCost: config?.audio_credits_cost || 3,
+        creditsUsed: userCredits?.credits_used || 0
+      };
+    },
+  });
 
   return (
     <Card className="p-4 md:p-6 space-y-4 bg-card">
