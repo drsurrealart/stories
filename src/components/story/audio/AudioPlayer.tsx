@@ -20,11 +20,14 @@ export function AudioPlayer({ audioUrl }: AudioPlayerProps) {
   const { toast } = useToast();
 
   useEffect(() => {
-    console.log('Initializing audio with URL:', audioUrl);
-    const audio = new Audio(audioUrl);
+    console.log('Creating new audio element with URL:', audioUrl);
+    const audio = new Audio();
     
     const handleLoadedMetadata = () => {
-      console.log('Audio metadata loaded, duration:', audio.duration);
+      console.log('Audio metadata loaded:', {
+        duration: audio.duration,
+        readyState: audio.readyState
+      });
       setDuration(audio.duration);
     };
 
@@ -37,14 +40,28 @@ export function AudioPlayer({ audioUrl }: AudioPlayerProps) {
       });
     };
 
+    const handleCanPlay = () => {
+      console.log('Audio can play now');
+    };
+
+    // Set source after adding event listeners
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('error', handleError);
+    audio.addEventListener('canplay', handleCanPlay);
+    
+    // Set the source and load the audio
+    audio.src = audioUrl;
+    audio.load();
+    
     setAudioElement(audio);
 
     return () => {
+      console.log('Cleaning up audio element');
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('error', handleError);
+      audio.removeEventListener('canplay', handleCanPlay);
       audio.pause();
+      audio.src = '';
       setAudioElement(null);
     };
   }, [audioUrl]);
@@ -98,13 +115,25 @@ export function AudioPlayer({ audioUrl }: AudioPlayerProps) {
   };
 
   const togglePlayPause = async () => {
-    if (!audioElement) return;
+    if (!audioElement) {
+      console.error('No audio element available');
+      return;
+    }
 
     try {
+      console.log('Attempting to toggle playback, current state:', {
+        isPlaying,
+        readyState: audioElement.readyState,
+        currentSrc: audioElement.currentSrc
+      });
+
       if (isPlaying) {
         await audioElement.pause();
       } else {
-        await audioElement.play();
+        const playPromise = audioElement.play();
+        if (playPromise !== undefined) {
+          await playPromise;
+        }
       }
       setIsPlaying(!isPlaying);
     } catch (error) {
