@@ -94,13 +94,6 @@ export function Story({
         lengthPreference={lengthPreference}
       />
 
-      {storyData?.id && (
-        <AudioStory 
-          storyId={storyData.id} 
-          storyContent={storyWithoutTitle}
-        />
-      )}
-
       {enrichment && (
         <StoryEnrichment
           reflectionQuestions={enrichment.reflection_questions}
@@ -122,6 +115,13 @@ export function Story({
           url={window.location.href}
         />
       </div>
+
+      {storyData?.id && (
+        <AudioStory 
+          storyId={storyData.id} 
+          storyContent={storyWithoutTitle}
+        />
+      )}
     </Card>
   );
 }
