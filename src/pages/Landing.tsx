@@ -22,9 +22,9 @@ const Landing = () => {
       <main>
         <HeroSection />
         <FeaturesShowcase />
-        <BenefitsSection />
         <AgeGroupsSection />
         <FeaturesSection />
+        <BenefitsSection />
         <TestimonialsSection />
         <CTASection />
       </main>
