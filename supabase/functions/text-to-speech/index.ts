@@ -13,19 +13,14 @@ function getFirstSentences(text: string, maxLength = 1000): string {
   // Find the last sentence break before maxLength
   const subset = text.substring(0, maxLength);
   const lastPeriod = subset.lastIndexOf('.');
-  const lastQuestion = subset.lastIndexOf('?');
-  const lastExclamation = subset.lastIndexOf('!');
   
-  // Get the last sentence break position
-  const lastBreak = Math.max(lastPeriod, lastQuestion, lastExclamation);
-  
-  // If no sentence break found, just return the first maxLength characters
-  if (lastBreak === -1) {
-    return subset + "...";
+  // If no period found, just return the first maxLength characters
+  if (lastPeriod === -1) {
+    return subset;
   }
   
-  // Return up to the last sentence break
-  return text.substring(0, lastBreak + 1);
+  // Return up to the last period
+  return text.substring(0, lastPeriod + 1);
 }
 
 serve(async (req) => {
