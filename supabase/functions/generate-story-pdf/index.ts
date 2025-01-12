@@ -52,6 +52,36 @@ serve(async (req) => {
 
     let y = 40;
 
+    // Add story image if it exists right after the title
+    if (storyImage?.image_url) {
+      try {
+        const imageResponse = await fetch(storyImage.image_url);
+        const imageBlob = await imageResponse.blob();
+        const imageBase64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(imageBlob);
+        });
+
+        const imgWidth = 170;
+        const imgHeight = 170;
+        const xOffset = (pageWidth - imgWidth) / 2;
+        
+        doc.addImage(
+          imageBase64 as string,
+          'PNG',
+          xOffset,
+          y,
+          imgWidth,
+          imgHeight
+        );
+        
+        y += imgHeight + 20; // Add space after image
+      } catch (imageError) {
+        console.error('Error adding image to PDF:', imageError);
+      }
+    }
+
     // Add metadata (age group, genre, etc.)
     doc.setFontSize(12);
     doc.setFont(undefined, 'italic');
@@ -69,7 +99,7 @@ serve(async (req) => {
       y += lineHeight;
     });
 
-    y += lineHeight; // Add extra space after metadata
+    y += lineHeight;
 
     // Add story content
     doc.setFont(undefined, 'normal');
@@ -149,23 +179,6 @@ serve(async (req) => {
       });
     }
 
-    // Add related quote if it exists
-    if (story.related_quote) {
-      if (y > 250) {
-        doc.addPage();
-        y = 20;
-      }
-      y += lineHeight * 2;
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'italic');
-      const splitQuote = doc.splitTextToSize(`"${story.related_quote}"`, maxWidth);
-      splitQuote.forEach(line => {
-        doc.text(line, margin, y, { align: 'center' });
-        y += lineHeight;
-      });
-      doc.setFont(undefined, 'normal');
-    }
-
     // Add discussion prompts if they exist
     if (story.discussion_prompts?.length > 0) {
       if (y > 250) {
@@ -188,40 +201,6 @@ serve(async (req) => {
           y += lineHeight;
         });
       });
-    }
-
-    // Add story image if it exists
-    if (storyImage?.image_url) {
-      try {
-        const imageResponse = await fetch(storyImage.image_url);
-        const imageBlob = await imageResponse.blob();
-        const imageBase64 = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.readAsDataURL(imageBlob);
-        });
-
-        // Add a new page for the image
-        doc.addPage();
-        const imgWidth = 170; // Slightly smaller than page width
-        const imgHeight = 170; // Keep aspect ratio square
-        const xOffset = (pageWidth - imgWidth) / 2;
-        
-        doc.addImage(
-          imageBase64 as string,
-          'PNG',
-          xOffset,
-          20,
-          imgWidth,
-          imgHeight
-        );
-        
-        // Add caption
-        doc.setFontSize(12);
-        doc.text('Story Illustration', pageWidth / 2, 200, { align: 'center' });
-      } catch (imageError) {
-        console.error('Error adding image to PDF:', imageError);
-      }
     }
 
     // Convert to buffer
