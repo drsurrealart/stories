@@ -95,7 +95,13 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         body: { text: storyContent, voice: selectedVoice },
       });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
+
+      if (!data?.audioContent) {
+        throw new Error('No audio content received');
+      }
 
       // Convert base64 to blob URL
       const audioBlob = new Blob(
@@ -103,6 +109,10 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         { type: 'audio/mp3' }
       );
       const audioUrl = URL.createObjectURL(audioBlob);
+
+      // Create audio element
+      const audio = new Audio(audioUrl);
+      setAudioElement(audio);
 
       // Save to Supabase
       const { error: saveError } = await supabase
@@ -116,22 +126,21 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
 
       if (saveError) throw saveError;
 
-      // Create audio element
-      const audio = new Audio(audioUrl);
-      setAudioElement(audio);
-
       toast({
         title: "Success",
         description: "Audio story created successfully!",
       });
 
-    } catch (error) {
+      setShowConfirmDialog(false);
+
+    } catch (error: any) {
       console.error('Error creating audio:', error);
       toast({
         title: "Error",
-        description: "Failed to create audio story. Please try again.",
+        description: error.message || "Failed to create audio story. Please try again.",
         variant: "destructive",
       });
+      setShowConfirmDialog(false);
     }
   };
 
@@ -153,7 +162,7 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         <h3 className="font-semibold text-lg">Audio Story</h3>
       </div>
 
-      {!audioStory ? (
+      {!audioStory && !audioElement ? (
         <div className="space-y-4">
           <Select value={selectedVoice} onValueChange={setSelectedVoice}>
             <SelectTrigger>

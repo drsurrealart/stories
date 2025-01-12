@@ -94,13 +94,6 @@ export function Story({
         lengthPreference={lengthPreference}
       />
 
-      {moral && (
-        <Card className="bg-secondary p-4 md:p-6">
-          <h3 className="font-semibold text-lg mb-2">Moral</h3>
-          <p className="text-story-text">{moral}</p>
-        </Card>
-      )}
-
       {storyData?.id && (
         <AudioStory 
           storyId={storyData.id} 
