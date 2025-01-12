@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       api_configurations: {
         Row: {
+          audio_credits_cost: number | null
           created_at: string
           description: string | null
           id: string
@@ -19,6 +20,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          audio_credits_cost?: number | null
           created_at?: string
           description?: string | null
           id?: string
@@ -27,6 +29,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          audio_credits_cost?: number | null
           created_at?: string
           description?: string | null
           id?: string
@@ -35,6 +38,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      audio_stories: {
+        Row: {
+          audio_url: string
+          created_at: string
+          credits_used: number
+          id: string
+          story_id: string
+          updated_at: string
+          user_id: string
+          voice_id: string
+        }
+        Insert: {
+          audio_url: string
+          created_at?: string
+          credits_used?: number
+          id?: string
+          story_id: string
+          updated_at?: string
+          user_id: string
+          voice_id: string
+        }
+        Update: {
+          audio_url?: string
+          created_at?: string
+          credits_used?: number
+          id?: string
+          story_id?: string
+          updated_at?: string
+          user_id?: string
+          voice_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audio_stories_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contact_submissions: {
         Row: {

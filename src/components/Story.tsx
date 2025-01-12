@@ -7,6 +7,7 @@ import { StoryActions } from "./story/StoryActions";
 import { StorySocialShare } from "./story/StorySocialShare";
 import { StoryEnrichment } from "./story/StoryEnrichment";
 import { FavoriteButton } from "./story/FavoriteButton";
+import { AudioStory } from "./story/AudioStory";
 import { useQuery } from "@tanstack/react-query";
 import { Loading } from "@/components/ui/loading";
 
@@ -92,6 +93,20 @@ export function Story({
         readingLevel={readingLevel}
         lengthPreference={lengthPreference}
       />
+
+      {moral && (
+        <Card className="bg-secondary p-4 md:p-6">
+          <h3 className="font-semibold text-lg mb-2">Moral</h3>
+          <p className="text-story-text">{moral}</p>
+        </Card>
+      )}
+
+      {storyData?.id && (
+        <AudioStory 
+          storyId={storyData.id} 
+          storyContent={storyWithoutTitle}
+        />
+      )}
 
       {enrichment && (
         <StoryEnrichment
