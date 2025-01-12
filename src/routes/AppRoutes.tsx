@@ -8,6 +8,7 @@ import Create from "@/pages/Create";
 import YourStories from "@/pages/YourStories";
 import MyMorals from "@/pages/MyMorals";
 import MyFavorites from "@/pages/MyFavorites";
+import MyAudio from "@/pages/MyAudio";
 import AccountSettings from "@/pages/AccountSettings";
 import MySubscriptions from "@/pages/MySubscriptions";
 import Share from "@/pages/Share";
@@ -51,6 +52,14 @@ export const AppRoutes = () => (
         element={
           <ProtectedRoute>
             <YourStories />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-audio"
+        element={
+          <ProtectedRoute>
+            <MyAudio />
           </ProtectedRoute>
         }
       />
