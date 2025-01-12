@@ -18,6 +18,7 @@ export type Database = {
           image_credits_cost: number | null
           is_active: boolean | null
           key_name: string
+          pdf_credits_cost: number | null
           updated_at: string
         }
         Insert: {
@@ -28,6 +29,7 @@ export type Database = {
           image_credits_cost?: number | null
           is_active?: boolean | null
           key_name: string
+          pdf_credits_cost?: number | null
           updated_at?: string
         }
         Update: {
@@ -38,6 +40,7 @@ export type Database = {
           image_credits_cost?: number | null
           is_active?: boolean | null
           key_name?: string
+          pdf_credits_cost?: number | null
           updated_at?: string
         }
         Relationships: []

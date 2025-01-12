@@ -22,8 +22,10 @@ export const SubscriptionTierManager = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [audioCreditCost, setAudioCreditCost] = useState<number>(3);
   const [imageCreditCost, setImageCreditCost] = useState<number>(5);
+  const [pdfCreditCost, setPdfCreditCost] = useState<number>(1);
   const [isUpdatingAudioCredits, setIsUpdatingAudioCredits] = useState(false);
   const [isUpdatingImageCredits, setIsUpdatingImageCredits] = useState(false);
+  const [isUpdatingPdfCredits, setIsUpdatingPdfCredits] = useState(false);
 
   const { data: tiers, isLoading: tiersLoading } = useQuery({
     queryKey: ['admin-subscription-tiers'],
@@ -56,6 +58,7 @@ export const SubscriptionTierManager = () => {
       
       setAudioCreditCost(data.audio_credits_cost);
       setImageCreditCost(data.image_credits_cost);
+      setPdfCreditCost(data.pdf_credits_cost);
       return data;
     },
   });
@@ -163,6 +166,34 @@ export const SubscriptionTierManager = () => {
     }
   };
 
+  const handleUpdatePdfCredits = async () => {
+    setIsUpdatingPdfCredits(true);
+    try {
+      const { error } = await supabase
+        .from('api_configurations')
+        .update({ pdf_credits_cost: pdfCreditCost })
+        .eq('key_name', 'AUDIO_STORY_CREDITS');
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ['audio-credits-config'] });
+
+      toast({
+        title: "Success",
+        description: "PDF credits cost updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating PDF credits cost:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update PDF credits cost",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingPdfCredits(false);
+    }
+  };
+
   if (tiersLoading || configLoading) {
     return (
       <div className="space-y-4">
@@ -217,6 +248,28 @@ export const SubscriptionTierManager = () => {
               disabled={isUpdatingImageCredits}
             >
               {isUpdatingImageCredits ? "Updating..." : "Update Credits"}
+            </Button>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Printable Story Settings</h3>
+          <div className="flex items-end gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="pdfCreditCost">Credits Required per Printable Story</Label>
+              <Input
+                id="pdfCreditCost"
+                type="number"
+                value={pdfCreditCost}
+                onChange={(e) => setPdfCreditCost(Number(e.target.value))}
+                className="w-32"
+              />
+            </div>
+            <Button 
+              onClick={handleUpdatePdfCredits}
+              disabled={isUpdatingPdfCredits}
+            >
+              {isUpdatingPdfCredits ? "Updating..." : "Update Credits"}
             </Button>
           </div>
         </Card>
