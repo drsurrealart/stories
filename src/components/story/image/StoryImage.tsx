@@ -18,22 +18,31 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch existing story image if any
-  const { data: storyImage } = useQuery({
-    queryKey: ['story-image', storyId],
+  // Fetch existing story image and image prompt if any
+  const { data: storyData } = useQuery({
+    queryKey: ['story-image-data', storyId],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
 
-      const { data, error } = await supabase
-        .from('story_images')
-        .select('*')
-        .eq('story_id', storyId)
-        .eq('user_id', session.user.id)
-        .maybeSingle();
+      const [imageResult, storyResult] = await Promise.all([
+        supabase
+          .from('story_images')
+          .select('*')
+          .eq('story_id', storyId)
+          .eq('user_id', session.user.id)
+          .maybeSingle(),
+        supabase
+          .from('stories')
+          .select('image_prompt')
+          .eq('id', storyId)
+          .single()
+      ]);
 
-      if (error) throw error;
-      return data;
+      return {
+        image: imageResult.data,
+        imagePrompt: storyResult.data?.image_prompt
+      };
     },
   });
 
@@ -67,9 +76,13 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
         throw new Error('Failed to update credits');
       }
 
+      // Use the stored image prompt or fall back to a default one
+      const basePrompt = storyData?.imagePrompt || `Create a storybook illustration for this story: ${storyContent}`;
+      const enhancedPrompt = `Create a high-quality, detailed illustration suitable for a children's storybook. Style: Use vibrant colors and a mix of 3D rendering and artistic illustration techniques. The image should be engaging and magical, without any text overlays. Focus on creating an emotional and immersive scene. Specific scene: ${basePrompt}. Important: Do not include any text or words in the image.`;
+
       // Generate image using the edge function
       const { data, error } = await supabase.functions.invoke('generate-story-image', {
-        body: { prompt: `Create an illustration for this story: ${storyContent}` },
+        body: { prompt: enhancedPrompt },
       });
 
       if (error) throw error;
@@ -87,7 +100,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
       if (saveError) throw saveError;
 
       // Invalidate queries to refresh the data
-      queryClient.invalidateQueries({ queryKey: ['story-image', storyId] });
+      queryClient.invalidateQueries({ queryKey: ['story-image-data', storyId] });
       queryClient.invalidateQueries({ queryKey: ['user-story-limits'] });
 
       toast({
@@ -145,7 +158,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
         <h3 className="font-semibold text-lg">Story Image</h3>
       </div>
 
-      {!storyImage ? (
+      {!storyData?.image ? (
         <ImageGenerationForm
           isGenerating={isGenerating}
           showConfirmDialog={showConfirmDialog}
@@ -157,14 +170,14 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
         <>
           <div className="relative aspect-square w-full rounded-lg overflow-hidden">
             <img
-              src={storyImage.image_url}
+              src={storyData.image.image_url}
               alt="Story illustration"
               className="object-cover w-full h-full"
             />
           </div>
           <ImageControls 
             storyId={storyId} 
-            imageUrl={storyImage.image_url} 
+            imageUrl={storyData.image.image_url} 
           />
         </>
       )}
