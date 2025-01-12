@@ -19,7 +19,7 @@ function getFirstSentences(text: string, maxLength = 1000): string {
   const lastPeriod = subset.lastIndexOf('.');
   
   if (lastPeriod === -1) {
-    console.log('No period found, returning truncated text');
+    console.log('No period found, truncating at maxLength');
     return subset;
   }
   
@@ -72,11 +72,13 @@ serve(async (req) => {
 
     console.log('Successfully received audio response');
     
-    // Convert audio buffer to base64
-    const arrayBuffer = await response.arrayBuffer();
-    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    // Convert audio buffer to base64 more efficiently
+    const buffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    const binary = Array.from(bytes).map(byte => String.fromCharCode(byte)).join('');
+    const base64Audio = btoa(binary);
 
-    console.log('Sending audio response back to client');
+    console.log('Successfully encoded audio to base64');
     
     return new Response(
       JSON.stringify({ audioContent: base64Audio }),
