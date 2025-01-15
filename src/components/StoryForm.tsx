@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BookOpen, Settings2, Wand2, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -10,16 +10,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { BasicSettings } from "./story/form/BasicSettings";
 import { AdvancedSettings } from "./story/form/AdvancedSettings";
 import { CreditInfo } from "./story/form/CreditInfo";
@@ -58,7 +48,6 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     ...DEFAULT_PREFERENCES,
   });
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
 
   const { data: userLimits } = useQuery({
@@ -124,10 +113,6 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
       return;
     }
 
-    setShowConfirmDialog(true);
-  };
-
-  const handleConfirmedSubmit = () => {
     // Only include modified advanced settings
     const optimizedPreferences = {
       genre: preferences.genre,
@@ -142,107 +127,87 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     };
 
     onSubmit(optimizedPreferences as StoryPreferences);
-    setShowConfirmDialog(false);
   };
 
   return (
-    <>
-      <Card className="w-full max-w-md p-4 md:p-6 space-y-4 md:space-y-6 animate-fade-in mx-4 md:mx-0">
-        <div className="flex items-center space-x-2">
-          <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-primary" />
-          <h2 className="text-xl md:text-2xl font-bold">Create Your Story</h2>
-        </div>
+    <Card className="w-full max-w-md p-4 md:p-6 space-y-4 md:space-y-6 animate-fade-in mx-4 md:mx-0">
+      <div className="flex items-center space-x-2">
+        <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+        <h2 className="text-xl md:text-2xl font-bold">Create Your Story</h2>
+      </div>
 
-        <CreditInfo userLimits={userLimits} />
+      <CreditInfo userLimits={userLimits} />
 
-        <BasicSettings
-          ageGroup={preferences.ageGroup}
-          genre={preferences.genre}
-          moral={preferences.moral}
-          onAgeGroupChange={(value) => {
-            setPreferences({
-              ...preferences,
-              ageGroup: value,
-              genre: "",
-              moral: "",
-            });
-          }}
-          onGenreChange={(value) => setPreferences({ ...preferences, genre: value })}
-          onMoralChange={(value) => setPreferences({ ...preferences, moral: value })}
-        />
+      <BasicSettings
+        ageGroup={preferences.ageGroup}
+        genre={preferences.genre}
+        moral={preferences.moral}
+        onAgeGroupChange={(value) => {
+          setPreferences({
+            ...preferences,
+            ageGroup: value,
+            genre: "",
+            moral: "",
+          });
+        }}
+        onGenreChange={(value) => setPreferences({ ...preferences, genre: value })}
+        onMoralChange={(value) => setPreferences({ ...preferences, moral: value })}
+      />
 
-        <Collapsible
-          open={isAdvancedOpen}
-          onOpenChange={setIsAdvancedOpen}
-          className="space-y-2"
-        >
-          <CollapsibleTrigger asChild>
-            <Button
-              variant="outline"
-              className="flex items-center w-full justify-between"
-            >
-              <span className="flex items-center">
-                <Settings2 className="w-4 h-4 mr-2" />
-                Advanced Settings
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {isAdvancedOpen ? "Hide" : "Show"}
-              </span>
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 pt-4">
-            <AdvancedSettings
-              characterName1={preferences.characterName1 || ""}
-              characterName2={preferences.characterName2 || ""}
-              lengthPreference={preferences.lengthPreference}
-              language={preferences.language}
-              tone={preferences.tone}
-              readingLevel={preferences.readingLevel}
-              onCharacterName1Change={(value) => setPreferences({ ...preferences, characterName1: value })}
-              onCharacterName2Change={(value) => setPreferences({ ...preferences, characterName2: value })}
-              onLengthPreferenceChange={(value) => setPreferences({ ...preferences, lengthPreference: value })}
-              onLanguageChange={(value) => setPreferences({ ...preferences, language: value })}
-              onToneChange={(value) => setPreferences({ ...preferences, tone: value })}
-              onReadingLevelChange={(value) => setPreferences({ ...preferences, readingLevel: value })}
-            />
-          </CollapsibleContent>
-        </Collapsible>
+      <Collapsible
+        open={isAdvancedOpen}
+        onOpenChange={setIsAdvancedOpen}
+        className="space-y-2"
+      >
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="outline"
+            className="flex items-center w-full justify-between"
+          >
+            <span className="flex items-center">
+              <Settings2 className="w-4 h-4 mr-2" />
+              Advanced Settings
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {isAdvancedOpen ? "Hide" : "Show"}
+            </span>
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-4 pt-4">
+          <AdvancedSettings
+            characterName1={preferences.characterName1 || ""}
+            characterName2={preferences.characterName2 || ""}
+            lengthPreference={preferences.lengthPreference}
+            language={preferences.language}
+            tone={preferences.tone}
+            readingLevel={preferences.readingLevel}
+            onCharacterName1Change={(value) => setPreferences({ ...preferences, characterName1: value })}
+            onCharacterName2Change={(value) => setPreferences({ ...preferences, characterName2: value })}
+            onLengthPreferenceChange={(value) => setPreferences({ ...preferences, lengthPreference: value })}
+            onLanguageChange={(value) => setPreferences({ ...preferences, language: value })}
+            onToneChange={(value) => setPreferences({ ...preferences, tone: value })}
+            onReadingLevelChange={(value) => setPreferences({ ...preferences, readingLevel: value })}
+          />
+        </CollapsibleContent>
+      </Collapsible>
 
-        <Button
-          className="w-full"
-          onClick={handleSubmit}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <div className="flex items-center justify-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Creating... please wait</span>
-            </div>
-          ) : (
-            <>
-              <Wand2 className="w-4 h-4 mr-2" />
-              Create Story (Uses 1 Credit)
-            </>
-          )}
-        </Button>
-      </Card>
-
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Create New Story</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to create a new story? This will use 1 credit from your account.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmedSubmit}>
-              Create Story
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+      <Button
+        className="w-full"
+        onClick={handleSubmit}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Creating... please wait</span>
+          </div>
+        ) : (
+          <>
+            <Wand2 className="w-4 h-4 mr-2" />
+            Create Story (Uses 1 Credit)
+          </>
+        )}
+      </Button>
+    </Card>
   );
 }
