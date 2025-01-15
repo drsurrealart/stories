@@ -64,12 +64,21 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
       }
 
       // Fetch credit cost and user's current credits
-      const { data: creditInfo } = await supabase
-        .from('api_configurations')
-        .select('audio_credits_cost')
-        .single();
+      const [{ data: config }, { data: userCredits }] = await Promise.all([
+        supabase
+          .from('api_configurations')
+          .select('audio_credits_cost')
+          .single(),
+        supabase
+          .from('user_story_counts')
+          .select('credits_used')
+          .eq('user_id', session.user.id)
+          .eq('month_year', new Date().toISOString().slice(0, 7))
+          .single()
+      ]);
 
-      const creditCost = creditInfo?.audio_credits_cost || 3;
+      const creditCost = config?.audio_credits_cost || 3;
+      const currentCreditsUsed = userCredits?.credits_used || 0;
 
       // Update credits before generating audio
       const currentMonth = new Date().toISOString().slice(0, 7);
@@ -78,7 +87,7 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         .upsert({
           user_id: session.user.id,
           month_year: currentMonth,
-          credits_used: (creditInfo?.creditsUsed || 0) + creditCost,
+          credits_used: currentCreditsUsed + creditCost,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id,month_year'

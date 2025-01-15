@@ -60,12 +60,21 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
       }
 
       // Fetch credit cost and user's current credits
-      const { data: creditInfo } = await supabase
-        .from('api_configurations')
-        .select('image_credits_cost')
-        .single();
+      const [{ data: config }, { data: userCredits }] = await Promise.all([
+        supabase
+          .from('api_configurations')
+          .select('image_credits_cost')
+          .single(),
+        supabase
+          .from('user_story_counts')
+          .select('credits_used')
+          .eq('user_id', session.user.id)
+          .eq('month_year', new Date().toISOString().slice(0, 7))
+          .single()
+      ]);
 
-      const creditCost = creditInfo?.image_credits_cost || 5;
+      const creditCost = config?.image_credits_cost || 5;
+      const currentCreditsUsed = userCredits?.credits_used || 0;
 
       // Update credits before generating image
       const currentMonth = new Date().toISOString().slice(0, 7);
@@ -74,7 +83,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
         .upsert({
           user_id: session.user.id,
           month_year: currentMonth,
-          credits_used: (creditInfo?.creditsUsed || 0) + creditCost,
+          credits_used: currentCreditsUsed + creditCost,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id,month_year'
@@ -144,7 +153,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
           showConfirmDialog={showConfirmDialog}
           onConfirmDialogChange={setShowConfirmDialog}
           onGenerate={handleCreateImage}
-          creditCost={creditInfo?.creditCost}
+          creditCost={creditCost}
         />
       ) : (
         <>
