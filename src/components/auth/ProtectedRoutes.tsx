@@ -9,40 +9,38 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkAuth = async () => {
+    // Initial session check
+    const checkSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
-          console.error("Auth check error:", error);
-          toast({
-            variant: "destructive",
-            title: "Authentication Error",
-            description: "Please try logging in again.",
-          });
+          console.error("Session check error:", error);
           setIsAuthenticated(false);
           return;
         }
         setIsAuthenticated(!!session);
       } catch (error) {
-        console.error("Auth check error:", error);
+        console.error("Session check error:", error);
         setIsAuthenticated(false);
       }
     };
 
-    // Initial auth check
-    checkAuth();
+    checkSession();
 
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed in ProtectedRoute:", event, session);
-      if (event === 'SIGNED_OUT') {
+    // Subscribe to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
+      
+      if (event === 'SIGNED_IN') {
+        setIsAuthenticated(true);
+      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         setIsAuthenticated(false);
         navigate('/auth');
         toast({
           title: "Signed out",
           description: "You have been signed out of your account.",
         });
-      } else if (event === 'SIGNED_IN') {
+      } else if (event === 'TOKEN_REFRESHED') {
         setIsAuthenticated(true);
       }
     });
@@ -52,11 +50,16 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     };
   }, [navigate, toast]);
 
+  // Show loading state while checking authentication
   if (isAuthenticated === null) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
-  return isAuthenticated ? <>{children}</> : <Navigate to="/auth" />;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/auth" replace />;
 };
 
 export const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
@@ -95,11 +98,24 @@ export const ProtectedAdminRoute = ({ children }: { children: React.ReactNode })
     };
 
     checkAdmin();
+
+    // Subscribe to auth changes for admin status
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      checkAdmin();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [toast]);
 
   if (isAdmin === null) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
-  return isAdmin ? <>{children}</> : <Navigate to="/dashboard" />;
+  return isAdmin ? <>{children}</> : <Navigate to="/dashboard" replace />;
 };
