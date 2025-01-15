@@ -15,6 +15,7 @@ interface StoryImageProps {
 export function StoryImage({ storyId, storyContent }: StoryImageProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [currentCreditCost, setCurrentCreditCost] = useState<number>(5); // Default value
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -74,6 +75,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
       ]);
 
       const creditCost = config?.image_credits_cost || 5;
+      setCurrentCreditCost(creditCost);
       const currentCreditsUsed = userCredits?.credits_used || 0;
 
       // Update credits before generating image
@@ -153,7 +155,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
           showConfirmDialog={showConfirmDialog}
           onConfirmDialogChange={setShowConfirmDialog}
           onGenerate={handleCreateImage}
-          creditCost={creditCost}
+          creditCost={currentCreditCost}
         />
       ) : (
         <>
