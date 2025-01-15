@@ -12,6 +12,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        console.log("Current session:", session ? "Active" : "No session");
         setIsAuthenticated(!!session);
       } catch (error) {
         console.error("Session check error:", error);
@@ -22,11 +23,13 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state change:", event, "Session:", session ? "Active" : "None");
+      
       if (session) {
         setIsAuthenticated(true);
       } else if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
-        navigate('/auth');
+        navigate('/auth', { replace: true });
         toast({
           title: "Signed out",
           description: "You have been signed out of your account.",
@@ -59,6 +62,7 @@ export const ProtectedAdminRoute = ({ children }: { children: React.ReactNode })
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
+          console.log("No session found for admin check");
           setIsAdmin(false);
           return;
         }
