@@ -63,6 +63,14 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         return;
       }
 
+      // Fetch credit cost and user's current credits
+      const { data: creditInfo } = await supabase
+        .from('api_configurations')
+        .select('audio_credits_cost')
+        .single();
+
+      const creditCost = creditInfo?.audio_credits_cost || 3;
+
       // Update credits before generating audio
       const currentMonth = new Date().toISOString().slice(0, 7);
       const { error: creditError } = await supabase
@@ -70,7 +78,7 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         .upsert({
           user_id: session.user.id,
           month_year: currentMonth,
-          credits_used: (creditInfo?.creditsUsed || 0) + (creditInfo?.creditCost || 3),
+          credits_used: (creditInfo?.creditsUsed || 0) + creditCost,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id,month_year'
@@ -123,7 +131,7 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
           user_id: session.user.id,
           audio_url: filename, // Store the filename as reference
           voice_id: selectedVoice,
-          credits_used: creditInfo?.creditCost || 3
+          credits_used: creditCost
         });
 
       if (saveError) throw saveError;
@@ -164,7 +172,6 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         supabase
           .from('api_configurations')
           .select('audio_credits_cost')
-          .eq('key_name', 'AUDIO_STORY_CREDITS')
           .single(),
         supabase
           .from('user_story_counts')

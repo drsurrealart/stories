@@ -59,6 +59,14 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
         return;
       }
 
+      // Fetch credit cost and user's current credits
+      const { data: creditInfo } = await supabase
+        .from('api_configurations')
+        .select('image_credits_cost')
+        .single();
+
+      const creditCost = creditInfo?.image_credits_cost || 5;
+
       // Update credits before generating image
       const currentMonth = new Date().toISOString().slice(0, 7);
       const { error: creditError } = await supabase
@@ -66,7 +74,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
         .upsert({
           user_id: session.user.id,
           month_year: currentMonth,
-          credits_used: (creditInfo?.creditsUsed || 0) + (creditInfo?.creditCost || 5),
+          credits_used: (creditInfo?.creditsUsed || 0) + creditCost,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id,month_year'
@@ -94,7 +102,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
           story_id: storyId,
           user_id: session.user.id,
           image_url: data.imageUrl,
-          credits_used: creditInfo?.creditCost || 5
+          credits_used: creditCost
         });
 
       if (saveError) throw saveError;
@@ -122,34 +130,6 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
       setShowConfirmDialog(false);
     }
   };
-
-  // Fetch credit cost and user's current credits
-  const { data: creditInfo } = useQuery({
-    queryKey: ['image-credits-info'],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return null;
-
-      const [{ data: config }, { data: userCredits }] = await Promise.all([
-        supabase
-          .from('api_configurations')
-          .select('image_credits_cost')
-          .eq('key_name', 'AUDIO_STORY_CREDITS')
-          .single(),
-        supabase
-          .from('user_story_counts')
-          .select('credits_used')
-          .eq('user_id', session.user.id)
-          .eq('month_year', new Date().toISOString().slice(0, 7))
-          .single()
-      ]);
-
-      return {
-        creditCost: config?.image_credits_cost || 5,
-        creditsUsed: userCredits?.credits_used || 0
-      };
-    },
-  });
 
   return (
     <Card className="p-4 md:p-6 space-y-4 bg-card">

@@ -61,6 +61,14 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
         return;
       }
 
+      // Get PDF credit cost from configuration
+      const { data: config } = await supabase
+        .from('api_configurations')
+        .select('pdf_credits_cost')
+        .single();
+
+      const creditCost = config?.pdf_credits_cost || 1;
+
       // Update credits before generating PDF
       const currentMonth = new Date().toISOString().slice(0, 7);
       const { error: creditError } = await supabase
@@ -68,7 +76,8 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
         .upsert({
           user_id: session.user.id,
           month_year: currentMonth,
-          credits_used: 1
+          credits_used: (userLimits?.creditsUsed || 0) + creditCost,
+          updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id,month_year'
         });
