@@ -12,28 +12,32 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        console.log("Current session:", session ? "Active" : "No session");
-        setIsAuthenticated(!!session);
+        console.log("Initial session check:", session ? "Active" : "No session");
+        if (session) {
+          setIsAuthenticated(true);
+        }
       } catch (error) {
         console.error("Session check error:", error);
-        setIsAuthenticated(false);
       }
     };
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state change:", event, "Session:", session ? "Active" : "None");
-      
-      if (session) {
-        setIsAuthenticated(true);
-      } else if (event === 'SIGNED_OUT') {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state change event:", event);
+      console.log("Session state:", session ? "Active" : "No session");
+
+      if (event === 'SIGNED_OUT') {
+        console.log("User explicitly signed out");
         setIsAuthenticated(false);
         navigate('/auth', { replace: true });
         toast({
           title: "Signed out",
           description: "You have been signed out of your account.",
         });
+      } else if (session) {
+        console.log("Session is valid, user is authenticated");
+        setIsAuthenticated(true);
       }
     });
 
