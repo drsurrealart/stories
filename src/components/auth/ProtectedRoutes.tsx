@@ -9,15 +9,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initial session check
     const checkSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error("Session check error:", error);
-          setIsAuthenticated(false);
-          return;
-        }
+        const { data: { session } } = await supabase.auth.getSession();
         setIsAuthenticated(!!session);
       } catch (error) {
         console.error("Session check error:", error);
@@ -27,11 +21,8 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
     checkSession();
 
-    // Subscribe to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session);
-      
-      if (event === 'SIGNED_IN') {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
         setIsAuthenticated(true);
       } else if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
@@ -40,8 +31,6 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           title: "Signed out",
           description: "You have been signed out of your account.",
         });
-      } else if (event === 'TOKEN_REFRESHED') {
-        setIsAuthenticated(true);
       }
     });
 
@@ -50,7 +39,6 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     };
   }, [navigate, toast]);
 
-  // Show loading state while checking authentication
   if (isAuthenticated === null) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -99,7 +87,6 @@ export const ProtectedAdminRoute = ({ children }: { children: React.ReactNode })
 
     checkAdmin();
 
-    // Subscribe to auth changes for admin status
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
       checkAdmin();
     });
