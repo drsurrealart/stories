@@ -33,7 +33,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       
       if (event === 'SIGNED_IN') {
         setIsAuthenticated(true);
-      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      } else if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
         navigate('/auth');
         toast({
