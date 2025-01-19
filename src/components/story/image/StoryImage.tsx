@@ -36,7 +36,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
           .from('stories')
           .select('image_prompt')
           .eq('id', storyId)
-          .single()
+          .maybeSingle()
       ]);
 
       return {
@@ -59,14 +59,32 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
         return;
       }
 
-      // Update credits before generating image
+      // Get current month's credits
       const currentMonth = new Date().toISOString().slice(0, 7);
+      const { data: userCredits } = await supabase
+        .from('user_story_counts')
+        .select('credits_used')
+        .eq('user_id', session.user.id)
+        .eq('month_year', currentMonth)
+        .maybeSingle();
+
+      // Get image credits cost
+      const { data: config } = await supabase
+        .from('api_configurations')
+        .select('image_credits_cost')
+        .eq('key_name', 'IMAGE_STORY_CREDITS')
+        .maybeSingle();
+
+      const creditCost = config?.image_credits_cost || 5;
+      const currentCredits = userCredits?.credits_used || 0;
+
+      // Update credits
       const { error: creditError } = await supabase
         .from('user_story_counts')
         .upsert({
           user_id: session.user.id,
           month_year: currentMonth,
-          credits_used: (creditInfo?.creditsUsed || 0) + (creditInfo?.creditCost || 5),
+          credits_used: currentCredits + creditCost,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id,month_year'
@@ -94,7 +112,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
           story_id: storyId,
           user_id: session.user.id,
           image_url: data.imageUrl,
-          credits_used: creditInfo?.creditCost || 5
+          credits_used: creditCost
         });
 
       if (saveError) throw saveError;
@@ -107,8 +125,6 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
         title: "Success",
         description: "Story image created successfully!",
       });
-
-      setShowConfirmDialog(false);
 
     } catch (error: any) {
       console.error('Error creating image:', error);
@@ -130,18 +146,20 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
 
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      
       const [{ data: config }, { data: userCredits }] = await Promise.all([
         supabase
           .from('api_configurations')
           .select('image_credits_cost')
-          .eq('key_name', 'AUDIO_STORY_CREDITS')
-          .single(),
+          .eq('key_name', 'IMAGE_STORY_CREDITS')
+          .maybeSingle(),
         supabase
           .from('user_story_counts')
           .select('credits_used')
           .eq('user_id', session.user.id)
-          .eq('month_year', new Date().toISOString().slice(0, 7))
-          .single()
+          .eq('month_year', currentMonth)
+          .maybeSingle()
       ]);
 
       return {

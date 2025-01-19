@@ -37,7 +37,6 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
       if (error) throw error;
       
       if (data) {
-        // Get the signed URL for the audio file
         const { data: { publicUrl } } = await supabase
           .storage
           .from('audio-stories')
@@ -63,14 +62,32 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         return;
       }
 
-      // Update credits before generating audio
+      // Get current month's credits
       const currentMonth = new Date().toISOString().slice(0, 7);
+      const { data: userCredits } = await supabase
+        .from('user_story_counts')
+        .select('credits_used')
+        .eq('user_id', session.user.id)
+        .eq('month_year', currentMonth)
+        .maybeSingle();
+
+      // Get audio credits cost
+      const { data: config } = await supabase
+        .from('api_configurations')
+        .select('audio_credits_cost')
+        .eq('key_name', 'AUDIO_STORY_CREDITS')
+        .maybeSingle();
+
+      const creditCost = config?.audio_credits_cost || 3;
+      const currentCredits = userCredits?.credits_used || 0;
+
+      // Update credits
       const { error: creditError } = await supabase
         .from('user_story_counts')
         .upsert({
           user_id: session.user.id,
           month_year: currentMonth,
-          credits_used: (creditInfo?.creditsUsed || 0) + (creditInfo?.creditCost || 3),
+          credits_used: currentCredits + creditCost,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id,month_year'
@@ -85,9 +102,7 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         body: { text: storyContent, voice: selectedVoice },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       if (!data?.audioContent) {
         throw new Error('No audio content received');
@@ -121,9 +136,9 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         .insert({
           story_id: storyId,
           user_id: session.user.id,
-          audio_url: filename, // Store the filename as reference
+          audio_url: filename,
           voice_id: selectedVoice,
-          credits_used: creditInfo?.creditCost || 3
+          credits_used: creditCost
         });
 
       if (saveError) throw saveError;
@@ -137,8 +152,6 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
         title: "Success",
         description: "Audio story created successfully!",
       });
-
-      setShowConfirmDialog(false);
 
     } catch (error: any) {
       console.error('Error creating audio:', error);
@@ -160,18 +173,20 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
 
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      
       const [{ data: config }, { data: userCredits }] = await Promise.all([
         supabase
           .from('api_configurations')
           .select('audio_credits_cost')
           .eq('key_name', 'AUDIO_STORY_CREDITS')
-          .single(),
+          .maybeSingle(),
         supabase
           .from('user_story_counts')
           .select('credits_used')
           .eq('user_id', session.user.id)
-          .eq('month_year', new Date().toISOString().slice(0, 7))
-          .single()
+          .eq('month_year', currentMonth)
+          .maybeSingle()
       ]);
 
       return {
