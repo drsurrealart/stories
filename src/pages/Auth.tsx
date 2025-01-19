@@ -9,9 +9,11 @@ import { useToast } from "@/hooks/use-toast";
 
 const REDIRECT_DELAY = 1000; // 1 second delay before redirect
 const RATE_LIMIT_RETRY_DELAY = 2000; // 2 seconds
+const MAX_RETRIES = 3;
 
 const Auth = () => {
   const [errorMessage, setErrorMessage] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -19,7 +21,7 @@ const Auth = () => {
     let timeoutId: NodeJS.Timeout;
     let retryTimeoutId: NodeJS.Timeout;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const handleAuthChange = async (event: string, session: any) => {
       // Clear any existing timeouts
       if (timeoutId) clearTimeout(timeoutId);
       if (retryTimeoutId) clearTimeout(retryTimeoutId);
@@ -33,36 +35,46 @@ const Auth = () => {
 
       if (event === 'SIGNED_OUT') {
         setErrorMessage("");
+        setRetryCount(0);
       }
 
-      // Handle specific auth errors
+      // Handle session check
       if (event === 'USER_UPDATED') {
         try {
           const { error } = await supabase.auth.getSession();
           if (error) {
-            if (error.status === 429) {
+            if (error.status === 429 && retryCount < MAX_RETRIES) {
+              // Rate limit reached - implement exponential backoff
+              const delay = RATE_LIMIT_RETRY_DELAY * Math.pow(2, retryCount);
               toast({
                 title: "Rate limit reached",
-                description: "Please wait a moment before trying again",
+                description: `Retrying in ${delay/1000} seconds...`,
                 variant: "destructive",
               });
-              // Retry after delay
+              
               retryTimeoutId = setTimeout(async () => {
+                setRetryCount(prev => prev + 1);
                 const { error: retryError } = await supabase.auth.getSession();
                 if (!retryError) {
                   setErrorMessage("");
+                  setRetryCount(0);
                 }
-              }, RATE_LIMIT_RETRY_DELAY);
+              }, delay);
             } else {
               setErrorMessage(getErrorMessage(error));
             }
+          } else {
+            setRetryCount(0);
+            setErrorMessage("");
           }
         } catch (error: any) {
           console.error('Auth error:', error);
           setErrorMessage(error.message);
         }
       }
-    });
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange);
 
     // Check if user is already signed in
     const checkSession = async () => {
@@ -92,12 +104,13 @@ const Auth = () => {
     
     checkSession();
 
+    // Cleanup function
     return () => {
       subscription.unsubscribe();
       if (timeoutId) clearTimeout(timeoutId);
       if (retryTimeoutId) clearTimeout(retryTimeoutId);
     };
-  }, [navigate, toast]);
+  }, [navigate, toast, retryCount]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-secondary to-background p-4">
@@ -133,6 +146,9 @@ const getErrorMessage = (error: any) => {
   }
   if (error.status === 429) {
     return "Too many requests. Please wait a moment before trying again.";
+  }
+  if (error.message === "Failed to fetch") {
+    return "Network error. Please check your connection and try again.";
   }
   return error.message || "An error occurred. Please try again.";
 };
