@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { BookOpen, MessageCircle } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface StoryActionsProps {
@@ -17,7 +17,7 @@ export function StoryActions({ onReflect, onCreateNew, isKidsMode = false }: Sto
         <Button 
           onClick={onCreateNew} 
           size="lg"
-          className="flex-1 h-16 text-lg font-bold animate-pulse"
+          className="flex-1 h-16 text-lg font-bold animate-pulse bg-primary hover:bg-primary/90"
         >
           <BookOpen className="w-6 h-6 mr-3" />
           Create Another Story
@@ -48,7 +48,6 @@ export function StoryActions({ onReflect, onCreateNew, isKidsMode = false }: Sto
         View My Stories
       </Button>
       <Button onClick={onReflect} className="flex-1">
-        <MessageCircle className="w-4 h-4 mr-2" />
         Reflect on Story
       </Button>
     </div>

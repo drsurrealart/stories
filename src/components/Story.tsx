@@ -80,7 +80,10 @@ export function Story({
     <div className="w-full max-w-2xl mx-auto space-y-6">
       {/* Audio Story Card for Kids */}
       {isKidsStory && storyData?.id && (
-        <Card className="p-4 md:p-8 animate-fade-in">
+        <Card className="p-4 md:p-8 animate-fade-in border-4 border-primary">
+          <div className="flex items-center gap-2 mb-4">
+            <h3 className="font-bold text-2xl text-center w-full">Listen to the Story!</h3>
+          </div>
           <AudioStory 
             storyId={storyData.id} 
             storyContent={storyWithoutTitle}
