@@ -1,55 +1,15 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Wand2, Loader2, BookOpen } from "lucide-react";
+import { BookOpen, Loader2, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Story } from "@/components/Story";
 import { NavigationBar } from "@/components/NavigationBar";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
-const AGE_GROUPS = [
-  { id: '5-7', label: '5-7 Years', icon: '🌟' },
-  { id: '8-10', label: '8-10 Years', icon: '🌈' },
-  { id: '11-12', label: '11-12 Years', icon: '⭐' },
-];
-
-const STORY_TYPES = {
-  '5-7': [
-    { id: 'animals', label: 'Animal Friends', icon: '🐾', description: 'Stories about friendly animals!' },
-    { id: 'magic', label: 'Magic & Wonder', icon: '✨', description: 'Discover magical adventures!' },
-    { id: 'family', label: 'Family Fun', icon: '👨‍👩‍👧‍👦', description: 'Stories about family time!' },
-    { id: 'nature', label: 'Nature Tales', icon: '🌳', description: 'Explore the outdoors!' },
-    { id: 'bedtime', label: 'Bedtime Stories', icon: '🌙', description: 'Perfect for sleepy time!' },
-    { id: 'friendship', label: 'Best Friends', icon: '🤝', description: 'Stories about friendship!' },
-  ],
-  '8-10': [
-    { id: 'adventure', label: 'Epic Adventures', icon: '🗺️', description: 'Go on exciting quests!' },
-    { id: 'mystery', label: 'Mystery Stories', icon: '🔍', description: 'Solve fun mysteries!' },
-    { id: 'science', label: 'Science Fun', icon: '🔬', description: 'Discover cool science!' },
-    { id: 'sports', label: 'Sports Stories', icon: '⚽', description: 'Athletic adventures!' },
-    { id: 'fantasy', label: 'Fantasy Worlds', icon: '🏰', description: 'Visit magical places!' },
-    { id: 'school', label: 'School Days', icon: '📚', description: 'Fun school stories!' },
-  ],
-  '11-12': [
-    { id: 'action', label: 'Action Heroes', icon: '🦸‍♂️', description: 'Be a hero!' },
-    { id: 'space', label: 'Space Explorer', icon: '🚀', description: 'Journey to the stars!' },
-    { id: 'detective', label: 'Detective Tales', icon: '🕵️‍♂️', description: 'Solve mysteries!' },
-    { id: 'mythology', label: 'Myth & Legend', icon: '🐉', description: 'Ancient tales!' },
-    { id: 'technology', label: 'Tech Adventures', icon: '🤖', description: 'Digital quests!' },
-    { id: 'survival', label: 'Survival Stories', icon: '🏕️', description: 'Outdoor challenges!' },
-  ],
-};
+import { Button } from "@/components/ui/button";
+import { AgeGroupSelector } from "@/components/kids/AgeGroupSelector";
+import { StoryTypeSelector } from "@/components/kids/StoryTypeSelector";
+import { ConfirmationDialog } from "@/components/kids/ConfirmationDialog";
+import { KIDS_AGE_GROUPS, KIDS_STORY_TYPES } from "@/data/storyOptions";
 
 const KidsStoryCreator = () => {
   const [step, setStep] = useState(1);
@@ -70,7 +30,7 @@ const KidsStoryCreator = () => {
         .single();
       
       return {
-        storyCredits: 1, // Base story creation cost
+        storyCredits: 1,
         audioCredits: config?.audio_credits_cost || 3,
         imageCredits: config?.image_credits_cost || 5
       };
@@ -123,10 +83,6 @@ const KidsStoryCreator = () => {
     }
   };
 
-  const handleCreateStory = () => {
-    setShowConfirmDialog(true);
-  };
-
   if (generatedStory) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
@@ -165,93 +121,53 @@ const KidsStoryCreator = () => {
         </div>
 
         {step === 1 ? (
-          <div className="grid md:grid-cols-3 gap-6">
-            {AGE_GROUPS.map((group) => (
-              <Card
-                key={group.id}
-                className={`p-6 cursor-pointer transition-all hover:scale-105 ${
-                  ageGroup === group.id ? 'ring-2 ring-primary' : ''
-                }`}
-                onClick={() => {
-                  setAgeGroup(group.id);
-                  setStep(2);
-                }}
-              >
-                <div className="text-center space-y-4">
-                  <div className="text-4xl">{group.icon}</div>
-                  <h3 className="text-xl font-bold">{group.label}</h3>
-                </div>
-              </Card>
-            ))}
-          </div>
+          <AgeGroupSelector
+            ageGroups={KIDS_AGE_GROUPS}
+            selectedAgeGroup={ageGroup}
+            onSelect={(selected) => {
+              setAgeGroup(selected);
+              setStep(2);
+            }}
+          />
         ) : (
-          <div className="grid md:grid-cols-2 gap-6">
-            {STORY_TYPES[ageGroup as keyof typeof STORY_TYPES].map((type) => (
-              <Card
-                key={type.id}
-                className={`p-6 cursor-pointer transition-all hover:scale-105 ${
-                  storyType === type.id ? 'ring-2 ring-primary' : ''
-                }`}
-                onClick={() => setStoryType(type.id)}
-              >
-                <div className="text-center space-y-4">
-                  <div className="text-4xl">{type.icon}</div>
-                  <h3 className="text-xl font-bold">{type.label}</h3>
-                  <p className="text-muted-foreground">{type.description}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
+          <>
+            <StoryTypeSelector
+              storyTypes={KIDS_STORY_TYPES[ageGroup as keyof typeof KIDS_STORY_TYPES]}
+              selectedType={storyType}
+              onSelect={setStoryType}
+            />
+            
+            {storyType && (
+              <div className="flex justify-center mt-8">
+                <Button
+                  size="lg"
+                  className="text-lg px-8 py-6"
+                  onClick={() => setShowConfirmDialog(true)}
+                  disabled={!storyType || isGenerating}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating your story...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="mr-2 h-5 w-5" />
+                      Create My Story!
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
         )}
 
-        {step === 2 && (
-          <div className="flex justify-center mt-8">
-            <Button
-              size="lg"
-              className="text-lg px-8 py-6"
-              onClick={handleCreateStory}
-              disabled={!storyType || isGenerating}
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating your story...
-                </>
-              ) : (
-                <>
-                  <Wand2 className="mr-2 h-5 w-5" />
-                  Create My Story!
-                </>
-              )}
-            </Button>
-          </div>
-        )}
-
-        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-          <AlertDialogContent className="max-w-md">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-2xl">Ready to Create Your Story?</AlertDialogTitle>
-              <AlertDialogDescription className="text-lg space-y-4">
-                <p>Make sure you have your parent's permission! 🌟</p>
-                <p>This will use {totalCredits} credits to create:</p>
-                <ul className="list-disc pl-6">
-                  <li>Your story ({creditCosts?.storyCredits || 1} credit)</li>
-                  <li>An audio version to listen to ({creditCosts?.audioCredits || 3} credits)</li>
-                  <li>A special picture for your story ({creditCosts?.imageCredits || 5} credits)</li>
-                </ul>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="text-lg">Not Yet</AlertDialogCancel>
-              <AlertDialogAction 
-                className="text-lg"
-                onClick={handleGenerate}
-              >
-                Yes, Create My Story!
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ConfirmationDialog
+          open={showConfirmDialog}
+          onOpenChange={setShowConfirmDialog}
+          onConfirm={handleGenerate}
+          totalCredits={totalCredits}
+        />
       </div>
     </div>
   );

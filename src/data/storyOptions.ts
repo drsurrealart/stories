@@ -151,3 +151,36 @@ export const moralsByAge = {
     { value: "growth", label: "Personal Evolution" }
   ],
 };
+
+export const KIDS_AGE_GROUPS = [
+  { id: '5-7', label: '5-7 Years', icon: '🌟' },
+  { id: '8-10', label: '8-10 Years', icon: '🌈' },
+  { id: '11-12', label: '11-12 Years', icon: '⭐' },
+];
+
+export const KIDS_STORY_TYPES = {
+  '5-7': [
+    { id: 'animals', label: 'Animal Friends', icon: '🐾', description: 'Stories about friendly animals!' },
+    { id: 'magic', label: 'Magic & Wonder', icon: '✨', description: 'Discover magical adventures!' },
+    { id: 'family', label: 'Family Fun', icon: '👨‍👩‍👧‍👦', description: 'Stories about family time!' },
+    { id: 'nature', label: 'Nature Tales', icon: '🌳', description: 'Explore the outdoors!' },
+    { id: 'bedtime', label: 'Bedtime Stories', icon: '🌙', description: 'Perfect for sleepy time!' },
+    { id: 'friendship', label: 'Best Friends', icon: '🤝', description: 'Stories about friendship!' },
+  ],
+  '8-10': [
+    { id: 'adventure', label: 'Epic Adventures', icon: '🗺️', description: 'Go on exciting quests!' },
+    { id: 'mystery', label: 'Mystery Stories', icon: '🔍', description: 'Solve fun mysteries!' },
+    { id: 'science', label: 'Science Fun', icon: '🔬', description: 'Discover cool science!' },
+    { id: 'sports', label: 'Sports Stories', icon: '⚽', description: 'Athletic adventures!' },
+    { id: 'fantasy', label: 'Fantasy Worlds', icon: '🏰', description: 'Visit magical places!' },
+    { id: 'school', label: 'School Days', icon: '📚', description: 'Fun school stories!' },
+  ],
+  '11-12': [
+    { id: 'action', label: 'Action Heroes', icon: '🦸‍♂️', description: 'Be a hero!' },
+    { id: 'space', label: 'Space Explorer', icon: '🚀', description: 'Journey to the stars!' },
+    { id: 'detective', label: 'Detective Tales', icon: '🕵️‍♂️', description: 'Solve mysteries!' },
+    { id: 'mythology', label: 'Myth & Legend', icon: '🐉', description: 'Ancient tales!' },
+    { id: 'technology', label: 'Tech Adventures', icon: '🤖', description: 'Digital quests!' },
+    { id: 'survival', label: 'Survival Stories', icon: '🏕️', description: 'Outdoor challenges!' },
+  ],
+} as const;
