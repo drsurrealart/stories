@@ -1,14 +1,14 @@
 import { Card } from "@/components/ui/card";
 
 interface StoryType {
-  id: string;
-  label: string;
-  icon: string;
-  description: string;
+  readonly id: string;
+  readonly label: string;
+  readonly icon: string;
+  readonly description: string;
 }
 
 interface StoryTypeSelectorProps {
-  storyTypes: StoryType[];
+  storyTypes: readonly StoryType[];
   selectedType: string;
   onSelect: (type: string) => void;
 }
