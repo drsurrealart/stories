@@ -1,114 +1,86 @@
-import { StoryForm, StoryPreferences } from "@/components/StoryForm";
-import { NavigationBar } from "@/components/NavigationBar";
 import { useState } from "react";
-import { Story } from "@/components/Story";
+import { useNavigate } from "react-router-dom";
+import { StoryForm } from "@/components/StoryForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { nanoid } from "nanoid";
 
-const ParentsStoryCreator = () => {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedStory, setGeneratedStory] = useState("");
+type StoryPreferences = {
+  ageGroup: string;
+  genre: string;
+  moral: string;
+  readingLevel: "early_reader" | "beginner" | "intermediate" | "advanced" | "fluent";
+  lengthPreference: string;
+  language: string;
+  tone: string;
+};
+
+export default function ParentsStoryCreator() {
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (preferences: StoryPreferences) => {
     try {
-      setIsGenerating(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
+      setIsLoading(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
         toast({
-          title: "Please sign in",
-          description: "You need to be signed in to create stories",
+          title: "Error",
+          description: "You must be logged in to create a story",
           variant: "destructive",
         });
         return;
       }
 
-      // Generate story
-      const storyResponse = await supabase.functions.invoke('generate-story', {
-        body: { preferences }
-      });
+      const slug = nanoid();
 
-      if (storyResponse.error) throw new Error(storyResponse.error.message);
-      const story = storyResponse.data.story;
-      const imagePrompt = storyResponse.data.imagePrompt;
-
-      // Create URL-friendly slug
-      const title = story.split('\n')[0];
-      const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-
-      // Save the story
-      const { data: savedStory, error: saveError } = await supabase
-        .from('stories')
+      const { data: story, error } = await supabase
+        .from("stories")
         .insert({
-          title,
-          content: story,
+          title: `Parent Story - ${new Date().toLocaleDateString()}`,
+          content: "Story content will be generated...",
           age_group: preferences.ageGroup,
           genre: preferences.genre,
           moral: preferences.moral,
-          author_id: session.user.id,
-          image_prompt: imagePrompt,
+          author_id: user.id,
           slug,
-          length_preference: preferences.lengthPreference,
           language: preferences.language,
           tone: preferences.tone,
           poetic_style: "prose",
-          reading_level: preferences.readingLevel as "early_reader" | "beginner" | "intermediate" | "advanced" | "fluent"
+          reading_level: preferences.readingLevel,
+          length_preference: preferences.lengthPreference
         })
         .select()
         .single();
 
-      if (saveError) throw saveError;
+      if (error) {
+        throw error;
+      }
 
-      setGeneratedStory(story);
-      toast({
-        title: "Success!",
-        description: "Your story has been created!",
-      });
-
-    } catch (error: any) {
+      if (story) {
+        navigate(`/story/${story.slug}`);
+      }
+    } catch (error) {
+      console.error("Error creating story:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to generate story",
+        description: "Failed to create story. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setIsGenerating(false);
+      setIsLoading(false);
     }
   };
 
-  if (generatedStory) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
-        <NavigationBar onLogout={() => {}} />
-        <div className="container mx-auto px-4 py-8 flex justify-center">
-          <Story
-            content={generatedStory}
-            enrichment={null}
-            onReflect={() => {}}
-            onCreateNew={() => {
-              setGeneratedStory("");
-            }}
-            ageGroup="all"
-            genre="any"
-          />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
-      <NavigationBar onLogout={() => {}} />
-      <div className="container mx-auto py-8 flex flex-col items-center">
-        <h1 className="text-3xl font-bold text-primary mb-8">Create a Family Story</h1>
-        <StoryForm onSubmit={handleSubmit} isLoading={isGenerating} />
-      </div>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">Create a Story for Your Family</h1>
+      <StoryForm onSubmit={handleSubmit} isLoading={isLoading} />
     </div>
   );
-};
-
-export default ParentsStoryCreator;
+}
