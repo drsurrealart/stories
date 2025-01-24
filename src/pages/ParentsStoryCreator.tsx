@@ -56,7 +56,7 @@ const ParentsStoryCreator = () => {
           language: preferences.language,
           tone: preferences.tone,
           poetic_style: "prose",
-          reading_level: preferences.readingLevel
+          reading_level: preferences.readingLevel as "early_reader" | "beginner" | "intermediate" | "advanced" | "fluent"
         })
         .select()
         .single();
