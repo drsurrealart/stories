@@ -80,17 +80,30 @@ const KidsStoryCreator = () => {
       const story = storyResponse.data.story;
       const imagePrompt = storyResponse.data.imagePrompt;
 
+      // Create a URL-friendly slug from the title
+      const title = story.split('\n')[0];
+      const slug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
       // Save the story first
       const { data: savedStory, error: saveError } = await supabase
         .from('stories')
         .insert({
-          title: story.split('\n')[0],
+          title: title,
           content: story,
           age_group: ageGroup,
           genre: storyType,
           moral: "being kind and helpful",
           author_id: session.user.id,
-          image_prompt: imagePrompt
+          image_prompt: imagePrompt,
+          slug: slug,
+          poetic_style: "prose",
+          reading_level: "early_reader",
+          language: "english",
+          tone: "funny",
+          length_preference: "short"
         })
         .select()
         .single();
