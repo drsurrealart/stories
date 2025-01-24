@@ -29,7 +29,7 @@ const ParentsStoryCreator = () => {
         genre: formData.genre,
         moral: formData.moral,
         author_id: user.id,
-        slug: formData.title.toLowerCase().replace(/\s+/g, '-'),
+        slug: formData.content.substring(0, 50).toLowerCase().replace(/\s+/g, '-'),
         reading_level: "intermediate" as const,
         poetic_style: "prose" as const,
         language: formData.language || "english",
