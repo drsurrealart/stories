@@ -45,6 +45,7 @@ export function Story({
 }: StoryProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const isKidsStory = ageGroup?.toLowerCase().includes('kid') || ageGroup?.toLowerCase().includes('child');
 
   // Split content to separate moral from the rest of the story
   const parts = content.split("Moral:");
@@ -78,6 +79,17 @@ export function Story({
         {storyData?.id && <FavoriteButton storyId={storyData.id} />}
       </div>
 
+      {/* Show audio player prominently for kids' stories */}
+      {isKidsStory && storyData?.id && (
+        <div className="mt-4 mb-8">
+          <AudioStory 
+            storyId={storyData.id} 
+            storyContent={storyWithoutTitle}
+            isKidsMode={true}
+          />
+        </div>
+      )}
+
       <div className="prose max-w-none">
         <div className="text-story-text leading-relaxed whitespace-pre-wrap text-sm md:text-base">
           {storyWithoutTitle}
@@ -105,7 +117,7 @@ export function Story({
         />
       )}
 
-      {storyData?.id && (
+      {storyData?.id && !isKidsStory && (
         <>
           <AudioStory 
             storyId={storyData.id} 

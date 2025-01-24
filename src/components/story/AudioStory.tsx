@@ -1,19 +1,21 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Headphones } from "lucide-react";
+import { Headphones, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AudioPlayer } from "./audio/AudioPlayer";
 import { AudioGenerationForm } from "./audio/AudioGenerationForm";
 import { AudioControls } from "./audio/AudioControls";
+import { Button } from "@/components/ui/button";
 
 interface AudioStoryProps {
   storyId: string;
   storyContent: string;
+  isKidsMode?: boolean;
 }
 
-export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
+export function AudioStory({ storyId, storyContent, isKidsMode = false }: AudioStoryProps) {
   const [selectedVoice, setSelectedVoice] = useState('alloy');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -197,29 +199,55 @@ export function AudioStory({ storyId, storyContent }: AudioStoryProps) {
   });
 
   return (
-    <Card className="p-4 md:p-6 space-y-4 bg-card">
+    <Card className={`p-4 md:p-6 space-y-4 bg-card ${isKidsMode ? 'border-4 border-primary' : ''}`}>
       <div className="flex items-center gap-2 mb-4">
         <Headphones className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold text-lg">Audio Story</h3>
+        <h3 className="font-semibold text-lg">Listen to the Story</h3>
       </div>
 
       {!audioStory ? (
-        <AudioGenerationForm
-          selectedVoice={selectedVoice}
-          onVoiceChange={setSelectedVoice}
-          isGenerating={isGenerating}
-          showConfirmDialog={showConfirmDialog}
-          onConfirmDialogChange={setShowConfirmDialog}
-          onGenerate={handleCreateAudio}
-          creditCost={creditInfo?.creditCost}
-        />
+        isKidsMode ? (
+          <div className="text-center py-8">
+            <Button 
+              size="lg" 
+              className="w-full max-w-md h-20 text-xl gap-4 rounded-full animate-pulse"
+              onClick={() => setShowConfirmDialog(true)}
+            >
+              <Play className="h-8 w-8" />
+              Create Audio Story
+            </Button>
+            <AudioGenerationForm
+              selectedVoice={selectedVoice}
+              onVoiceChange={setSelectedVoice}
+              isGenerating={isGenerating}
+              showConfirmDialog={showConfirmDialog}
+              onConfirmDialogChange={setShowConfirmDialog}
+              onGenerate={handleCreateAudio}
+              isKidsMode={true}
+            />
+          </div>
+        ) : (
+          <AudioGenerationForm
+            selectedVoice={selectedVoice}
+            onVoiceChange={setSelectedVoice}
+            isGenerating={isGenerating}
+            showConfirmDialog={showConfirmDialog}
+            onConfirmDialogChange={setShowConfirmDialog}
+            onGenerate={handleCreateAudio}
+          />
+        )
       ) : (
         <>
-          <AudioPlayer audioUrl={audioStory.audio_url} />
-          <AudioControls 
-            storyId={storyId} 
+          <AudioPlayer 
             audioUrl={audioStory.audio_url} 
+            isKidsMode={isKidsMode}
           />
+          {!isKidsMode && (
+            <AudioControls 
+              storyId={storyId} 
+              audioUrl={audioStory.audio_url} 
+            />
+          )}
         </>
       )}
     </Card>

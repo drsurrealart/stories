@@ -6,9 +6,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface AudioPlayerProps {
   audioUrl: string;
+  isKidsMode?: boolean;
 }
 
-export function AudioPlayer({ audioUrl }: AudioPlayerProps) {
+export function AudioPlayer({ audioUrl, isKidsMode = false }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [progress, setProgress] = useState(0);
@@ -152,36 +153,57 @@ export function AudioPlayer({ audioUrl }: AudioPlayerProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">{formatTime(currentTime)}</span>
-          <span className="text-sm text-gray-500">{formatTime(duration)}</span>
+      {isKidsMode ? (
+        <div className="flex justify-center">
+          <Button
+            size="lg"
+            variant={isPlaying ? "outline" : "default"}
+            onClick={togglePlayPause}
+            className={`w-32 h-32 rounded-full transition-all transform hover:scale-105 ${
+              isPlaying ? 'bg-secondary' : 'bg-primary animate-pulse'
+            }`}
+          >
+            {isPlaying ? (
+              <Pause className="h-16 w-16" />
+            ) : (
+              <Play className="h-16 w-16" />
+            )}
+          </Button>
         </div>
-        <div 
-          ref={progressBarRef}
-          className="relative h-2 bg-secondary rounded-full cursor-pointer"
-          onClick={handleProgressClick}
-        >
+      ) : (
+        <div className="flex flex-col space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-500">{formatTime(currentTime)}</span>
+            <span className="text-sm text-gray-500">{formatTime(duration)}</span>
+          </div>
           <div 
-            className="absolute h-full bg-primary rounded-full transition-all"
-            style={{ width: `${progress}%` }}
-          />
+            ref={progressBarRef}
+            className="relative h-2 bg-secondary rounded-full cursor-pointer"
+            onClick={handleProgressClick}
+          >
+            <div 
+              className="absolute h-full bg-primary rounded-full transition-all"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
-      </div>
+      )}
       
       <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={togglePlayPause}
-          className="hover:bg-secondary/50"
-        >
-          {isPlaying ? (
-            <Pause className="h-6 w-6" />
-          ) : (
-            <Play className="h-6 w-6" />
-          )}
-        </Button>
+        {!isKidsMode && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={togglePlayPause}
+            className="hover:bg-secondary/50"
+          >
+            {isPlaying ? (
+              <Pause className="h-6 w-6" />
+            ) : (
+              <Play className="h-6 w-6" />
+            )}
+          </Button>
+        )}
         
         <div className="flex items-center gap-2">
           <Button
