@@ -22,6 +22,7 @@ interface AudioGenerationFormProps {
   onConfirmDialogChange: (show: boolean) => void;
   onGenerate: () => void;
   creditCost?: number;
+  isKidsMode?: boolean;
 }
 
 export function AudioGenerationForm({
@@ -31,6 +32,7 @@ export function AudioGenerationForm({
   showConfirmDialog,
   onConfirmDialogChange,
   onGenerate,
+  isKidsMode = false,
 }: AudioGenerationFormProps) {
   const { data: audioCreditCost } = useQuery({
     queryKey: ['audio-credits-cost'],
@@ -48,13 +50,15 @@ export function AudioGenerationForm({
 
   return (
     <div className="space-y-4">
-      <VoiceSelector
-        selectedVoice={selectedVoice}
-        onVoiceChange={onVoiceChange}
-      />
+      {!isKidsMode && (
+        <VoiceSelector
+          selectedVoice={selectedVoice}
+          onVoiceChange={onVoiceChange}
+        />
+      )}
 
       <Button 
-        className="w-full" 
+        className={`w-full ${isKidsMode ? 'h-20 text-xl rounded-full animate-pulse' : ''}`}
         onClick={() => onConfirmDialogChange(true)}
         disabled={isGenerating}
       >
@@ -64,7 +68,11 @@ export function AudioGenerationForm({
             Generating Audio...
           </>
         ) : (
-          `Create Audio Story (Uses ${audioCreditCost} Credits)`
+          isKidsMode ? (
+            "Create Audio Story"
+          ) : (
+            `Create Audio Story (Uses ${audioCreditCost} Credits)`
+          )
         )}
       </Button>
 
