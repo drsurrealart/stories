@@ -19,7 +19,7 @@ import AdminSubscriptions from "@/pages/admin/AdminSubscriptions";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminFunctions from "@/pages/admin/AdminFunctions";
 
-export function AppRoutes() {
+const AppRoutes = () => {
   return (
     <Routes>
       {/* Public routes */}
@@ -162,4 +162,6 @@ export function AppRoutes() {
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
-}
+};
+
+export default AppRoutes;
