@@ -10,6 +10,7 @@ import { AgeGroupSelector } from "@/components/kids/AgeGroupSelector";
 import { StoryTypeSelector } from "@/components/kids/StoryTypeSelector";
 import { ConfirmationDialog } from "@/components/kids/ConfirmationDialog";
 import { KIDS_AGE_GROUPS, KIDS_STORY_TYPES } from "@/data/storyOptions";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const KidsStoryCreator = () => {
   const [step, setStep] = useState(1);
@@ -122,6 +123,25 @@ const KidsStoryCreator = () => {
             {step === 1 ? "How old are you?" : "What kind of story do you want?"}
           </p>
         </div>
+
+        {ageGroup && (
+          <div className="flex justify-center mb-8">
+            <Tabs value={ageGroup} onValueChange={setAgeGroup} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 h-14">
+                {KIDS_AGE_GROUPS.map((group) => (
+                  <TabsTrigger
+                    key={group.id}
+                    value={group.id}
+                    className="text-lg font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    <span className="mr-2">{group.icon}</span>
+                    {group.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
 
         {step === 1 ? (
           <AgeGroupSelector
