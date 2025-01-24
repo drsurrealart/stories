@@ -6,7 +6,7 @@ import {
   Settings, 
   Users, 
   CreditCard,
-  Function as FunctionIcon
+  Code
 } from "lucide-react";
 
 export const AdminNav = () => {
@@ -31,7 +31,7 @@ export const AdminNav = () => {
     {
       title: "Functions",
       href: "/admin/functions",
-      icon: <FunctionIcon className="h-4 w-4" />,
+      icon: <Code className="h-4 w-4" />,
     },
     {
       title: "Settings",
