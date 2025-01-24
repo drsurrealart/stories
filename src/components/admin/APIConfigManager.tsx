@@ -14,6 +14,7 @@ interface APIConfig {
   key_name: string;
   description: string | null;
   is_active: boolean;
+  kids_story_credits_cost: number | null;
 }
 
 const API_KEYS = [
@@ -63,6 +64,25 @@ export const APIConfigManager = () => {
     onError: (error) => {
       console.error("Error updating API config:", error);
       toast.error("Failed to update API configuration");
+    },
+  });
+
+  const updateCreditsCost = useMutation({
+    mutationFn: async ({ id, cost }: { id: string; cost: number }) => {
+      const { error } = await supabase
+        .from("api_configurations")
+        .update({ kids_story_credits_cost: cost })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["api-configs"] });
+      toast.success("Credits cost updated successfully");
+    },
+    onError: (error) => {
+      console.error("Error updating credits cost:", error);
+      toast.error("Failed to update credits cost");
     },
   });
 
@@ -118,12 +138,33 @@ export const APIConfigManager = () => {
                   key={config.id}
                   className="flex items-center justify-between p-4 border rounded-lg"
                 >
-                  <div>
+                  <div className="flex-grow">
                     <p className="font-medium">{config.key_name}</p>
                     {config.description && (
                       <p className="text-sm text-gray-500">
                         {config.description}
                       </p>
+                    )}
+                    {config.key_name === "AUDIO_STORY_CREDITS" && (
+                      <div className="mt-2">
+                        <Label htmlFor="kidsCreditsCost">Kids Story Credits Cost</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            id="kidsCreditsCost"
+                            type="number"
+                            min="0"
+                            value={config.kids_story_credits_cost || 0}
+                            onChange={(e) =>
+                              updateCreditsCost.mutate({
+                                id: config.id,
+                                cost: parseInt(e.target.value),
+                              })
+                            }
+                            className="w-24"
+                          />
+                          <span className="text-sm text-gray-500">credits</span>
+                        </div>
+                      </div>
                     )}
                   </div>
                   <div className="flex items-center space-x-2">
