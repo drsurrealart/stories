@@ -1,5 +1,5 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Loader2, Star, Wand2, Heart, CheckCircle } from "lucide-react";
+import { Loader2, Star, Wand2, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
@@ -32,8 +32,10 @@ export function StoryGenerationModal({ isOpen, generationStep }: StoryGeneration
     return () => clearInterval(interval);
   }, [isOpen]);
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
+    <Dialog open={isOpen}>
       <DialogContent className="sm:max-w-md bg-gradient-to-b from-secondary to-background border-4 border-primary">
         <div className="flex flex-col items-center justify-center space-y-6 py-8">
           {/* Animated Icons */}

@@ -64,6 +64,7 @@ const KidsStoryCreator = () => {
           description: "You need to be signed in to create stories",
           variant: "destructive",
         });
+        setIsGenerating(false);
         return;
       }
 
