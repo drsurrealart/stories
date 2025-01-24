@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,7 @@ const Auth = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [view, setView] = useState<"sign_in" | "sign_up">("sign_in");
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -29,7 +30,8 @@ const Auth = () => {
 
       if (event === 'SIGNED_IN' && session) {
         timeoutId = setTimeout(() => {
-          navigate('/dashboard');
+          const from = (location.state as any)?.from?.pathname || '/create';
+          navigate(from);
         }, REDIRECT_DELAY);
       }
 
@@ -89,9 +91,8 @@ const Auth = () => {
           throw error;
         }
         if (session) {
-          timeoutId = setTimeout(() => {
-            navigate('/dashboard');
-          }, REDIRECT_DELAY);
+          const from = (location.state as any)?.from?.pathname || '/create';
+          navigate(from);
         }
       } catch (error: any) {
         console.error('Session check error:', error);
@@ -106,7 +107,7 @@ const Auth = () => {
       if (timeoutId) clearTimeout(timeoutId);
       if (retryTimeoutId) clearTimeout(retryTimeoutId);
     };
-  }, [navigate, toast, retryCount]);
+  }, [navigate, toast, retryCount, location]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#F1F0FB] to-white p-4">
