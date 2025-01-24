@@ -1,26 +1,17 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 import { Story } from "@/components/Story";
-import { NavigationBar } from "@/components/NavigationBar";
-import { Button } from "@/components/ui/button";
-import { ConfirmationDialog } from "@/components/kids/ConfirmationDialog";
-import { KIDS_AGE_GROUPS, KIDS_STORY_TYPES } from "@/data/storyOptions";
 import { StoryCreatorHeader } from "@/components/kids/StoryCreatorHeader";
 import { StoryGenerationStatus } from "@/components/kids/StoryGenerationStatus";
 import { GenerateStoryButton } from "@/components/kids/GenerateStoryButton";
-import { AgeGroupTabs } from "@/components/kids/AgeGroupTabs";
+import { ConfirmationDialog } from "@/components/kids/ConfirmationDialog";
 import { StoryGenerationModal } from "@/components/kids/StoryGenerationModal";
-
-const AGE_GROUP_MAPPING = {
-  '5-7': 'preschool',
-  '8-10': 'elementary',
-  '11-12': 'tween'
-} as const;
+import { StoryCreatorLayout } from "@/components/kids/StoryCreatorLayout";
+import { StoryCreatorSteps } from "@/components/kids/StoryCreatorSteps";
+import { AgeGroupTabs } from "@/components/kids/AgeGroupTabs";
 
 const KidsStoryCreator = () => {
-  const [step, setStep] = useState(1);
   const [ageGroup, setAgeGroup] = useState("");
   const [storyType, setStoryType] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -28,30 +19,6 @@ const KidsStoryCreator = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [generationStep, setGenerationStep] = useState("");
   const { toast } = useToast();
-
-  // Fetch credit costs
-  const { data: creditCosts } = useQuery({
-    queryKey: ['credit-costs'],
-    queryFn: async () => {
-      const { data: config, error } = await supabase
-        .from('api_configurations')
-        .select('audio_credits_cost, image_credits_cost, kids_story_credits_cost')
-        .eq('key_name', 'AUDIO_STORY_CREDITS')
-        .maybeSingle();
-      
-      if (error) throw error;
-      
-      return {
-        storyCredits: config?.kids_story_credits_cost || 1,
-        audioCredits: config?.audio_credits_cost || 3,
-        imageCredits: config?.image_credits_cost || 5
-      };
-    }
-  });
-
-  const totalCredits = (creditCosts?.storyCredits || 1) + 
-                      (creditCosts?.audioCredits || 3) + 
-                      (creditCosts?.imageCredits || 5);
 
   const handleGenerate = async () => {
     try {
@@ -73,7 +40,7 @@ const KidsStoryCreator = () => {
       const storyResponse = await supabase.functions.invoke('generate-story', {
         body: {
           preferences: {
-            ageGroup: AGE_GROUP_MAPPING[ageGroup as keyof typeof AGE_GROUP_MAPPING],
+            ageGroup: ageGroup,
             genre: storyType,
             moral: "being kind and helpful",
             lengthPreference: "short",
@@ -102,7 +69,7 @@ const KidsStoryCreator = () => {
         .insert({
           title: title,
           content: story,
-          age_group: AGE_GROUP_MAPPING[ageGroup as keyof typeof AGE_GROUP_MAPPING],
+          age_group: ageGroup,
           genre: storyType,
           moral: "being kind and helpful",
           author_id: session.user.id,
@@ -135,7 +102,7 @@ const KidsStoryCreator = () => {
             story_id: savedStory.id,
             user_id: session.user.id,
             image_url: imageResponse.data.imageUrl,
-            credits_used: creditCosts?.imageCredits || 5
+            credits_used: 5
           });
       }
 
@@ -169,7 +136,7 @@ const KidsStoryCreator = () => {
             user_id: session.user.id,
             audio_url: filename,
             voice_id: "fable",
-            credits_used: creditCosts?.audioCredits || 3
+            credits_used: 3
           });
       }
 
@@ -193,16 +160,14 @@ const KidsStoryCreator = () => {
 
   if (generatedStory) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
-        <NavigationBar onLogout={() => {}} />
-        <div className="container mx-auto px-4 py-8 flex justify-center">
+      <StoryCreatorLayout>
+        <div className="flex justify-center">
           <Story
             content={generatedStory}
             enrichment={null}
             onReflect={() => {}}
             onCreateNew={() => {
               setGeneratedStory("");
-              setStep(1);
               setAgeGroup("");
               setStoryType("");
             }}
@@ -210,59 +175,26 @@ const KidsStoryCreator = () => {
             genre={storyType}
           />
         </div>
-      </div>
+      </StoryCreatorLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
-      <NavigationBar onLogout={() => {}} />
-      <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
+    <StoryCreatorLayout>
+      <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
         <StoryCreatorHeader />
 
         <AgeGroupTabs 
           selectedAgeGroup={ageGroup} 
-          onAgeGroupChange={(value) => {
-            setAgeGroup(value);
-            setStep(2);
-          }} 
+          onAgeGroupChange={setAgeGroup} 
         />
 
-        {step === 1 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
-            {KIDS_AGE_GROUPS.map((group) => (
-              <Button
-                key={group.id}
-                variant={ageGroup === group.id ? "default" : "outline"}
-                size="lg"
-                className="flex flex-col items-center p-4 h-auto gap-2 transition-all hover:scale-105"
-                onClick={() => {
-                  setAgeGroup(group.id);
-                  setStep(2);
-                }}
-              >
-                <span className="text-3xl">{group.icon}</span>
-                <span className="text-sm text-center font-semibold">{group.label}</span>
-              </Button>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4">
-            {KIDS_STORY_TYPES[ageGroup as keyof typeof KIDS_STORY_TYPES].map((type) => (
-              <Button
-                key={type.id}
-                variant={storyType === type.id ? "default" : "outline"}
-                size="lg"
-                className="flex flex-col items-center p-4 h-auto gap-2 transition-all hover:scale-105"
-                onClick={() => setStoryType(type.id)}
-              >
-                <span className="text-3xl">{type.icon}</span>
-                <span className="text-base font-semibold">{type.label}</span>
-                <p className="text-sm text-muted-foreground text-center">{type.description}</p>
-              </Button>
-            ))}
-          </div>
-        )}
+        <StoryCreatorSteps
+          ageGroup={ageGroup}
+          storyType={storyType}
+          onAgeGroupSelect={setAgeGroup}
+          onStoryTypeSelect={setStoryType}
+        />
         
         <GenerateStoryButton
           storyType={storyType}
@@ -284,10 +216,10 @@ const KidsStoryCreator = () => {
           open={showConfirmDialog}
           onOpenChange={setShowConfirmDialog}
           onConfirm={handleGenerate}
-          totalCredits={totalCredits}
+          totalCredits={9}
         />
       </div>
-    </div>
+    </StoryCreatorLayout>
   );
 };
 
