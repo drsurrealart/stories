@@ -27,6 +27,12 @@ const KidsStoryCreator = () => {
   const [generationStep, setGenerationStep] = useState("");
   const { toast } = useToast();
 
+  const resetStates = () => {
+    setIsGenerating(false);
+    setGenerationStep("");
+    setShowConfirmDialog(false);
+  };
+
   const handleGenerate = async () => {
     try {
       setIsGenerating(true);
@@ -38,7 +44,7 @@ const KidsStoryCreator = () => {
           description: "You need to be signed in to create stories",
           variant: "destructive",
         });
-        setIsGenerating(false);
+        resetStates();
         return;
       }
 
@@ -163,8 +169,7 @@ const KidsStoryCreator = () => {
         variant: "destructive",
       });
     } finally {
-      setIsGenerating(false);
-      setGenerationStep("");
+      resetStates();
     }
   };
 
@@ -180,6 +185,7 @@ const KidsStoryCreator = () => {
               setGeneratedStory("");
               setAgeGroup("");
               setStoryType("");
+              resetStates();
             }}
             ageGroup={ageGroup}
             genre={storyType}
