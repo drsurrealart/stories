@@ -11,6 +11,13 @@ import { StoryCreatorLayout } from "@/components/kids/StoryCreatorLayout";
 import { StoryCreatorSteps } from "@/components/kids/StoryCreatorSteps";
 import { AgeGroupTabs } from "@/components/kids/AgeGroupTabs";
 
+// Map kids age groups to database age groups
+const AGE_GROUP_MAPPING = {
+  '5-7': 'preschool',
+  '8-10': 'elementary',
+  '11-12': 'tween'
+};
+
 const KidsStoryCreator = () => {
   const [ageGroup, setAgeGroup] = useState("");
   const [storyType, setStoryType] = useState("");
@@ -35,12 +42,15 @@ const KidsStoryCreator = () => {
         return;
       }
 
+      // Map the selected age group to the database format
+      const mappedAgeGroup = AGE_GROUP_MAPPING[ageGroup as keyof typeof AGE_GROUP_MAPPING];
+
       // Step 1: Generate Story Text
       setGenerationStep("Creating your magical story...");
       const storyResponse = await supabase.functions.invoke('generate-story', {
         body: {
           preferences: {
-            ageGroup: ageGroup,
+            ageGroup: mappedAgeGroup,
             genre: storyType,
             moral: "being kind and helpful",
             lengthPreference: "short",
@@ -69,7 +79,7 @@ const KidsStoryCreator = () => {
         .insert({
           title: title,
           content: story,
-          age_group: ageGroup,
+          age_group: mappedAgeGroup,
           genre: storyType,
           moral: "being kind and helpful",
           author_id: session.user.id,
