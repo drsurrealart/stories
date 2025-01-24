@@ -53,7 +53,6 @@ const YourStories = () => {
       setStories(data || []);
       setFilteredStories(data || []);
 
-      // If there's a highlighted story, find its page and set it
       if (highlightedStoryId && data) {
         const storyIndex = data.findIndex(story => story.id === highlightedStoryId);
         if (storyIndex !== -1) {
@@ -77,7 +76,6 @@ const YourStories = () => {
     fetchStories();
   }, []);
 
-  // Scroll to highlighted story when it's available
   useEffect(() => {
     if (highlightedStoryId && storyRefs.current[highlightedStoryId]) {
       storyRefs.current[highlightedStoryId]?.scrollIntoView({ behavior: 'smooth' });
@@ -86,7 +84,7 @@ const YourStories = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
     
     if (!query.trim()) {
       setFilteredStories(stories);
@@ -114,17 +112,15 @@ const YourStories = () => {
 
       if (error) throw error;
 
-      // Update both stories and filtered stories
       const updatedStories = stories.filter(story => story.id !== storyId);
       setStories(updatedStories);
-      handleSearch(searchQuery); // Reapply search filter
+      handleSearch(searchQuery);
 
       toast({
         title: "Success",
         description: "Story deleted successfully",
       });
 
-      // Adjust current page if necessary
       const newTotalPages = Math.ceil(filteredStories.length / STORIES_PER_PAGE);
       if (currentPage > newTotalPages && currentPage > 1) {
         setCurrentPage(currentPage - 1);
@@ -155,7 +151,7 @@ const YourStories = () => {
         )}
         
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <PaginationItem key={page}>
+          <PaginationItem key={page} className="hidden md:inline-block">
             <PaginationLink
               onClick={() => setCurrentPage(page)}
               isActive={currentPage === page}
@@ -179,8 +175,8 @@ const YourStories = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       <NavigationBar onLogout={async () => {}} />
-      <div className="max-w-4xl mx-auto p-6 space-y-8">
-        <h1 className="text-3xl font-bold text-center mb-8">My Stories</h1>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6">My Stories</h1>
         
         <div className="relative">
           <Input
@@ -196,11 +192,11 @@ const YourStories = () => {
         {isLoading ? (
           <Loading text="Loading your stories..." />
         ) : filteredStories.length === 0 ? (
-          <div className="text-center text-gray-500">
+          <div className="text-center text-gray-500 p-4 bg-white/50 rounded-lg">
             {searchQuery ? "No stories found matching your search." : "You haven't saved any stories yet."}
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {totalPages > 1 && <PaginationComponent />}
             
             {paginatedStories.map((story) => (
