@@ -1,13 +1,9 @@
-import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { ConfigItem } from "./api-config/ConfigItem";
 
 interface APIConfig {
   id: string;
@@ -86,7 +82,7 @@ export const APIConfigManager = () => {
     },
   });
 
-  // Initialize API keys if they don't exist
+  // Initialize missing API keys
   const initializeMutation = useMutation({
     mutationFn: async (key_name: string) => {
       const { error } = await supabase.from("api_configurations").insert([
@@ -103,20 +99,15 @@ export const APIConfigManager = () => {
     },
   });
 
-  // Initialize missing API keys
-  const initializeMissingKeys = () => {
-    const existingKeys = configs?.map((config) => config.key_name) || [];
-    API_KEYS.forEach((apiKey) => {
-      if (!existingKeys.includes(apiKey.key)) {
-        initializeMutation.mutate(apiKey.key);
-      }
-    });
-  };
-
-  // Call initialization on component mount
+  // Initialize missing API keys on component mount
   useState(() => {
     if (configs) {
-      initializeMissingKeys();
+      const existingKeys = configs.map((config) => config.key_name);
+      API_KEYS.forEach((apiKey) => {
+        if (!existingKeys.includes(apiKey.key)) {
+          initializeMutation.mutate(apiKey.key);
+        }
+      });
     }
   });
 
@@ -126,66 +117,26 @@ export const APIConfigManager = () => {
         <CardTitle>API Configurations</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-4">
-          {isLoading ? (
-            <div className="flex justify-center">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {configs?.map((config) => (
-                <div
-                  key={config.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="flex-grow">
-                    <p className="font-medium">{config.key_name}</p>
-                    {config.description && (
-                      <p className="text-sm text-gray-500">
-                        {config.description}
-                      </p>
-                    )}
-                    {config.key_name === "AUDIO_STORY_CREDITS" && (
-                      <div className="mt-2">
-                        <Label htmlFor="kidsCreditsCost">Kids Story Credits Cost</Label>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Input
-                            id="kidsCreditsCost"
-                            type="number"
-                            min="0"
-                            value={config.kids_story_credits_cost || 0}
-                            onChange={(e) =>
-                              updateCreditsCost.mutate({
-                                id: config.id,
-                                cost: parseInt(e.target.value),
-                              })
-                            }
-                            className="w-24"
-                          />
-                          <span className="text-sm text-gray-500">credits</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      checked={config.is_active}
-                      onCheckedChange={(checked) =>
-                        toggleMutation.mutate({
-                          id: config.id,
-                          is_active: checked,
-                        })
-                      }
-                    />
-                    <span className="text-sm">
-                      {config.is_active ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {configs?.map((config) => (
+              <ConfigItem
+                key={config.id}
+                config={config}
+                onToggle={(id, checked) =>
+                  toggleMutation.mutate({ id, is_active: checked })
+                }
+                onUpdateCreditsCost={(id, cost) =>
+                  updateCreditsCost.mutate({ id, cost })
+                }
+              />
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
