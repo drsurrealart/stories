@@ -77,73 +77,79 @@ export function Story({
   }
 
   return (
-    <Card className="w-full max-w-2xl p-4 md:p-8 space-y-4 md:space-y-6 animate-fade-in bg-story-background">
-      <div className="flex justify-between items-start gap-4">
-        <h2 className="text-xl md:text-2xl font-semibold">{title}</h2>
-        {storyData?.id && <FavoriteButton storyId={storyData.id} />}
-      </div>
-
-      {/* Show audio player prominently for kids' stories */}
+    <div className="w-full max-w-2xl mx-auto space-y-6">
+      {/* Audio Story Card for Kids */}
       {isKidsStory && storyData?.id && (
-        <div className="mt-4 mb-8">
+        <Card className="p-4 md:p-8 animate-fade-in">
           <AudioStory 
             storyId={storyData.id} 
             storyContent={storyWithoutTitle}
             isKidsMode={true}
           />
+        </Card>
+      )}
+
+      {/* Main Story Card */}
+      <Card className="p-4 md:p-8 space-y-4 md:space-y-6 animate-fade-in bg-story-background">
+        <div className="flex justify-between items-start gap-4">
+          <h2 className="text-xl md:text-2xl font-semibold">{title}</h2>
+          {storyData?.id && <FavoriteButton storyId={storyData.id} />}
         </div>
-      )}
 
-      <StoryContent
-        title={title}
-        content={storyWithoutTitle}
-        moral={moral}
-        ageGroup={ageGroup}
-        genre={genre}
-        language={language}
-        tone={tone}
-        readingLevel={readingLevel}
-        lengthPreference={lengthPreference}
-      />
-
-      {enrichment && (
-        <StoryEnrichment
-          reflectionQuestions={enrichment.reflection_questions}
-          actionSteps={enrichment.action_steps}
-          relatedQuote={enrichment.related_quote}
-          discussionPrompts={enrichment.discussion_prompts}
-        />
-      )}
-
-      {storyData?.id && !isKidsStory && (
-        <>
-          <AudioStory 
-            storyId={storyData.id} 
-            storyContent={storyWithoutTitle}
-          />
-          <StoryImage
-            storyId={storyData.id}
-            storyContent={storyWithoutTitle}
-          />
-          <StoryPDF
-            storyId={storyData.id}
-            storyContent={storyWithoutTitle}
-          />
-        </>
-      )}
-
-      <div className="border-t pt-4 md:pt-6 space-y-4">
-        <StoryActions
-          onReflect={onReflect}
-          onCreateNew={onCreateNew}
-        />
-        <StorySocialShare
+        <StoryContent
           title={title}
           content={storyWithoutTitle}
           moral={moral}
-          url={window.location.href}
+          ageGroup={ageGroup}
+          genre={genre}
+          language={language}
+          tone={tone}
+          readingLevel={readingLevel}
+          lengthPreference={lengthPreference}
         />
-      </div>
-    </Card>
+
+        {enrichment && !isKidsStory && (
+          <StoryEnrichment
+            reflectionQuestions={enrichment.reflection_questions}
+            actionSteps={enrichment.action_steps}
+            relatedQuote={enrichment.related_quote}
+            discussionPrompts={enrichment.discussion_prompts}
+          />
+        )}
+
+        {storyData?.id && !isKidsStory && (
+          <>
+            <AudioStory 
+              storyId={storyData.id} 
+              storyContent={storyWithoutTitle}
+            />
+            <StoryImage
+              storyId={storyData.id}
+              storyContent={storyWithoutTitle}
+            />
+            <StoryPDF
+              storyId={storyData.id}
+              storyContent={storyWithoutTitle}
+            />
+          </>
+        )}
+
+        <div className="border-t pt-4 md:pt-6 space-y-4">
+          <StoryActions
+            onReflect={onReflect}
+            onCreateNew={onCreateNew}
+            isKidsMode={isKidsStory}
+          />
+          {!isKidsStory && (
+            <StorySocialShare
+              title={title}
+              content={storyWithoutTitle}
+              moral={moral}
+              url={window.location.href}
+            />
+          )}
+        </div>
+      </Card>
+    </div>
   );
 }
