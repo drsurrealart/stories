@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Baby, User2, GraduationCap, Users } from "lucide-react";
+import { Baby, User2, GraduationCap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { NavigationBar } from "@/components/NavigationBar";
 
@@ -10,13 +10,13 @@ const CreateStoryStart = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       <NavigationBar onLogout={() => {}} />
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
+      <div className="max-w-6xl mx-auto p-6 space-y-8">
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold text-primary">Create Your Story</h1>
           <p className="text-xl text-muted-foreground">Choose your story mode</p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
+        <div className="grid md:grid-cols-3 gap-8 mt-12">
           <Card 
             className="p-6 hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden bg-gradient-to-br from-[#F2FCE2] to-[#E2D1C3]"
             onClick={() => navigate('/create/kids')}
@@ -34,27 +34,6 @@ const CreateStoryStart = () => {
                 size="lg"
               >
                 Create Kids Story
-              </Button>
-            </div>
-          </Card>
-
-          <Card 
-            className="p-6 hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden bg-gradient-to-br from-[#FFE4E1] to-[#FFC0CB]"
-            onClick={() => navigate('/create/parents')}
-          >
-            <div className="space-y-4 text-center relative z-10">
-              <div className="w-24 h-24 mx-auto bg-pink-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Users className="w-12 h-12 text-pink-500" />
-              </div>
-              <h2 className="text-2xl font-bold text-[#1A1F2C]">Parents Mode</h2>
-              <p className="text-[#1A1F2C]/80">
-                Create educational stories with family values and customized learning experiences.
-              </p>
-              <Button 
-                className="w-full text-lg py-6 bg-pink-500 hover:bg-pink-600 text-white"
-                size="lg"
-              >
-                Create Family Story
               </Button>
             </div>
           </Card>
