@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -100,7 +101,7 @@ export const APIConfigManager = () => {
   });
 
   // Initialize missing API keys on component mount
-  useState(() => {
+  React.useEffect(() => {
     if (configs) {
       const existingKeys = configs.map((config) => config.key_name);
       API_KEYS.forEach((apiKey) => {
@@ -109,7 +110,7 @@ export const APIConfigManager = () => {
         }
       });
     }
-  });
+  }, [configs]);
 
   return (
     <Card className="w-full">
