@@ -39,6 +39,16 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
           .maybeSingle()
       ]);
 
+      if (imageResult.error) {
+        console.error('Error fetching image:', imageResult.error);
+        return null;
+      }
+
+      if (storyResult.error) {
+        console.error('Error fetching story:', storyResult.error);
+        return null;
+      }
+
       return {
         image: imageResult.data,
         imagePrompt: storyResult.data?.image_prompt
@@ -61,19 +71,27 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
 
       // Get current month's credits
       const currentMonth = new Date().toISOString().slice(0, 7);
-      const { data: userCredits } = await supabase
+      const { data: userCredits, error: creditsError } = await supabase
         .from('user_story_counts')
         .select('credits_used')
         .eq('user_id', session.user.id)
         .eq('month_year', currentMonth)
         .maybeSingle();
 
+      if (creditsError) {
+        throw new Error('Failed to check credits');
+      }
+
       // Get image credits cost
-      const { data: config } = await supabase
+      const { data: config, error: configError } = await supabase
         .from('api_configurations')
         .select('image_credits_cost')
         .eq('key_name', 'IMAGE_STORY_CREDITS')
         .maybeSingle();
+
+      if (configError) {
+        throw new Error('Failed to get credit cost');
+      }
 
       const creditCost = config?.image_credits_cost || 5;
       const currentCredits = userCredits?.credits_used || 0;
@@ -99,11 +117,11 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
       const enhancedPrompt = `Create a high-quality, detailed illustration suitable for a children's storybook. Style: Use vibrant colors and a mix of 3D rendering and artistic illustration techniques. The image should be engaging and magical, without any text overlays. Focus on creating an emotional and immersive scene. Specific scene: ${basePrompt}. Important: Do not include any text or words in the image.`;
 
       // Generate image using the edge function
-      const { data, error } = await supabase.functions.invoke('generate-story-image', {
+      const { data, error: genError } = await supabase.functions.invoke('generate-story-image', {
         body: { prompt: enhancedPrompt },
       });
 
-      if (error) throw error;
+      if (genError) throw genError;
 
       // Save to Supabase
       const { error: saveError } = await supabase
@@ -115,7 +133,10 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
           credits_used: creditCost
         });
 
-      if (saveError) throw saveError;
+      if (saveError) {
+        console.error('Error saving image:', saveError);
+        throw new Error('Failed to save image to database');
+      }
 
       // Invalidate queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['story-image-data', storyId] });
@@ -139,36 +160,6 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
     }
   };
 
-  // Fetch credit cost and user's current credits
-  const { data: creditInfo } = useQuery({
-    queryKey: ['image-credits-info'],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return null;
-
-      const currentMonth = new Date().toISOString().slice(0, 7);
-      
-      const [{ data: config }, { data: userCredits }] = await Promise.all([
-        supabase
-          .from('api_configurations')
-          .select('image_credits_cost')
-          .eq('key_name', 'IMAGE_STORY_CREDITS')
-          .maybeSingle(),
-        supabase
-          .from('user_story_counts')
-          .select('credits_used')
-          .eq('user_id', session.user.id)
-          .eq('month_year', currentMonth)
-          .maybeSingle()
-      ]);
-
-      return {
-        creditCost: config?.image_credits_cost || 5,
-        creditsUsed: userCredits?.credits_used || 0
-      };
-    },
-  });
-
   return (
     <Card className="p-4 md:p-6 space-y-4 bg-card">
       <div className="flex items-center gap-2 mb-4">
@@ -182,7 +173,6 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
           showConfirmDialog={showConfirmDialog}
           onConfirmDialogChange={setShowConfirmDialog}
           onGenerate={handleCreateImage}
-          creditCost={creditInfo?.creditCost}
         />
       ) : (
         <>
