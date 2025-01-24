@@ -9,10 +9,9 @@ import { Button } from "@/components/ui/button";
 import { AgeGroupSelector } from "@/components/kids/AgeGroupSelector";
 import { StoryTypeSelector } from "@/components/kids/StoryTypeSelector";
 import { ConfirmationDialog } from "@/components/kids/ConfirmationDialog";
-import { KIDS_AGE_GROUPS, KIDS_STORY_TYPES } from "@/data/storyOptions";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { KIDS_AGE_GROUPS, KIDS_STORY_TYPES } from "@/data/storyOptions";
 
-// Map kids age groups to valid database age groups
 const AGE_GROUP_MAPPING = {
   '5-7': 'preschool',
   '8-10': 'elementary',
@@ -215,29 +214,29 @@ const KidsStoryCreator = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       <NavigationBar onLogout={() => {}} />
-      <div className="max-w-4xl mx-auto p-6 space-y-8">
+      <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-primary">
+          <h1 className="text-3xl md:text-4xl font-bold text-primary">
             <BookOpen className="inline-block mr-2 mb-1" />
             Kids Story Creator
           </h1>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-lg md:text-xl text-muted-foreground">
             {step === 1 ? "How old are you?" : "What kind of story do you want?"}
           </p>
         </div>
 
         {ageGroup && (
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-6">
             <Tabs value={ageGroup} onValueChange={setAgeGroup} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 h-14">
+              <TabsList className="grid w-full grid-cols-3 h-auto p-1 md:h-14">
                 {KIDS_AGE_GROUPS.map((group) => (
                   <TabsTrigger
                     key={group.id}
                     value={group.id}
-                    className="text-lg font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    className="flex flex-col md:flex-row items-center gap-1 md:gap-2 p-2 md:p-4 text-base md:text-lg font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                   >
-                    <span className="mr-2">{group.icon}</span>
-                    {group.label}
+                    <span className="text-2xl md:text-xl">{group.icon}</span>
+                    <span className="text-sm md:text-base">{group.label}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -246,50 +245,67 @@ const KidsStoryCreator = () => {
         )}
 
         {step === 1 ? (
-          <AgeGroupSelector
-            ageGroups={KIDS_AGE_GROUPS}
-            selectedAgeGroup={ageGroup}
-            onSelect={(selected) => {
-              setAgeGroup(selected);
-              setStep(2);
-            }}
-          />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+            {KIDS_AGE_GROUPS.map((group) => (
+              <Button
+                key={group.id}
+                variant={ageGroup === group.id ? "default" : "outline"}
+                size="lg"
+                className="flex flex-col items-center p-4 h-auto gap-2 transition-all hover:scale-105"
+                onClick={() => {
+                  setAgeGroup(group.id);
+                  setStep(2);
+                }}
+              >
+                <span className="text-3xl">{group.icon}</span>
+                <span className="text-sm text-center font-semibold">{group.label}</span>
+              </Button>
+            ))}
+          </div>
         ) : (
-          <>
-            <StoryTypeSelector
-              storyTypes={KIDS_STORY_TYPES[ageGroup as keyof typeof KIDS_STORY_TYPES]}
-              selectedType={storyType}
-              onSelect={setStoryType}
-            />
-            
-            {storyType && (
-              <div className="flex flex-col items-center mt-8 space-y-4">
-                <Button
-                  size="lg"
-                  className="text-lg px-8 py-6"
-                  onClick={() => setShowConfirmDialog(true)}
-                  disabled={!storyType || isGenerating}
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {generationStep || "Creating your story..."}
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="mr-2 h-5 w-5" />
-                      Create My Story!
-                    </>
-                  )}
-                </Button>
-                {isGenerating && (
-                  <p className="text-muted-foreground animate-pulse">
-                    {generationStep}
-                  </p>
-                )}
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {KIDS_STORY_TYPES[ageGroup as keyof typeof KIDS_STORY_TYPES].map((type) => (
+              <Button
+                key={type.id}
+                variant={storyType === type.id ? "default" : "outline"}
+                size="lg"
+                className="flex flex-col items-center p-4 h-auto gap-2 transition-all hover:scale-105"
+                onClick={() => setStoryType(type.id)}
+              >
+                <span className="text-3xl">{type.icon}</span>
+                <span className="text-base font-semibold">{type.label}</span>
+                <p className="text-sm text-muted-foreground text-center">{type.description}</p>
+              </Button>
+            ))}
+          </div>
+        )}
+        
+        {storyType && (
+          <div className="flex flex-col items-center mt-6 space-y-4">
+            <Button
+              size="lg"
+              className="text-lg px-8 py-6 w-full md:w-auto"
+              onClick={() => setShowConfirmDialog(true)}
+              disabled={!storyType || isGenerating}
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {generationStep || "Creating your story..."}
+                </>
+              ) : (
+                <>
+                  <Wand2 className="mr-2 h-5 w-5" />
+                  Create My Story!
+                </>
+              )}
+            </Button>
+            {isGenerating && (
+              <p className="text-muted-foreground animate-pulse">
+                {generationStep}
+              </p>
             )}
-          </>
+          </div>
         )}
 
         <ConfirmationDialog
