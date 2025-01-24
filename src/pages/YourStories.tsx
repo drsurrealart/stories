@@ -2,20 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { NavigationBar } from "@/components/NavigationBar";
 import { useToast } from "@/hooks/use-toast";
-import { StoryCard } from "@/components/story/StoryCard";
 import { SavedStory } from "@/types/story";
-import { Loading } from "@/components/ui/loading";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { SearchBar } from "@/components/story/SearchBar";
+import { StoriesList } from "@/components/story/StoriesList";
+import { StoryPagination } from "@/components/story/StoryPagination";
 
 const STORIES_PER_PAGE = 3;
 
@@ -139,84 +130,31 @@ const YourStories = () => {
   const startIndex = (currentPage - 1) * STORIES_PER_PAGE;
   const paginatedStories = filteredStories.slice(startIndex, startIndex + STORIES_PER_PAGE);
 
-  const PaginationComponent = () => (
-    <Pagination className="my-4">
-      <PaginationContent>
-        {currentPage > 1 && (
-          <PaginationItem>
-            <PaginationPrevious 
-              onClick={() => setCurrentPage(currentPage - 1)}
-            />
-          </PaginationItem>
-        )}
-        
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <PaginationItem key={page} className="hidden md:inline-block">
-            <PaginationLink
-              onClick={() => setCurrentPage(page)}
-              isActive={currentPage === page}
-            >
-              {page}
-            </PaginationLink>
-          </PaginationItem>
-        ))}
-
-        {currentPage < totalPages && (
-          <PaginationItem>
-            <PaginationNext 
-              onClick={() => setCurrentPage(currentPage + 1)}
-            />
-          </PaginationItem>
-        )}
-      </PaginationContent>
-    </Pagination>
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       <NavigationBar onLogout={async () => {}} />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6">My Stories</h1>
         
-        <div className="relative">
-          <Input
-            type="text"
-            placeholder="Search stories by title, content, or moral..."
-            value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="pl-10"
-          />
-          <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-        </div>
+        <SearchBar 
+          searchQuery={searchQuery}
+          onSearch={handleSearch}
+        />
 
-        {isLoading ? (
-          <Loading text="Loading your stories..." />
-        ) : filteredStories.length === 0 ? (
-          <div className="text-center text-gray-500 p-4 bg-white/50 rounded-lg">
-            {searchQuery ? "No stories found matching your search." : "You haven't saved any stories yet."}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {totalPages > 1 && <PaginationComponent />}
-            
-            {paginatedStories.map((story) => (
-              <div
-                key={story.id}
-                ref={el => storyRefs.current[story.id] = el}
-                className={`transition-all duration-300 ${
-                  highlightedStoryId === story.id ? 'ring-2 ring-primary ring-offset-2 rounded-lg' : ''
-                }`}
-              >
-                <StoryCard 
-                  story={story}
-                  onDelete={handleDelete}
-                />
-              </div>
-            ))}
+        <StoriesList 
+          stories={paginatedStories}
+          isLoading={isLoading}
+          searchQuery={searchQuery}
+          highlightedStoryId={highlightedStoryId}
+          storyRefs={storyRefs}
+          onDelete={handleDelete}
+        />
 
-            {totalPages > 1 && <PaginationComponent />}
-          </div>
-        )}
+        <StoryPagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );
