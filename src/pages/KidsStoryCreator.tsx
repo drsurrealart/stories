@@ -19,6 +19,7 @@ const KidsStoryCreator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedStory, setGeneratedStory] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [generationStep, setGenerationStep] = useState("");
   const { toast } = useToast();
 
   // Fetch credit costs
@@ -59,7 +60,9 @@ const KidsStoryCreator = () => {
         return;
       }
 
-      const response = await supabase.functions.invoke('generate-story', {
+      // Step 1: Generate Story Text
+      setGenerationStep("Crafting your magical story...");
+      const storyResponse = await supabase.functions.invoke('generate-story', {
         body: {
           preferences: {
             ageGroup,
@@ -73,8 +76,86 @@ const KidsStoryCreator = () => {
         }
       });
 
-      if (response.error) throw new Error(response.error.message);
-      setGeneratedStory(response.data.story);
+      if (storyResponse.error) throw new Error(storyResponse.error.message);
+      const story = storyResponse.data.story;
+      const imagePrompt = storyResponse.data.imagePrompt;
+
+      // Save the story first
+      const { data: savedStory, error: saveError } = await supabase
+        .from('stories')
+        .insert({
+          title: story.split('\n')[0],
+          content: story,
+          age_group: ageGroup,
+          genre: storyType,
+          moral: "being kind and helpful",
+          author_id: session.user.id,
+          image_prompt: imagePrompt
+        })
+        .select()
+        .single();
+
+      if (saveError) throw saveError;
+
+      // Step 2: Generate Image
+      setGenerationStep("Creating beautiful pictures...");
+      const imageResponse = await supabase.functions.invoke('generate-story-image', {
+        body: { prompt: imagePrompt }
+      });
+
+      if (imageResponse.error) throw new Error(imageResponse.error.message);
+
+      // Save the image
+      if (imageResponse.data?.imageUrl) {
+        await supabase
+          .from('story_images')
+          .insert({
+            story_id: savedStory.id,
+            user_id: session.user.id,
+            image_url: imageResponse.data.imageUrl,
+            credits_used: creditCosts?.imageCredits || 5
+          });
+      }
+
+      // Step 3: Generate Audio
+      setGenerationStep("Adding storyteller's voice...");
+      const audioResponse = await supabase.functions.invoke('text-to-speech', {
+        body: {
+          text: story,
+          voice: "fable"
+        }
+      });
+
+      if (audioResponse.error) throw new Error(audioResponse.error.message);
+
+      // Save the audio
+      if (audioResponse.data?.audioContent) {
+        const audioBlob = new Blob(
+          [Uint8Array.from(atob(audioResponse.data.audioContent), c => c.charCodeAt(0))],
+          { type: 'audio/mp3' }
+        );
+
+        const filename = `${crypto.randomUUID()}.mp3`;
+        await supabase.storage
+          .from('audio-stories')
+          .upload(filename, audioBlob);
+
+        await supabase
+          .from('audio_stories')
+          .insert({
+            story_id: savedStory.id,
+            user_id: session.user.id,
+            audio_url: filename,
+            voice_id: "fable",
+            credits_used: creditCosts?.audioCredits || 3
+          });
+      }
+
+      setGeneratedStory(story);
+      toast({
+        title: "Success!",
+        description: "Your magical story is ready!",
+      });
 
     } catch (error: any) {
       toast({
@@ -84,6 +165,7 @@ const KidsStoryCreator = () => {
       });
     } finally {
       setIsGenerating(false);
+      setGenerationStep("");
     }
   };
 
@@ -161,7 +243,7 @@ const KidsStoryCreator = () => {
             />
             
             {storyType && (
-              <div className="flex justify-center mt-8">
+              <div className="flex flex-col items-center mt-8 space-y-4">
                 <Button
                   size="lg"
                   className="text-lg px-8 py-6"
@@ -171,7 +253,7 @@ const KidsStoryCreator = () => {
                   {isGenerating ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating your story...
+                      {generationStep || "Creating your story..."}
                     </>
                   ) : (
                     <>
@@ -180,6 +262,11 @@ const KidsStoryCreator = () => {
                     </>
                   )}
                 </Button>
+                {isGenerating && (
+                  <p className="text-muted-foreground animate-pulse">
+                    {generationStep}
+                  </p>
+                )}
               </div>
             )}
           </>
