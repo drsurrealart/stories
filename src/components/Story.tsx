@@ -72,6 +72,10 @@ export function Story({
     }
   });
 
+  if (isLoading) {
+    return <Loading />;
+  }
+
   return (
     <Card className="w-full max-w-2xl p-4 md:p-8 space-y-4 md:space-y-6 animate-fade-in bg-story-background">
       <div className="flex justify-between items-start gap-4">
@@ -89,12 +93,6 @@ export function Story({
           />
         </div>
       )}
-
-      <div className="prose max-w-none">
-        <div className="text-story-text leading-relaxed whitespace-pre-wrap text-sm md:text-base">
-          {storyWithoutTitle}
-        </div>
-      </div>
 
       <StoryContent
         title={title}
