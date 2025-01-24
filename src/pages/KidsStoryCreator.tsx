@@ -1,22 +1,22 @@
 import { useState } from "react";
-import { BookOpen, Loader2, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Story } from "@/components/Story";
 import { NavigationBar } from "@/components/NavigationBar";
 import { Button } from "@/components/ui/button";
-import { AgeGroupSelector } from "@/components/kids/AgeGroupSelector";
-import { StoryTypeSelector } from "@/components/kids/StoryTypeSelector";
 import { ConfirmationDialog } from "@/components/kids/ConfirmationDialog";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KIDS_AGE_GROUPS, KIDS_STORY_TYPES } from "@/data/storyOptions";
+import { StoryCreatorHeader } from "@/components/kids/StoryCreatorHeader";
+import { StoryGenerationStatus } from "@/components/kids/StoryGenerationStatus";
+import { GenerateStoryButton } from "@/components/kids/GenerateStoryButton";
+import { AgeGroupTabs } from "@/components/kids/AgeGroupTabs";
 
 const AGE_GROUP_MAPPING = {
   '5-7': 'preschool',
   '8-10': 'elementary',
   '11-12': 'tween'
-};
+} as const;
 
 const KidsStoryCreator = () => {
   const [step, setStep] = useState(1);
@@ -215,34 +215,15 @@ const KidsStoryCreator = () => {
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
       <NavigationBar onLogout={() => {}} />
       <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-primary">
-            <BookOpen className="inline-block mr-2 mb-1" />
-            Kids Story Creator
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground">
-            {step === 1 ? "How old are you?" : "What kind of story do you want?"}
-          </p>
-        </div>
+        <StoryCreatorHeader />
 
-        {ageGroup && (
-          <div className="flex justify-center mb-6">
-            <Tabs value={ageGroup} onValueChange={setAgeGroup} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 h-auto p-1 md:h-14">
-                {KIDS_AGE_GROUPS.map((group) => (
-                  <TabsTrigger
-                    key={group.id}
-                    value={group.id}
-                    className="flex flex-col md:flex-row items-center gap-1 md:gap-2 p-2 md:p-4 text-base md:text-lg font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                  >
-                    <span className="text-2xl md:text-xl">{group.icon}</span>
-                    <span className="text-sm md:text-base">{group.label}</span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          </div>
-        )}
+        <AgeGroupTabs 
+          selectedAgeGroup={ageGroup} 
+          onAgeGroupChange={(value) => {
+            setAgeGroup(value);
+            setStep(2);
+          }} 
+        />
 
         {step === 1 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
@@ -263,7 +244,7 @@ const KidsStoryCreator = () => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             {KIDS_STORY_TYPES[ageGroup as keyof typeof KIDS_STORY_TYPES].map((type) => (
               <Button
                 key={type.id}
@@ -280,33 +261,16 @@ const KidsStoryCreator = () => {
           </div>
         )}
         
-        {storyType && (
-          <div className="flex flex-col items-center mt-6 space-y-4">
-            <Button
-              size="lg"
-              className="text-lg px-8 py-6 w-full md:w-auto"
-              onClick={() => setShowConfirmDialog(true)}
-              disabled={!storyType || isGenerating}
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {generationStep || "Creating your story..."}
-                </>
-              ) : (
-                <>
-                  <Wand2 className="mr-2 h-5 w-5" />
-                  Create My Story!
-                </>
-              )}
-            </Button>
-            {isGenerating && (
-              <p className="text-muted-foreground animate-pulse">
-                {generationStep}
-              </p>
-            )}
-          </div>
-        )}
+        <GenerateStoryButton
+          storyType={storyType}
+          isGenerating={isGenerating}
+          onClick={() => setShowConfirmDialog(true)}
+        />
+
+        <StoryGenerationStatus
+          isGenerating={isGenerating}
+          generationStep={generationStep}
+        />
 
         <ConfirmationDialog
           open={showConfirmDialog}
