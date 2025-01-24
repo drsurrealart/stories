@@ -6,13 +6,28 @@ import Create from "@/pages/Create";
 import CreateStoryStart from "@/pages/CreateStoryStart";
 import KidsStoryCreator from "@/pages/KidsStoryCreator";
 import TeacherStoryCreator from "@/pages/TeacherStoryCreator";
+import Index from "@/pages/Index";
+import MyAudio from "@/pages/MyAudio";
+import MyFavorites from "@/pages/MyFavorites";
+import MyMorals from "@/pages/MyMorals";
+import YourStories from "@/pages/YourStories";
 
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Public routes */}
       <Route path="/" element={<Landing />} />
       <Route path="/auth" element={<Auth />} />
       
+      {/* Protected routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Index />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/create"
         element={
@@ -45,7 +60,40 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/my-audio"
+        element={
+          <ProtectedRoute>
+            <MyAudio />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/favorites"
+        element={
+          <ProtectedRoute>
+            <MyFavorites />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-morals"
+        element={
+          <ProtectedRoute>
+            <MyMorals />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/your-stories"
+        element={
+          <ProtectedRoute>
+            <YourStories />
+          </ProtectedRoute>
+        }
+      />
 
+      {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
