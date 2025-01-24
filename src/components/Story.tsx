@@ -57,14 +57,14 @@ export function Story({
   const storyWithoutTitle = storyContent.replace(/^.+?\n/, '').trim();
 
   // Fetch the story ID using the title
-  const { data: storyData } = useQuery({
+  const { data: storyData, isLoading } = useQuery({
     queryKey: ['story', title],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('stories')
         .select('id')
         .eq('title', title)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
