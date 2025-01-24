@@ -20,14 +20,17 @@ const KidsStoryCreator = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
 
-  // Fetch credit costs
+  // Fetch credit costs - now specifically for AUDIO_STORY_CREDITS configuration
   const { data: creditCosts } = useQuery({
     queryKey: ['credit-costs'],
     queryFn: async () => {
-      const { data: config } = await supabase
+      const { data: config, error } = await supabase
         .from('api_configurations')
         .select('audio_credits_cost, image_credits_cost')
-        .single();
+        .eq('key_name', 'AUDIO_STORY_CREDITS')
+        .maybeSingle();
+      
+      if (error) throw error;
       
       return {
         storyCredits: 1,
