@@ -11,6 +11,7 @@ import { StoryCreatorHeader } from "@/components/kids/StoryCreatorHeader";
 import { StoryGenerationStatus } from "@/components/kids/StoryGenerationStatus";
 import { GenerateStoryButton } from "@/components/kids/GenerateStoryButton";
 import { AgeGroupTabs } from "@/components/kids/AgeGroupTabs";
+import { StoryGenerationModal } from "@/components/kids/StoryGenerationModal";
 
 const AGE_GROUP_MAPPING = {
   '5-7': 'preschool',
@@ -67,7 +68,7 @@ const KidsStoryCreator = () => {
       }
 
       // Step 1: Generate Story Text
-      setGenerationStep("Crafting your magical story...");
+      setGenerationStep("Creating your magical story...");
       const storyResponse = await supabase.functions.invoke('generate-story', {
         body: {
           preferences: {
@@ -94,6 +95,7 @@ const KidsStoryCreator = () => {
         .replace(/(^-|-$)/g, '');
 
       // Save the story first
+      setGenerationStep("Saving your story...");
       const { data: savedStory, error: saveError } = await supabase
         .from('stories')
         .insert({
@@ -269,6 +271,11 @@ const KidsStoryCreator = () => {
 
         <StoryGenerationStatus
           isGenerating={isGenerating}
+          generationStep={generationStep}
+        />
+
+        <StoryGenerationModal
+          isOpen={isGenerating}
           generationStep={generationStep}
         />
 
