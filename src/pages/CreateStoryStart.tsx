@@ -18,54 +18,63 @@ const CreateStoryStart = () => {
 
         <div className="grid md:grid-cols-3 gap-8 mt-12">
           <Card 
-            className="p-6 hover:shadow-xl transition-all cursor-pointer group"
+            className="p-6 hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden bg-gradient-to-br from-[#F2FCE2] to-[#E2D1C3]"
             onClick={() => navigate('/create/kids')}
           >
-            <div className="space-y-4 text-center">
-              <div className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Baby className="w-12 h-12 text-primary" />
+            <div className="space-y-4 text-center relative z-10">
+              <div className="w-24 h-24 mx-auto bg-[#FEF7CD]/30 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Baby className="w-12 h-12 text-[#97C21E]" />
               </div>
-              <h2 className="text-2xl font-bold">Kids Mode</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-2xl font-bold text-[#4A5B22]">Kids Mode</h2>
+              <p className="text-[#5C6F2B]">
                 Simple and fun story creation with just a few clicks! Perfect for young storytellers.
               </p>
-              <Button className="w-full text-lg py-6" size="lg">
+              <Button 
+                className="w-full text-lg py-6 bg-[#97C21E] hover:bg-[#7A9B18] text-white"
+                size="lg"
+              >
                 Create Kids Story
               </Button>
             </div>
           </Card>
 
           <Card 
-            className="p-6 hover:shadow-xl transition-all cursor-pointer group"
+            className="p-6 hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden bg-gradient-to-br from-[#F1F0FB] to-[#D6BCFA]"
             onClick={() => navigate('/create/adult')}
           >
-            <div className="space-y-4 text-center">
+            <div className="space-y-4 text-center relative z-10">
               <div className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
                 <User2 className="w-12 h-12 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold">Adult Mode</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-2xl font-bold text-[#1A1F2C]">Adult Mode</h2>
+              <p className="text-[#1A1F2C]/80">
                 Advanced story creation with full customization options and detailed controls.
               </p>
-              <Button className="w-full text-lg py-6" size="lg">
+              <Button 
+                className="w-full text-lg py-6 bg-primary hover:bg-primary-hover text-white"
+                size="lg"
+              >
                 Create Adult Story
               </Button>
             </div>
           </Card>
 
           <Card 
-            className="p-6 hover:shadow-xl transition-all cursor-pointer group"
+            className="p-6 hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6]"
             onClick={() => navigate('/create/teacher')}
           >
-            <div className="space-y-4 text-center">
-              <div className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                <GraduationCap className="w-12 h-12 text-primary" />
+            <div className="space-y-4 text-center relative z-10">
+              <div className="w-24 h-24 mx-auto bg-[#8B5CF6]/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                <GraduationCap className="w-12 h-12 text-[#8B5CF6]" />
               </div>
-              <h2 className="text-2xl font-bold">Teacher Mode</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-2xl font-bold text-white">Teacher Mode</h2>
+              <p className="text-white/90">
                 Educational story creation with lesson plans, discussion questions, and printable materials.
               </p>
-              <Button className="w-full text-lg py-6" size="lg">
+              <Button 
+                className="w-full text-lg py-6 bg-white hover:bg-white/90 text-[#8B5CF6]"
+                size="lg"
+              >
                 Create Teacher Story
               </Button>
             </div>
