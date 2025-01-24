@@ -8,6 +8,7 @@ import { FavoriteButton } from "@/components/story/FavoriteButton";
 import { AudioStory } from "@/components/story/AudioStory";
 import { StoryImage } from "@/components/story/image/StoryImage";
 import { StoryPDF } from "@/components/story/pdf/StoryPDF";
+import { StoryTranslation } from "@/components/story/translation/StoryTranslation";
 import { SavedStory } from "@/types/story";
 import { formatDate } from "@/utils/date";
 
@@ -38,11 +39,13 @@ export const StoryCard = ({ story, onDelete }: StoryCardProps) => {
           </Button>
         </div>
       </div>
+
       <div className="prose max-w-none">
         <div className="text-story-text whitespace-pre-wrap">
           {story.content}
         </div>
       </div>
+
       {story.moral && (
         <Card className="bg-secondary p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -111,6 +114,10 @@ export const StoryCard = ({ story, onDelete }: StoryCardProps) => {
       <StoryPDF 
         storyId={story.id}
         storyContent={story.content}
+      />
+
+      <StoryTranslation 
+        storyId={story.id}
       />
 
       <div className="pt-4 border-t">

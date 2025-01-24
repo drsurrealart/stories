@@ -386,6 +386,54 @@ export type Database = {
           },
         ]
       }
+      story_translations: {
+        Row: {
+          created_at: string
+          credits_used: number
+          id: string
+          language: string
+          original_story_id: string
+          translated_story_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_used?: number
+          id?: string
+          language: string
+          original_story_id: string
+          translated_story_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_used?: number
+          id?: string
+          language?: string
+          original_story_id?: string
+          translated_story_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_translations_original_story_id_fkey"
+            columns: ["original_story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "story_translations_translated_story_id_fkey"
+            columns: ["translated_story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_tiers: {
         Row: {
           created_at: string
