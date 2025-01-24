@@ -1,6 +1,7 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Loader2, Star, Wand2, Heart, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
 
 interface StoryGenerationModalProps {
   isOpen: boolean;
@@ -17,6 +18,20 @@ const positiveMessages = [
 ];
 
 export function StoryGenerationModal({ isOpen, generationStep }: StoryGenerationModalProps) {
+  const [currentMessage, setCurrentMessage] = useState(positiveMessages[0]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Change message every 5 seconds
+    const interval = setInterval(() => {
+      const randomIndex = Math.floor(Math.random() * positiveMessages.length);
+      setCurrentMessage(positiveMessages[randomIndex]);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isOpen]);
+
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md bg-gradient-to-b from-secondary to-background border-4 border-primary">
@@ -46,21 +61,14 @@ export function StoryGenerationModal({ isOpen, generationStep }: StoryGeneration
             <h3 className="text-2xl font-bold text-primary animate-fade-in">
               {generationStep}
             </h3>
-            <div className="animate-fade-in">
-              {positiveMessages.map((message, index) => (
-                <p
-                  key={index}
-                  className={cn(
-                    "text-lg text-story-text transition-opacity duration-1000",
-                    "opacity-0 animate-fade-in",
-                    { "opacity-100 delay-300": true }
-                  )}
-                  style={{ animationDelay: `${index * 0.2}s` }}
-                >
-                  {message}
-                </p>
-              ))}
-            </div>
+            <p 
+              className={cn(
+                "text-lg text-story-text transition-opacity duration-1000",
+                "opacity-0 animate-fade-in delay-300"
+              )}
+            >
+              {currentMessage}
+            </p>
           </div>
 
           {/* Progress Indicator */}
