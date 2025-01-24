@@ -6,6 +6,17 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Story } from "@/components/Story";
+import { NavigationBar } from "@/components/NavigationBar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const STORY_TYPES = [
   { id: 'adventure', label: 'Adventure Story', icon: '🗺️', description: 'Go on an exciting journey!' },
@@ -26,40 +37,29 @@ const KidsStoryCreator = () => {
   const [storyType, setStoryType] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedStory, setGeneratedStory] = useState("");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
 
-  const { data: userLimits } = useQuery({
-    queryKey: ['user-story-limits'],
+  // Fetch credit costs
+  const { data: creditCosts } = useQuery({
+    queryKey: ['credit-costs'],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return null;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('subscription_level')
-        .eq('id', session.user.id)
+      const { data: config } = await supabase
+        .from('api_configurations')
+        .select('audio_credits_cost, image_credits_cost')
         .single();
-
-      const { data: tierLimits } = await supabase
-        .from('subscription_tiers')
-        .select('monthly_credits')
-        .eq('level', profile?.subscription_level || 'free')
-        .single();
-
-      const currentMonth = new Date().toISOString().slice(0, 7);
-      const { data: creditCount } = await supabase
-        .from('user_story_counts')
-        .select('credits_used')
-        .eq('user_id', session.user.id)
-        .eq('month_year', currentMonth)
-        .single();
-
+      
       return {
-        creditsUsed: creditCount?.credits_used || 0,
-        monthlyCredits: tierLimits?.monthly_credits || 0,
+        storyCredits: 1, // Base story creation cost
+        audioCredits: config?.audio_credits_cost || 3,
+        imageCredits: config?.image_credits_cost || 5
       };
     }
   });
+
+  const totalCredits = (creditCosts?.storyCredits || 1) + 
+                      (creditCosts?.audioCredits || 3) + 
+                      (creditCosts?.imageCredits || 5);
 
   const handleGenerate = async () => {
     try {
@@ -70,15 +70,6 @@ const KidsStoryCreator = () => {
         toast({
           title: "Please sign in",
           description: "You need to be signed in to create stories",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (userLimits && userLimits.creditsUsed >= userLimits.monthlyCredits) {
-        toast({
-          title: "Monthly credit limit reached",
-          description: `You've used all your ${userLimits.monthlyCredits} credits for this month.`,
           variant: "destructive",
         });
         return;
@@ -112,28 +103,36 @@ const KidsStoryCreator = () => {
     }
   };
 
+  const handleCreateStory = () => {
+    setShowConfirmDialog(true);
+  };
+
   if (generatedStory) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-secondary to-background p-6">
-        <Story
-          content={generatedStory}
-          enrichment={null}
-          onReflect={() => {}}
-          onCreateNew={() => {
-            setGeneratedStory("");
-            setStep(1);
-            setAgeGroup("");
-            setStoryType("");
-          }}
-          ageGroup={ageGroup}
-          genre={storyType}
-        />
+      <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
+        <NavigationBar onLogout={() => {}} />
+        <div className="container mx-auto px-4 py-8 flex justify-center">
+          <Story
+            content={generatedStory}
+            enrichment={null}
+            onReflect={() => {}}
+            onCreateNew={() => {
+              setGeneratedStory("");
+              setStep(1);
+              setAgeGroup("");
+              setStoryType("");
+            }}
+            ageGroup={ageGroup}
+            genre={storyType}
+          />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
+      <NavigationBar onLogout={() => {}} />
       <div className="max-w-4xl mx-auto p-6 space-y-8">
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold text-primary">
@@ -190,7 +189,7 @@ const KidsStoryCreator = () => {
             <Button
               size="lg"
               className="text-lg px-8 py-6"
-              onClick={handleGenerate}
+              onClick={handleCreateStory}
               disabled={!storyType || isGenerating}
             >
               {isGenerating ? (
@@ -207,6 +206,32 @@ const KidsStoryCreator = () => {
             </Button>
           </div>
         )}
+
+        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <AlertDialogContent className="max-w-md">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-2xl">Ready to Create Your Story?</AlertDialogTitle>
+              <AlertDialogDescription className="text-lg space-y-4">
+                <p>Make sure you have your parent's permission! 🌟</p>
+                <p>This will use {totalCredits} credits to create:</p>
+                <ul className="list-disc pl-6">
+                  <li>Your story ({creditCosts?.storyCredits || 1} credit)</li>
+                  <li>An audio version to listen to ({creditCosts?.audioCredits || 3} credits)</li>
+                  <li>A special picture for your story ({creditCosts?.imageCredits || 5} credits)</li>
+                </ul>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="text-lg">Not Yet</AlertDialogCancel>
+              <AlertDialogAction 
+                className="text-lg"
+                onClick={handleGenerate}
+              >
+                Yes, Create My Story!
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
