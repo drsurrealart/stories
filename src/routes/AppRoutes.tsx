@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { ProtectedRoutes } from "@/components/auth/ProtectedRoutes";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoutes";
 import Landing from "@/pages/Landing";
 import Auth from "@/pages/Auth";
 import Create from "@/pages/Create";
@@ -13,7 +13,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Landing />} />
       <Route path="/auth" element={<Auth />} />
       
-      <Route element={<ProtectedRoutes />}>
+      <Route element={<ProtectedRoute />}>
         <Route path="/create" element={<CreateStoryStart />} />
         <Route path="/create/adult" element={<Create />} />
         <Route path="/create/kids" element={<KidsStoryCreator />} />
