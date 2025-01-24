@@ -13,12 +13,38 @@ const AppRoutes = () => {
       <Route path="/" element={<Landing />} />
       <Route path="/auth" element={<Auth />} />
       
-      <Route element={<ProtectedRoute />}>
-        <Route path="/create" element={<CreateStoryStart />} />
-        <Route path="/create/adult" element={<Create />} />
-        <Route path="/create/kids" element={<KidsStoryCreator />} />
-        <Route path="/create/teacher" element={<TeacherStoryCreator />} />
-      </Route>
+      <Route
+        path="/create"
+        element={
+          <ProtectedRoute>
+            <CreateStoryStart />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create/adult"
+        element={
+          <ProtectedRoute>
+            <Create />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create/kids"
+        element={
+          <ProtectedRoute>
+            <KidsStoryCreator />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create/teacher"
+        element={
+          <ProtectedRoute>
+            <TeacherStoryCreator />
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
