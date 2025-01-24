@@ -8,30 +8,22 @@ interface StoryGenerationModalProps {
   generationStep: string;
 }
 
-const positiveMessages = [
-  "Good things take time...",
-  "Patience is a superpower!",
-  "Every story is special, just like you!",
-  "Magic is happening...",
-  "Creating something wonderful...",
-  "Your story is on its way!",
-];
+const getPositiveMessage = (step: string) => {
+  switch (step) {
+    case "Creating your magical story...":
+      return "Every story is special, just like you!";
+    case "Saving your story...":
+      return "Good things take time...";
+    case "Creating beautiful pictures...":
+      return "Magic is happening...";
+    case "Adding storyteller's voice...":
+      return "Your story is on its way!";
+    default:
+      return "Creating something wonderful...";
+  }
+};
 
 export function StoryGenerationModal({ isOpen, generationStep }: StoryGenerationModalProps) {
-  const [currentMessage, setCurrentMessage] = useState(positiveMessages[0]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    // Change message every 5 seconds
-    const interval = setInterval(() => {
-      const randomIndex = Math.floor(Math.random() * positiveMessages.length);
-      setCurrentMessage(positiveMessages[randomIndex]);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   return (
@@ -63,13 +55,8 @@ export function StoryGenerationModal({ isOpen, generationStep }: StoryGeneration
             <h3 className="text-2xl font-bold text-primary animate-fade-in">
               {generationStep}
             </h3>
-            <p 
-              className={cn(
-                "text-lg text-story-text transition-opacity duration-1000",
-                "opacity-0 animate-fade-in delay-300"
-              )}
-            >
-              {currentMessage}
+            <p className="text-lg text-story-text animate-fade-in">
+              {getPositiveMessage(generationStep)}
             </p>
           </div>
 
