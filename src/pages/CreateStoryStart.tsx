@@ -2,12 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Baby, User2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { NavigationBar } from "@/components/NavigationBar";
 
 const CreateStoryStart = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
+      <NavigationBar onLogout={() => {}} />
       <div className="max-w-4xl mx-auto p-6 space-y-8">
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold text-primary">Create Your Story</h1>

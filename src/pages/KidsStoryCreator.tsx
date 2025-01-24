@@ -18,18 +18,38 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const STORY_TYPES = [
-  { id: 'adventure', label: 'Adventure Story', icon: '🗺️', description: 'Go on an exciting journey!' },
-  { id: 'magic', label: 'Magic Story', icon: '✨', description: 'Discover magical powers!' },
-  { id: 'animals', label: 'Animal Story', icon: '🐾', description: 'Meet friendly animals!' },
-  { id: 'space', label: 'Space Story', icon: '🚀', description: 'Explore the universe!' },
-];
-
 const AGE_GROUPS = [
   { id: '5-7', label: '5-7 Years', icon: '🌟' },
   { id: '8-10', label: '8-10 Years', icon: '🌈' },
   { id: '11-12', label: '11-12 Years', icon: '⭐' },
 ];
+
+const STORY_TYPES = {
+  '5-7': [
+    { id: 'animals', label: 'Animal Friends', icon: '🐾', description: 'Stories about friendly animals!' },
+    { id: 'magic', label: 'Magic & Wonder', icon: '✨', description: 'Discover magical adventures!' },
+    { id: 'family', label: 'Family Fun', icon: '👨‍👩‍👧‍👦', description: 'Stories about family time!' },
+    { id: 'nature', label: 'Nature Tales', icon: '🌳', description: 'Explore the outdoors!' },
+    { id: 'bedtime', label: 'Bedtime Stories', icon: '🌙', description: 'Perfect for sleepy time!' },
+    { id: 'friendship', label: 'Best Friends', icon: '🤝', description: 'Stories about friendship!' },
+  ],
+  '8-10': [
+    { id: 'adventure', label: 'Epic Adventures', icon: '🗺️', description: 'Go on exciting quests!' },
+    { id: 'mystery', label: 'Mystery Stories', icon: '🔍', description: 'Solve fun mysteries!' },
+    { id: 'science', label: 'Science Fun', icon: '🔬', description: 'Discover cool science!' },
+    { id: 'sports', label: 'Sports Stories', icon: '⚽', description: 'Athletic adventures!' },
+    { id: 'fantasy', label: 'Fantasy Worlds', icon: '🏰', description: 'Visit magical places!' },
+    { id: 'school', label: 'School Days', icon: '📚', description: 'Fun school stories!' },
+  ],
+  '11-12': [
+    { id: 'action', label: 'Action Heroes', icon: '🦸‍♂️', description: 'Be a hero!' },
+    { id: 'space', label: 'Space Explorer', icon: '🚀', description: 'Journey to the stars!' },
+    { id: 'detective', label: 'Detective Tales', icon: '🕵️‍♂️', description: 'Solve mysteries!' },
+    { id: 'mythology', label: 'Myth & Legend', icon: '🐉', description: 'Ancient tales!' },
+    { id: 'technology', label: 'Tech Adventures', icon: '🤖', description: 'Digital quests!' },
+    { id: 'survival', label: 'Survival Stories', icon: '🏕️', description: 'Outdoor challenges!' },
+  ],
+};
 
 const KidsStoryCreator = () => {
   const [step, setStep] = useState(1);
@@ -166,7 +186,7 @@ const KidsStoryCreator = () => {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
-            {STORY_TYPES.map((type) => (
+            {STORY_TYPES[ageGroup as keyof typeof STORY_TYPES].map((type) => (
               <Card
                 key={type.id}
                 className={`p-6 cursor-pointer transition-all hover:scale-105 ${
