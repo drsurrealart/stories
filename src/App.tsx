@@ -1,26 +1,21 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
-import { Footer } from "@/components/Footer";
-import AppRoutes from "@/routes/AppRoutes";
+import { Toaster } from "@/components/ui/toaster";
+import { ScrollToTop } from "@/components/ScrollToTop";
+import { AppRoutes } from "@/routes/AppRoutes";
 
-const queryClient = new QueryClient();
+function App() {
+  useEffect(() => {
+    // Any necessary side effects can be handled here
+  }, []);
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <div className="min-h-screen flex flex-col">
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-          <Footer />
-        </BrowserRouter>
-      </div>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+  return (
+    <BrowserRouter>
+      <ScrollToTop />
+      <AppRoutes />
+      <Toaster />
+    </BrowserRouter>
+  );
+}
 
 export default App;
