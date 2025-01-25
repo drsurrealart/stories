@@ -1,9 +1,9 @@
-import { Child, Users, User2, GraduationCap } from "lucide-react";
+import { Baby, Users, User2, GraduationCap } from "lucide-react";
 
 export const AudienceSection = () => {
   const audiences = [
     {
-      icon: Child,
+      icon: Baby,
       title: "Kids",
       description: "Fun and engaging stories that teach valuable life lessons"
     },
