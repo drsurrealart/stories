@@ -58,7 +58,7 @@ export function Story({
   const storyWithoutTitle = storyContent.replace(/^.+?\n/, '').trim();
 
   // Fetch the story ID using the title
-  const { data: storyData, isLoading } = useQuery({
+  const { data: storyData, isLoading, refetch } = useQuery({
     queryKey: ['story', title],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -78,20 +78,6 @@ export function Story({
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
-      {/* Audio Story Card for Kids */}
-      {isKidsStory && storyData?.id && (
-        <Card className="p-4 md:p-8 animate-fade-in border-4 border-primary">
-          <div className="flex items-center gap-2 mb-4">
-            <h3 className="font-bold text-2xl text-center w-full">Listen to the Story!</h3>
-          </div>
-          <AudioStory 
-            storyId={storyData.id} 
-            storyContent={storyWithoutTitle}
-            isKidsMode={true}
-          />
-        </Card>
-      )}
-
       {/* Main Story Card */}
       <Card className="p-4 md:p-8 space-y-4 md:space-y-6 animate-fade-in bg-story-background">
         <div className="flex justify-between items-start gap-4">
@@ -110,6 +96,20 @@ export function Story({
           readingLevel={readingLevel}
           lengthPreference={lengthPreference}
         />
+
+        {/* Audio Story Card for Kids */}
+        {isKidsStory && storyData?.id && (
+          <Card className="p-4 md:p-6 animate-fade-in border-2 border-primary/20">
+            <div className="flex items-center gap-2 mb-4">
+              <h3 className="font-bold text-xl text-center w-full">Listen to the Story!</h3>
+            </div>
+            <AudioStory 
+              storyId={storyData.id} 
+              storyContent={storyWithoutTitle}
+              isKidsMode={true}
+            />
+          </Card>
+        )}
 
         {enrichment && !isKidsStory && (
           <StoryEnrichment

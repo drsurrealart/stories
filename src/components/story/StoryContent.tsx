@@ -25,6 +25,8 @@ export function StoryContent({
   readingLevel,
   lengthPreference
 }: StoryContentProps) {
+  const isKidsStory = ageGroup?.toLowerCase().includes('kid') || ageGroup?.toLowerCase().includes('child');
+
   return (
     <div className="space-y-4">
       {/* Story Content */}
@@ -33,7 +35,7 @@ export function StoryContent({
       </div>
 
       {moral && (
-        <Card className="bg-secondary p-4 md:p-6">
+        <Card className={`${isKidsStory ? 'bg-primary/10' : 'bg-secondary'} p-4 md:p-6`}>
           <div className="flex items-center gap-2 mb-2">
             <Lightbulb className="h-5 w-5 text-primary" />
             <h3 className="font-semibold text-lg">Moral</h3>
