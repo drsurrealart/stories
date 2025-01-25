@@ -122,11 +122,13 @@ export default function KidsStoryCreator() {
       setGenerationStep("");
       setShowConfirmDialog(false);
       
-      // Redirect to the story page
+      // Redirect to the story page and refresh
       if (savedStory?.id) {
         navigate(`/your-stories?story=${savedStory.id}`);
+        window.location.reload(); // Force a complete page refresh
       } else {
         navigate('/your-stories');
+        window.location.reload(); // Force a complete page refresh
       }
 
     } catch (error: any) {
