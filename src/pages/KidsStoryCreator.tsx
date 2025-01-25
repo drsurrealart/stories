@@ -112,7 +112,7 @@ const KidsStoryCreator = () => {
 
       // Save the image
       if (imageResponse.data?.imageUrl) {
-        await supabase
+        const { error: imageError } = await supabase
           .from('story_images')
           .insert({
             story_id: savedStory.id,
@@ -120,6 +120,10 @@ const KidsStoryCreator = () => {
             image_url: imageResponse.data.imageUrl,
             credits_used: 5
           });
+
+        if (imageError) {
+          console.error('Error saving image:', imageError);
+        }
       }
 
       // Step 3: Generate Audio
@@ -135,17 +139,27 @@ const KidsStoryCreator = () => {
 
       // Save the audio
       if (audioResponse.data?.audioContent) {
+        // Convert base64 to blob
         const audioBlob = new Blob(
           [Uint8Array.from(atob(audioResponse.data.audioContent), c => c.charCodeAt(0))],
           { type: 'audio/mp3' }
         );
 
+        // Generate unique filename
         const filename = `${crypto.randomUUID()}.mp3`;
-        await supabase.storage
+
+        // Upload to storage
+        const { error: uploadError } = await supabase.storage
           .from('audio-stories')
           .upload(filename, audioBlob);
 
-        await supabase
+        if (uploadError) {
+          console.error('Error uploading audio:', uploadError);
+          throw uploadError;
+        }
+
+        // Save to database
+        const { error: audioError } = await supabase
           .from('audio_stories')
           .insert({
             story_id: savedStory.id,
@@ -154,6 +168,10 @@ const KidsStoryCreator = () => {
             voice_id: "fable",
             credits_used: 3
           });
+
+        if (audioError) {
+          console.error('Error saving audio:', audioError);
+        }
       }
 
       setGeneratedStory(story);
@@ -163,6 +181,7 @@ const KidsStoryCreator = () => {
       });
 
     } catch (error: any) {
+      console.error('Error generating story:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to generate story",
@@ -172,28 +191,6 @@ const KidsStoryCreator = () => {
       resetStates();
     }
   };
-
-  if (generatedStory) {
-    return (
-      <StoryCreatorLayout>
-        <div className="flex justify-center">
-          <Story
-            content={generatedStory}
-            enrichment={null}
-            onReflect={() => {}}
-            onCreateNew={() => {
-              setGeneratedStory("");
-              setAgeGroup("");
-              setStoryType("");
-              resetStates();
-            }}
-            ageGroup={ageGroup}
-            genre={storyType}
-          />
-        </div>
-      </StoryCreatorLayout>
-    );
-  }
 
   return (
     <StoryCreatorLayout>
