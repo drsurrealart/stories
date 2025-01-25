@@ -6,16 +6,23 @@ import { StoryTypeSelector } from "@/components/kids/StoryTypeSelector";
 import { GenerateStoryButton } from "@/components/kids/GenerateStoryButton";
 import { StoryGenerationModal } from "@/components/kids/StoryGenerationModal";
 import { ConfirmationDialog } from "@/components/kids/ConfirmationDialog";
+import { AgeGroupTabs } from "@/components/kids/AgeGroupTabs";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function KidsStoryCreator() {
+  const [ageGroup, setAgeGroup] = useState("5-7");
   const [storyType, setStoryType] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleAgeGroupChange = (value: string) => {
+    setAgeGroup(value);
+    setStoryType(""); // Reset story type when age group changes
+  };
 
   const handleGenerateClick = () => {
     setShowConfirmDialog(true);
@@ -39,7 +46,7 @@ export default function KidsStoryCreator() {
       const response = await supabase.functions.invoke('generate-story', {
         body: { 
           preferences: {
-            ageGroup: '5-7', // Using a specific age group instead of 'children'
+            ageGroup: ageGroup,
             genre: storyType,
             moral: 'kindness',
             lengthPreference: 'short',
@@ -72,7 +79,7 @@ export default function KidsStoryCreator() {
         .insert({
           title,
           content: story,
-          age_group: '5-7', // Using a specific age group instead of 'children'
+          age_group: ageGroup,
           genre: storyType,
           moral: 'kindness',
           author_id: session.user.id,
@@ -118,6 +125,11 @@ export default function KidsStoryCreator() {
     <StoryCreatorLayout>
       <div className="space-y-8">
         <StoryCreatorHeader />
+        
+        <AgeGroupTabs
+          selectedAgeGroup={ageGroup}
+          onAgeGroupChange={handleAgeGroupChange}
+        />
         
         <StoryTypeSelector
           selectedType={storyType}
