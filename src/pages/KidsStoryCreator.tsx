@@ -42,8 +42,14 @@ export default function KidsStoryCreator() {
     setShowConfirmDialog(true);
   };
 
+  const handleModalClose = () => {
+    setIsGenerating(false);
+    setGenerationStep("");
+  };
+
   const generateStory = async () => {
     try {
+      setShowConfirmDialog(false); // Close confirmation dialog
       setIsGenerating(true);
       setGenerationStep("Creating your magical story...");
 
@@ -111,7 +117,7 @@ export default function KidsStoryCreator() {
 
       if (saveError) throw saveError;
 
-      // Clear generation state
+      // Clear generation state and close modals
       setIsGenerating(false);
       setGenerationStep("");
       setShowConfirmDialog(false);
@@ -130,7 +136,7 @@ export default function KidsStoryCreator() {
         description: error.message || "Failed to generate story. Please try again.",
         variant: "destructive",
       });
-      // Clear generation state on error
+      // Clear generation state and close modals on error
       setIsGenerating(false);
       setGenerationStep("");
       setShowConfirmDialog(false);
@@ -170,6 +176,7 @@ export default function KidsStoryCreator() {
         <StoryGenerationModal
           isOpen={isGenerating}
           generationStep={generationStep}
+          onOpenChange={handleModalClose}
         />
       </div>
     </StoryCreatorLayout>
