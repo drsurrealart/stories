@@ -40,6 +40,16 @@ export default function KidsStoryCreator() {
   const [showAudioConfirm, setShowAudioConfirm] = useState(false);
   const { toast } = useToast();
 
+  // Effect to clean up modals when component unmounts
+  useEffect(() => {
+    return () => {
+      setIsGenerating(false);
+      setShowConfirmDialog(false);
+      setShowAudioConfirm(false);
+      setGenerationStep("");
+    };
+  }, []);
+
   const handleAgeGroupChange = (value: string) => {
     setAgeGroup(value);
     setStoryType(""); // Reset story type when age group changes
@@ -52,12 +62,15 @@ export default function KidsStoryCreator() {
   const handleModalClose = () => {
     setIsGenerating(false);
     setGenerationStep("");
-    window.location.reload(); // Refresh the page when modal closes
+    setShowConfirmDialog(false);
   };
 
   const handleCreateNew = () => {
     setGeneratedStory(null);
     setStoryType("");
+    setIsGenerating(false);
+    setShowConfirmDialog(false);
+    setGenerationStep("");
   };
 
   const generateStory = async () => {
@@ -73,6 +86,7 @@ export default function KidsStoryCreator() {
           description: "You need to be signed in to create stories",
           variant: "destructive",
         });
+        handleModalClose();
         return;
       }
 
@@ -144,9 +158,7 @@ export default function KidsStoryCreator() {
       setGeneratedStory(savedStory);
       
       // Clear generation state and close modals
-      setIsGenerating(false);
-      setGenerationStep("");
-      setShowConfirmDialog(false);
+      handleModalClose();
 
       toast({
         title: "Story created!",
@@ -161,9 +173,7 @@ export default function KidsStoryCreator() {
         variant: "destructive",
       });
       // Clear generation state and close modals on error
-      setIsGenerating(false);
-      setGenerationStep("");
-      setShowConfirmDialog(false);
+      handleModalClose();
     }
   };
 
