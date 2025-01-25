@@ -4,6 +4,7 @@ import { StoryCreatorLayout } from "@/components/kids/StoryCreatorLayout";
 import { StoryTypeSelector } from "@/components/kids/StoryTypeSelector";
 import { GenerateStoryButton } from "@/components/kids/GenerateStoryButton";
 import { StoryGenerationModal } from "@/components/kids/StoryGenerationModal";
+import { ConfirmationDialog } from "@/components/kids/ConfirmationDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,8 +12,13 @@ export default function KidsStoryCreator() {
   const [storyType, setStoryType] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState("");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const handleGenerateClick = () => {
+    setShowConfirmDialog(true);
+  };
 
   const generateStory = async () => {
     try {
@@ -50,21 +56,43 @@ export default function KidsStoryCreator() {
 
       setGenerationStep("Saving your story...");
       
-      // Find the newly created story's ID from the response
-      const storyId = response.data?.storyId;
+      // Extract the story content and other data
+      const { story, enrichment, imagePrompt } = response.data;
       
+      // Save the story to the database
+      const { data: savedStory, error: saveError } = await supabase
+        .from('stories')
+        .insert({
+          title: story.split('\n')[0], // First line is the title
+          content: story,
+          age_group: 'children',
+          genre: storyType,
+          moral: 'kindness',
+          author_id: session.user.id,
+          image_prompt: imagePrompt,
+          reflection_questions: enrichment?.reflection_questions || [],
+          action_steps: enrichment?.action_steps || [],
+          related_quote: enrichment?.related_quote || '',
+          discussion_prompts: enrichment?.discussion_prompts || []
+        })
+        .select()
+        .single();
+
+      if (saveError) throw saveError;
+
       // Clear generation state
       setIsGenerating(false);
       setGenerationStep("");
+      setShowConfirmDialog(false);
       
       // Redirect to the story page
-      if (storyId) {
-        navigate(`/your-stories?story=${storyId}`);
+      if (savedStory?.id) {
+        navigate(`/your-stories?story=${savedStory.id}`);
       } else {
-        navigate('/your-stories'); // Fallback to stories list if ID not available
+        navigate('/your-stories');
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating story:", error);
       toast({
         title: "Error",
@@ -74,6 +102,7 @@ export default function KidsStoryCreator() {
       // Clear generation state on error
       setIsGenerating(false);
       setGenerationStep("");
+      setShowConfirmDialog(false);
     }
   };
 
@@ -88,7 +117,14 @@ export default function KidsStoryCreator() {
       <GenerateStoryButton
         storyType={storyType}
         isGenerating={isGenerating}
-        onClick={generateStory}
+        onClick={handleGenerateClick}
+      />
+
+      <ConfirmationDialog
+        open={showConfirmDialog}
+        onOpenChange={setShowConfirmDialog}
+        onConfirm={generateStory}
+        totalCredits={9} // 1 for story + 3 for audio + 5 for image
       />
 
       <StoryGenerationModal
