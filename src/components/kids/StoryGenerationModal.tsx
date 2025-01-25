@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 interface StoryGenerationModalProps {
   isOpen: boolean;
   generationStep: string;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const getPositiveMessage = (step: string) => {
@@ -22,12 +23,17 @@ const getPositiveMessage = (step: string) => {
   }
 };
 
-export function StoryGenerationModal({ isOpen, generationStep }: StoryGenerationModalProps) {
-  // Return null if not open to ensure proper cleanup
-  if (!isOpen) return null;
-
+export function StoryGenerationModal({ 
+  isOpen, 
+  generationStep,
+  onOpenChange 
+}: StoryGenerationModalProps) {
   return (
-    <Dialog open={isOpen} modal>
+    <Dialog 
+      open={isOpen} 
+      modal 
+      onOpenChange={onOpenChange}
+    >
       <DialogContent 
         className="sm:max-w-md bg-gradient-to-b from-secondary to-background border-4 border-primary"
         onPointerDownOutside={(e) => e.preventDefault()} // Prevent closing on outside click during generation
