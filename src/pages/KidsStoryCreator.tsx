@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { StoryCreatorLayout } from "@/components/kids/StoryCreatorLayout";
+import { StoryCreatorHeader } from "@/components/kids/StoryCreatorHeader";
 import { StoryTypeSelector } from "@/components/kids/StoryTypeSelector";
 import { GenerateStoryButton } from "@/components/kids/GenerateStoryButton";
 import { StoryGenerationModal } from "@/components/kids/StoryGenerationModal";
@@ -59,11 +60,17 @@ export default function KidsStoryCreator() {
       // Extract the story content and other data
       const { story, enrichment, imagePrompt } = response.data;
       
+      // Generate a slug from the title
+      const title = story.split('\n')[0];
+      const slug = title.toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      
       // Save the story to the database
       const { data: savedStory, error: saveError } = await supabase
         .from('stories')
         .insert({
-          title: story.split('\n')[0], // First line is the title
+          title,
           content: story,
           age_group: 'children',
           genre: storyType,
@@ -73,7 +80,8 @@ export default function KidsStoryCreator() {
           reflection_questions: enrichment?.reflection_questions || [],
           action_steps: enrichment?.action_steps || [],
           related_quote: enrichment?.related_quote || '',
-          discussion_prompts: enrichment?.discussion_prompts || []
+          discussion_prompts: enrichment?.discussion_prompts || [],
+          slug
         })
         .select()
         .single();
@@ -108,29 +116,33 @@ export default function KidsStoryCreator() {
 
   return (
     <StoryCreatorLayout>
-      <StoryTypeSelector
-        selectedType={storyType}
-        onSelect={setStoryType}
-        disabled={isGenerating}
-      />
-      
-      <GenerateStoryButton
-        storyType={storyType}
-        isGenerating={isGenerating}
-        onClick={handleGenerateClick}
-      />
+      <div className="space-y-8">
+        <StoryCreatorHeader />
+        
+        <StoryTypeSelector
+          selectedType={storyType}
+          onSelect={setStoryType}
+          disabled={isGenerating}
+        />
+        
+        <GenerateStoryButton
+          storyType={storyType}
+          isGenerating={isGenerating}
+          onClick={handleGenerateClick}
+        />
 
-      <ConfirmationDialog
-        open={showConfirmDialog}
-        onOpenChange={setShowConfirmDialog}
-        onConfirm={generateStory}
-        totalCredits={9} // 1 for story + 3 for audio + 5 for image
-      />
+        <ConfirmationDialog
+          open={showConfirmDialog}
+          onOpenChange={setShowConfirmDialog}
+          onConfirm={generateStory}
+          totalCredits={9} // 1 for story + 3 for audio + 5 for image
+        />
 
-      <StoryGenerationModal
-        isOpen={isGenerating}
-        generationStep={generationStep}
-      />
+        <StoryGenerationModal
+          isOpen={isGenerating}
+          generationStep={generationStep}
+        />
+      </div>
     </StoryCreatorLayout>
   );
 }
