@@ -14,7 +14,6 @@ import { StoryActions } from "@/components/story/StoryActions";
 import { Card } from "@/components/ui/card";
 import { AudioGenerationForm } from "@/components/story/audio/AudioGenerationForm";
 import { AudioPlayer } from "@/components/story/audio/AudioPlayer";
-import { useState as useStateWithCallback } from "react";
 
 // Helper function to map UI age groups to database age groups
 const mapAgeGroupToDbGroup = (uiAgeGroup: string): string => {
@@ -40,7 +39,6 @@ export default function KidsStoryCreator() {
   const [selectedVoice, setSelectedVoice] = useState("alloy");
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [showAudioConfirm, setShowAudioConfirm] = useState(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleAgeGroupChange = (value: string) => {
@@ -104,11 +102,12 @@ export default function KidsStoryCreator() {
       // Extract the story content and other data
       const { story, enrichment, imagePrompt } = response.data;
       
-      // Generate a slug from the title
+      // Generate a unique slug from the title with timestamp
       const title = story.split('\n')[0];
-      const slug = title.toLowerCase()
+      const timestamp = new Date().getTime();
+      const slug = `${title.toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
+        .replace(/(^-|-$)/g, '')}-${timestamp}`;
       
       // Save the story to the database
       const { data: savedStory, error: saveError } = await supabase
@@ -139,6 +138,11 @@ export default function KidsStoryCreator() {
       setIsGenerating(false);
       setGenerationStep("");
       setShowConfirmDialog(false);
+
+      toast({
+        title: "Story created!",
+        description: "Your magical story has been created successfully.",
+      });
 
     } catch (error: any) {
       console.error("Error generating story:", error);
