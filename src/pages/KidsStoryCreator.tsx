@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { StoryCreatorLayout } from "@/components/kids/StoryCreatorLayout";
 import { StoryCreatorHeader } from "@/components/kids/StoryCreatorHeader";
 import { StoryTypeSelector } from "@/components/kids/StoryTypeSelector";
@@ -9,11 +8,11 @@ import { ConfirmationDialog } from "@/components/kids/ConfirmationDialog";
 import { AgeGroupTabs } from "@/components/kids/AgeGroupTabs";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { StoryContent } from "@/components/story/StoryContent";
-import { StoryActions } from "@/components/story/StoryActions";
 import { Card } from "@/components/ui/card";
+import { StoryActions } from "@/components/story/StoryActions";
 import { AudioGenerationForm } from "@/components/story/audio/AudioGenerationForm";
 import { AudioPlayer } from "@/components/story/audio/AudioPlayer";
+import { Lightbulb } from "lucide-react";
 
 // Helper function to map UI age groups to database age groups
 const mapAgeGroupToDbGroup = (uiAgeGroup: string): string => {
@@ -247,24 +246,24 @@ export default function KidsStoryCreator() {
         <div className="space-y-8">
           <Card className="p-6">
             <h1 className="text-3xl font-bold mb-6">{generatedStory.title}</h1>
-            <div className="prose max-w-none">
-              {generatedStory.content.split('\n').map((paragraph: string, index: number) => (
-                <p key={index}>{paragraph}</p>
-              ))}
+            <div className="prose max-w-none space-y-4">
+              <div className="text-story-text whitespace-pre-line">
+                {generatedStory.content.split('\n').map((paragraph: string, index: number) => (
+                  <p key={index} className="mb-4">{paragraph}</p>
+                ))}
+              </div>
+              
+              {generatedStory.moral && (
+                <Card className="bg-primary/10 p-4 md:p-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Lightbulb className="h-5 w-5 text-primary" />
+                    <h3 className="font-semibold text-lg">Moral</h3>
+                  </div>
+                  <p className="text-story-text">{generatedStory.moral}</p>
+                </Card>
+              )}
             </div>
           </Card>
-
-          <StoryContent
-            title={generatedStory.title}
-            content={generatedStory.content}
-            moral={generatedStory.moral}
-            ageGroup={generatedStory.age_group}
-            genre={generatedStory.genre}
-            language={generatedStory.language}
-            tone={generatedStory.tone}
-            readingLevel={generatedStory.reading_level}
-            lengthPreference={generatedStory.length_preference}
-          />
 
           {generatedStory.audio_stories?.[0]?.audio_url ? (
             <Card className="p-6">
