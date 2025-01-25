@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StoryCreatorLayout } from "@/components/kids/StoryCreatorLayout";
 import { StoryCreatorHeader } from "@/components/kids/StoryCreatorHeader";
 import { StoryTypeSelector } from "@/components/kids/StoryTypeSelector";
@@ -52,6 +52,7 @@ export default function KidsStoryCreator() {
   const handleModalClose = () => {
     setIsGenerating(false);
     setGenerationStep("");
+    window.location.reload(); // Refresh the page when modal closes
   };
 
   const handleCreateNew = () => {
@@ -101,8 +102,17 @@ export default function KidsStoryCreator() {
       // Extract the story content and other data
       const { story, enrichment, imagePrompt } = response.data;
       
+      // Split content to separate moral from the rest of the story
+      const parts = story.split("Moral:");
+      const storyContent = parts[0].trim();
+      const moral = parts[1]?.trim() || "";
+      
+      // Extract title from the first line
+      const titleMatch = storyContent.match(/^(.+?)\n/);
+      const title = titleMatch ? titleMatch[1].trim() : "Untitled Story";
+      const contentWithoutTitle = storyContent.replace(/^.+?\n/, '').trim();
+      
       // Generate a unique slug from the title with timestamp
-      const title = story.split('\n')[0];
       const timestamp = new Date().getTime();
       const slug = `${title.toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
@@ -113,10 +123,10 @@ export default function KidsStoryCreator() {
         .from('stories')
         .insert({
           title,
-          content: story,
+          content: contentWithoutTitle,
+          moral: moral,
           age_group: dbAgeGroup,
           genre: storyType,
-          moral: 'kindness',
           author_id: session.user.id,
           image_prompt: imagePrompt,
           reflection_questions: enrichment?.reflection_questions || [],
@@ -257,9 +267,9 @@ export default function KidsStoryCreator() {
                 <Card className="bg-primary/10 p-4 md:p-6">
                   <div className="flex items-center gap-2 mb-2">
                     <Lightbulb className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold text-lg">Moral</h3>
+                    <h3 className="font-semibold text-lg">Moral of the Story</h3>
                   </div>
-                  <p className="text-story-text">{generatedStory.moral}</p>
+                  <p className="text-story-text whitespace-pre-line">{generatedStory.moral}</p>
                 </Card>
               )}
             </div>
