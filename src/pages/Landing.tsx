@@ -1,23 +1,21 @@
+import { NavigationBar } from "@/components/NavigationBar";
 import { HeroSection } from "@/components/landing/HeroSection";
-import { BenefitsSection } from "@/components/landing/BenefitsSection";
+import { AudienceSection } from "@/components/landing/AudienceSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
-import { FeaturesShowcase } from "@/components/landing/FeaturesShowcase";
+import { BenefitsSection } from "@/components/landing/BenefitsSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
-import { AgeGroupsSection } from "@/components/landing/AgeGroupsSection";
 import { CTASection } from "@/components/landing/CTASection";
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <main>
-        <HeroSection />
-        <FeaturesShowcase />
-        <AgeGroupsSection />
-        <FeaturesSection />
-        <BenefitsSection />
-        <TestimonialsSection />
-        <CTASection />
-      </main>
+    <div className="min-h-screen">
+      <NavigationBar onLogout={() => {}} />
+      <HeroSection />
+      <AudienceSection />
+      <FeaturesSection />
+      <BenefitsSection />
+      <TestimonialsSection />
+      <CTASection />
     </div>
   );
 };
