@@ -15,8 +15,8 @@ interface StoryTypeSelectorProps {
 }
 
 export function StoryTypeSelector({ selectedType, onSelect, disabled = false }: StoryTypeSelectorProps) {
-  // Get story types for 5-7 age group as default
-  const storyTypes = KIDS_STORY_TYPES['5-7'];
+  // Get story types for 5-7 age group as default and ensure it's defined
+  const storyTypes = KIDS_STORY_TYPES["5-7"] || [];
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
