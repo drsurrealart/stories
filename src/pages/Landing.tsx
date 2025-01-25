@@ -1,6 +1,7 @@
 import { NavigationBar } from "@/components/NavigationBar";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { AudienceSection } from "@/components/landing/AudienceSection";
+import { FeaturesShowcase } from "@/components/landing/FeaturesShowcase";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { BenefitsSection } from "@/components/landing/BenefitsSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
@@ -12,6 +13,7 @@ const Landing = () => {
       <NavigationBar onLogout={() => {}} />
       <HeroSection />
       <AudienceSection />
+      <FeaturesShowcase />
       <FeaturesSection />
       <BenefitsSection />
       <TestimonialsSection />
