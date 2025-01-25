@@ -1,7 +1,6 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Loader2, Star, Wand2, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
 
 interface StoryGenerationModalProps {
   isOpen: boolean;
@@ -24,11 +23,15 @@ const getPositiveMessage = (step: string) => {
 };
 
 export function StoryGenerationModal({ isOpen, generationStep }: StoryGenerationModalProps) {
+  // Return null if not open to ensure proper cleanup
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen}>
-      <DialogContent className="sm:max-w-md bg-gradient-to-b from-secondary to-background border-4 border-primary">
+    <Dialog open={isOpen} modal>
+      <DialogContent 
+        className="sm:max-w-md bg-gradient-to-b from-secondary to-background border-4 border-primary"
+        onPointerDownOutside={(e) => e.preventDefault()} // Prevent closing on outside click during generation
+      >
         <div className="flex flex-col items-center justify-center space-y-6 py-8">
           {/* Animated Icons */}
           <div className="relative w-24 h-24">
