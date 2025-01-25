@@ -27,6 +27,11 @@ export function StoryContent({
 }: StoryContentProps) {
   return (
     <div className="space-y-4">
+      {/* Story Content */}
+      <div className="prose max-w-none">
+        <p className="text-story-text whitespace-pre-line">{content}</p>
+      </div>
+
       {moral && (
         <Card className="bg-secondary p-4 md:p-6">
           <div className="flex items-center gap-2 mb-2">
