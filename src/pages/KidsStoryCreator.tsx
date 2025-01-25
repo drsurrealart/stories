@@ -39,7 +39,7 @@ export default function KidsStoryCreator() {
       const response = await supabase.functions.invoke('generate-story', {
         body: { 
           preferences: {
-            ageGroup: 'children',
+            ageGroup: '5-7', // Using a specific age group instead of 'children'
             genre: storyType,
             moral: 'kindness',
             lengthPreference: 'short',
@@ -72,7 +72,7 @@ export default function KidsStoryCreator() {
         .insert({
           title,
           content: story,
-          age_group: 'children',
+          age_group: '5-7', // Using a specific age group instead of 'children'
           genre: storyType,
           moral: 'kindness',
           author_id: session.user.id,
