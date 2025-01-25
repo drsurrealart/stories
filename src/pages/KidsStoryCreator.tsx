@@ -253,7 +253,7 @@ export default function KidsStoryCreator() {
           />
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="max-w-2xl mx-auto space-y-8">
           <Card className="p-6">
             <h1 className="text-3xl font-bold mb-6">{generatedStory.title}</h1>
             <div className="prose max-w-none space-y-4">
