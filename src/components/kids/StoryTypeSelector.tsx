@@ -15,8 +15,13 @@ interface StoryTypeSelectorProps {
 }
 
 export function StoryTypeSelector({ selectedType, onSelect, disabled = false }: StoryTypeSelectorProps) {
-  // Get story types for 5-7 age group as default and ensure it's defined
-  const storyTypes = KIDS_STORY_TYPES["5-7"] || [];
+  // Get story types for 5-7 age group and ensure it's defined
+  const storyTypes = KIDS_STORY_TYPES["5-7"] ?? KIDS_STORY_TYPES["5-7"] ?? [];
+
+  if (!storyTypes || storyTypes.length === 0) {
+    console.error("Story types not found for age group 5-7");
+    return null;
+  }
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
