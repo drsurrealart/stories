@@ -9,6 +9,12 @@ import { ConfirmationDialog } from "@/components/kids/ConfirmationDialog";
 import { AgeGroupTabs } from "@/components/kids/AgeGroupTabs";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { StoryContent } from "@/components/story/StoryContent";
+import { StoryActions } from "@/components/story/StoryActions";
+import { Card } from "@/components/ui/card";
+import { AudioGenerationForm } from "@/components/story/audio/AudioGenerationForm";
+import { AudioPlayer } from "@/components/story/audio/AudioPlayer";
+import { useState as useStateWithCallback } from "react";
 
 // Helper function to map UI age groups to database age groups
 const mapAgeGroupToDbGroup = (uiAgeGroup: string): string => {
@@ -30,6 +36,10 @@ export default function KidsStoryCreator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [generatedStory, setGeneratedStory] = useState<any>(null);
+  const [selectedVoice, setSelectedVoice] = useState("alloy");
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [showAudioConfirm, setShowAudioConfirm] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -47,9 +57,14 @@ export default function KidsStoryCreator() {
     setGenerationStep("");
   };
 
+  const handleCreateNew = () => {
+    setGeneratedStory(null);
+    setStoryType("");
+  };
+
   const generateStory = async () => {
     try {
-      setShowConfirmDialog(false); // Close confirmation dialog
+      setShowConfirmDialog(false);
       setIsGenerating(true);
       setGenerationStep("Creating your magical story...");
 
@@ -117,19 +132,13 @@ export default function KidsStoryCreator() {
 
       if (saveError) throw saveError;
 
+      // Set the generated story in state
+      setGeneratedStory(savedStory);
+      
       // Clear generation state and close modals
       setIsGenerating(false);
       setGenerationStep("");
       setShowConfirmDialog(false);
-      
-      // Redirect to the story page and refresh
-      if (savedStory?.id) {
-        navigate(`/your-stories?story=${savedStory.id}`);
-        window.location.reload(); // Force a complete page refresh
-      } else {
-        navigate('/your-stories');
-        window.location.reload(); // Force a complete page refresh
-      }
 
     } catch (error: any) {
       console.error("Error generating story:", error);
@@ -145,42 +154,142 @@ export default function KidsStoryCreator() {
     }
   };
 
+  const handleGenerateAudio = async () => {
+    try {
+      setIsGeneratingAudio(true);
+      setShowAudioConfirm(false);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await supabase.functions.invoke('text-to-speech', {
+        body: { 
+          storyId: generatedStory.id,
+          voiceId: selectedVoice,
+          userId: session.user.id
+        }
+      });
+
+      if (response.error) throw response.error;
+
+      // Refresh the story data to get the new audio URL
+      const { data: updatedStory, error: refreshError } = await supabase
+        .from('stories')
+        .select(`
+          *,
+          audio_stories (*)
+        `)
+        .eq('id', generatedStory.id)
+        .single();
+
+      if (refreshError) throw refreshError;
+      setGeneratedStory(updatedStory);
+
+      toast({
+        title: "Success",
+        description: "Audio version created successfully!",
+      });
+
+    } catch (error: any) {
+      console.error('Error generating audio:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate audio. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingAudio(false);
+    }
+  };
+
   return (
     <StoryCreatorLayout>
-      <div className="space-y-8">
-        <StoryCreatorHeader />
-        
-        <AgeGroupTabs
-          selectedAgeGroup={ageGroup}
-          onAgeGroupChange={handleAgeGroupChange}
-        />
-        
-        <StoryTypeSelector
-          selectedType={storyType}
-          onSelect={setStoryType}
-          ageGroup={ageGroup}
-          disabled={isGenerating}
-        />
-        
-        <GenerateStoryButton
-          storyType={storyType}
-          isGenerating={isGenerating}
-          onClick={handleGenerateClick}
-        />
+      {!generatedStory ? (
+        <div className="space-y-8">
+          <StoryCreatorHeader />
+          
+          <AgeGroupTabs
+            selectedAgeGroup={ageGroup}
+            onAgeGroupChange={handleAgeGroupChange}
+          />
+          
+          <StoryTypeSelector
+            selectedType={storyType}
+            onSelect={setStoryType}
+            ageGroup={ageGroup}
+            disabled={isGenerating}
+          />
+          
+          <GenerateStoryButton
+            storyType={storyType}
+            isGenerating={isGenerating}
+            onClick={handleGenerateClick}
+          />
 
-        <ConfirmationDialog
-          open={showConfirmDialog}
-          onOpenChange={setShowConfirmDialog}
-          onConfirm={generateStory}
-          totalCredits={9}
-        />
+          <ConfirmationDialog
+            open={showConfirmDialog}
+            onOpenChange={setShowConfirmDialog}
+            onConfirm={generateStory}
+            totalCredits={9}
+          />
 
-        <StoryGenerationModal
-          isOpen={isGenerating}
-          generationStep={generationStep}
-          onOpenChange={handleModalClose}
-        />
-      </div>
+          <StoryGenerationModal
+            isOpen={isGenerating}
+            generationStep={generationStep}
+            onOpenChange={handleModalClose}
+          />
+        </div>
+      ) : (
+        <div className="space-y-8">
+          <Card className="p-6">
+            <h1 className="text-3xl font-bold mb-6">{generatedStory.title}</h1>
+            <div className="prose max-w-none">
+              {generatedStory.content.split('\n').map((paragraph: string, index: number) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+            </div>
+          </Card>
+
+          <StoryContent
+            title={generatedStory.title}
+            content={generatedStory.content}
+            moral={generatedStory.moral}
+            ageGroup={generatedStory.age_group}
+            genre={generatedStory.genre}
+            language={generatedStory.language}
+            tone={generatedStory.tone}
+            readingLevel={generatedStory.reading_level}
+            lengthPreference={generatedStory.length_preference}
+          />
+
+          {generatedStory.audio_stories?.[0]?.audio_url ? (
+            <Card className="p-6">
+              <AudioPlayer 
+                audioUrl={generatedStory.audio_stories[0].audio_url}
+                isKidsMode={true}
+              />
+            </Card>
+          ) : (
+            <Card className="p-6">
+              <AudioGenerationForm
+                selectedVoice={selectedVoice}
+                onVoiceChange={setSelectedVoice}
+                isGenerating={isGeneratingAudio}
+                showConfirmDialog={showAudioConfirm}
+                onConfirmDialogChange={setShowAudioConfirm}
+                onGenerate={handleGenerateAudio}
+                isKidsMode={true}
+              />
+            </Card>
+          )}
+
+          <StoryActions
+            onReflect={() => {}}
+            onCreateNew={handleCreateNew}
+            isKidsMode={true}
+          />
+        </div>
+      )}
     </StoryCreatorLayout>
   );
 }
