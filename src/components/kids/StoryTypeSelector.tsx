@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { KIDS_STORY_TYPES } from "@/data/storyOptions";
+import { genresByAge } from "@/data/storyOptions";
 
 interface StoryType {
   readonly id: string;
@@ -11,15 +12,38 @@ interface StoryType {
 interface StoryTypeSelectorProps {
   selectedType: string;
   onSelect: (type: string) => void;
+  ageGroup: string;
   disabled?: boolean;
 }
 
-export function StoryTypeSelector({ selectedType, onSelect, disabled = false }: StoryTypeSelectorProps) {
-  // Get story types for 5-7 age group and ensure it's defined
-  const storyTypes = KIDS_STORY_TYPES["5-7"] ?? KIDS_STORY_TYPES["5-7"] ?? [];
+// Helper function to map UI age groups to database age groups
+const mapAgeGroupToDbGroup = (uiAgeGroup: string): string => {
+  switch (uiAgeGroup) {
+    case '5-7':
+      return 'preschool';
+    case '8-10':
+      return 'elementary';
+    case '11-12':
+      return 'tween';
+    default:
+      return 'preschool';
+  }
+};
+
+export function StoryTypeSelector({ selectedType, onSelect, ageGroup, disabled = false }: StoryTypeSelectorProps) {
+  const dbAgeGroup = mapAgeGroupToDbGroup(ageGroup);
+  const genres = genresByAge[dbAgeGroup as keyof typeof genresByAge] || [];
+
+  // Convert database genres to story type format
+  const storyTypes = genres.map(genre => ({
+    id: genre.value,
+    label: genre.label,
+    icon: getGenreIcon(genre.value),
+    description: getGenreDescription(genre.value)
+  }));
 
   if (!storyTypes || storyTypes.length === 0) {
-    console.error("Story types not found for age group 5-7");
+    console.error("Story types not found for age group", ageGroup);
     return null;
   }
 
@@ -42,4 +66,54 @@ export function StoryTypeSelector({ selectedType, onSelect, disabled = false }: 
       ))}
     </div>
   );
+}
+
+// Helper function to get appropriate icon for each genre
+function getGenreIcon(genre: string): string {
+  const icons: Record<string, string> = {
+    bedtime: '🌙',
+    animals: '🐾',
+    family: '👨‍👩‍👧‍👦',
+    nature: '🌳',
+    adventure: '🗺️',
+    mystery: '🔍',
+    fairytale: '🏰',
+    sports: '⚽',
+    school: '📚',
+    science: '🔬',
+    fantasy: '✨',
+    action: '🦸‍♂️',
+    space: '🚀',
+    detective: '🕵️‍♂️',
+    mythology: '🐉',
+    survival: '🏕️',
+    // Add more mappings as needed
+    default: '📖'
+  };
+  return icons[genre] || icons.default;
+}
+
+// Helper function to get description for each genre
+function getGenreDescription(genre: string): string {
+  const descriptions: Record<string, string> = {
+    bedtime: 'Perfect for sleepy time!',
+    animals: 'Adventures with furry friends',
+    family: 'Stories about family time',
+    nature: 'Explore the outdoors',
+    adventure: 'Epic quests and journeys',
+    mystery: 'Solve exciting mysteries',
+    fairytale: 'Magical fairy tales',
+    sports: 'Fun sports stories',
+    school: 'School day adventures',
+    science: 'Discover cool science',
+    fantasy: 'Magical adventures',
+    action: 'Exciting hero stories',
+    space: 'Journey to the stars',
+    detective: 'Solve mysteries',
+    mythology: 'Ancient tales',
+    survival: 'Outdoor challenges',
+    // Add more descriptions as needed
+    default: 'An exciting story adventure!'
+  };
+  return descriptions[genre] || descriptions.default;
 }

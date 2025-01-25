@@ -10,6 +10,20 @@ import { AgeGroupTabs } from "@/components/kids/AgeGroupTabs";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+// Helper function to map UI age groups to database age groups
+const mapAgeGroupToDbGroup = (uiAgeGroup: string): string => {
+  switch (uiAgeGroup) {
+    case '5-7':
+      return 'preschool';
+    case '8-10':
+      return 'elementary';
+    case '11-12':
+      return 'tween';
+    default:
+      return 'preschool';
+  }
+};
+
 export default function KidsStoryCreator() {
   const [ageGroup, setAgeGroup] = useState("5-7");
   const [storyType, setStoryType] = useState("");
@@ -43,10 +57,12 @@ export default function KidsStoryCreator() {
         return;
       }
 
+      const dbAgeGroup = mapAgeGroupToDbGroup(ageGroup);
+
       const response = await supabase.functions.invoke('generate-story', {
         body: { 
           preferences: {
-            ageGroup: ageGroup,
+            ageGroup: dbAgeGroup,
             genre: storyType,
             moral: 'kindness',
             lengthPreference: 'short',
@@ -79,7 +95,7 @@ export default function KidsStoryCreator() {
         .insert({
           title,
           content: story,
-          age_group: ageGroup,
+          age_group: dbAgeGroup,
           genre: storyType,
           moral: 'kindness',
           author_id: session.user.id,
@@ -134,6 +150,7 @@ export default function KidsStoryCreator() {
         <StoryTypeSelector
           selectedType={storyType}
           onSelect={setStoryType}
+          ageGroup={ageGroup}
           disabled={isGenerating}
         />
         
@@ -147,7 +164,7 @@ export default function KidsStoryCreator() {
           open={showConfirmDialog}
           onOpenChange={setShowConfirmDialog}
           onConfirm={generateStory}
-          totalCredits={9} // 1 for story + 3 for audio + 5 for image
+          totalCredits={9}
         />
 
         <StoryGenerationModal
