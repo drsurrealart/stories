@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { StoryTypeSelector } from "./StoryTypeSelector";
 import { GenerateStoryButton } from "./GenerateStoryButton";
 import { AgeGroupTabs } from "./AgeGroupTabs";
+import { moralsByAge } from "@/data/storyOptions";
 
 interface StoryGeneratorProps {
   onStoryGenerated: (story: any) => void;
@@ -15,6 +16,16 @@ export function StoryGenerator({ onStoryGenerated }: StoryGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState("");
   const { toast } = useToast();
+
+  const getRandomMoral = (ageGroup: string) => {
+    // Map kids age groups to database age groups
+    const dbAgeGroup = mapAgeGroupToDbGroup(ageGroup);
+    // Get morals for the age group
+    const morals = moralsByAge[dbAgeGroup];
+    // Select a random moral
+    const randomMoral = morals[Math.floor(Math.random() * morals.length)];
+    return randomMoral.value;
+  };
 
   const generateStory = async () => {
     try {
@@ -33,13 +44,14 @@ export function StoryGenerator({ onStoryGenerated }: StoryGeneratorProps) {
       }
 
       const dbAgeGroup = mapAgeGroupToDbGroup(ageGroup);
+      const randomMoral = getRandomMoral(ageGroup);
 
       const response = await supabase.functions.invoke('generate-story', {
         body: { 
           preferences: {
             ageGroup: dbAgeGroup,
             genre: storyType,
-            moral: 'kindness',
+            moral: randomMoral,
             lengthPreference: 'short',
             language: 'english',
             tone: 'playful',
