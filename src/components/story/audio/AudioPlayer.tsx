@@ -45,13 +45,16 @@ export function AudioPlayer({ audioUrl, isKidsMode = false }: AudioPlayerProps) 
       console.log('Audio can play now');
     };
 
-    // Set source after adding event listeners
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('error', handleError);
     audio.addEventListener('canplay', handleCanPlay);
     
-    // Set the source and load the audio
-    audio.src = audioUrl;
+    // Construct the full URL if it's not already a complete URL
+    const fullUrl = audioUrl.startsWith('http') 
+      ? audioUrl 
+      : `https://uhxpzeyklqbkeibvreqv.supabase.co/storage/v1/object/public/audio-stories/${audioUrl}`;
+    
+    audio.src = fullUrl;
     audio.load();
     
     setAudioElement(audio);
@@ -160,7 +163,7 @@ export function AudioPlayer({ audioUrl, isKidsMode = false }: AudioPlayerProps) 
             variant={isPlaying ? "outline" : "default"}
             onClick={togglePlayPause}
             className={`w-32 h-32 rounded-full transition-all transform hover:scale-105 ${
-              isPlaying ? 'bg-secondary' : 'bg-primary animate-pulse'
+              isPlaying ? 'bg-secondary' : 'bg-violet-500'
             }`}
           >
             {isPlaying ? (
