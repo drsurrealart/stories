@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.12.7'
-import { fetchFile } from 'https://esm.sh/@ffmpeg/util@0.12.1'
-import { toBlobURL } from 'https://esm.sh/@ffmpeg/util@0.12.1'
+import { fetchFile, toBlobURL } from 'https://esm.sh/@ffmpeg/util@0.12.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -37,27 +36,10 @@ serve(async (req) => {
       throw new Error('Failed to get user')
     }
 
-    // Get existing audio story
-    const { data: audioStory, error: audioError } = await supabaseClient
-      .from('audio_stories')
-      .select('audio_url')
-      .eq('story_id', storyId)
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    if (audioError || !audioStory) {
-      throw new Error('Failed to fetch audio story')
-    }
-
-    // Get the audio file URL
-    const { data: { publicUrl: audioUrl } } = supabaseClient
-      .storage
-      .from('audio-stories')
-      .getPublicUrl(audioStory.audio_url)
-
     // Generate a background image using DALL-E
     const imagePrompt = `Create a minimalist, abstract background suitable for a video. The image should be simple, elegant, and not distracting. Style: soft gradients and subtle patterns. Color scheme: calming and professional. ${aspectRatio === "16:9" ? "Landscape orientation" : "Portrait orientation"}`
 
+    console.log('Generating background image with DALL-E...')
     const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
@@ -81,26 +63,19 @@ serve(async (req) => {
     const imageData = await imageResponse.json()
     const backgroundImageUrl = imageData.data[0].url
 
-    // Download the background image and audio
-    const [imageRes, audioRes] = await Promise.all([
-      fetch(backgroundImageUrl),
-      fetch(audioUrl)
-    ])
-
-    const [imageBlob, audioBlob] = await Promise.all([
-      imageRes.blob(),
-      audioRes.blob()
-    ])
+    // Download the background image
+    console.log('Downloading background image...')
+    const imageRes = await fetch(backgroundImageUrl)
+    const imageBlob = await imageRes.blob()
 
     // Initialize FFmpeg
+    console.log('Initializing FFmpeg...')
     const ffmpeg = new FFmpeg()
-    console.log('Loading FFmpeg...')
     await ffmpeg.load()
-    
+
     // Write files to FFmpeg virtual filesystem
     console.log('Writing files to FFmpeg filesystem...')
     await ffmpeg.writeFile('background.png', new Uint8Array(await imageBlob.arrayBuffer()))
-    await ffmpeg.writeFile('audio.mp3', new Uint8Array(await audioBlob.arrayBuffer()))
 
     // Generate video with FFmpeg
     const outputFileName = `${crypto.randomUUID()}.mp4`
@@ -110,14 +85,10 @@ serve(async (req) => {
     await ffmpeg.exec([
       '-loop', '1',
       '-i', 'background.png',
-      '-i', 'audio.mp3',
       '-c:v', 'libx264',
-      '-tune', 'stillimage',
-      '-c:a', 'aac',
-      '-b:a', '192k',
+      '-t', '10', // 10 seconds duration
       '-pix_fmt', 'yuv420p',
-      '-shortest',
-      '-s', resolution,
+      '-vf', `scale=${resolution}`,
       outputFileName
     ])
 
