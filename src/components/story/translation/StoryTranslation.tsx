@@ -5,6 +5,16 @@ import { Globe, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { LanguageSelect } from "@/components/story/LanguageSelect";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface StoryTranslationProps {
   storyId: string;
@@ -14,6 +24,7 @@ interface StoryTranslationProps {
 export function StoryTranslation({ storyId, onTranslationComplete }: StoryTranslationProps) {
   const [isTranslating, setIsTranslating] = useState(false);
   const [targetLanguage, setTargetLanguage] = useState("spanish");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
 
   const handleTranslate = async () => {
@@ -57,37 +68,58 @@ export function StoryTranslation({ storyId, onTranslationComplete }: StoryTransl
       });
     } finally {
       setIsTranslating(false);
+      setShowConfirmDialog(false);
     }
   };
 
   return (
-    <Card className="p-4 md:p-6 space-y-4 bg-card">
-      <div className="flex items-center gap-2 mb-4">
-        <Globe className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold text-lg">Translate Story</h3>
-      </div>
+    <>
+      <Card className="p-4 md:p-6 space-y-4 bg-card">
+        <div className="flex items-center gap-2 mb-4">
+          <Globe className="h-5 w-5 text-primary" />
+          <h3 className="font-semibold text-lg">Translate Story</h3>
+        </div>
 
-      <div className="space-y-4">
-        <LanguageSelect
-          value={targetLanguage}
-          onChange={setTargetLanguage}
-        />
+        <div className="space-y-4">
+          <LanguageSelect
+            value={targetLanguage}
+            onChange={setTargetLanguage}
+          />
 
-        <Button
-          onClick={handleTranslate}
-          disabled={isTranslating}
-          className="w-full"
-        >
-          {isTranslating ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Translating...
-            </>
-          ) : (
-            <>Translate Story (Uses 1 Credit)</>
-          )}
-        </Button>
-      </div>
-    </Card>
+          <Button
+            onClick={() => setShowConfirmDialog(true)}
+            disabled={isTranslating}
+            className="w-full"
+          >
+            {isTranslating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Translating...
+              </>
+            ) : (
+              <>Translate Story (Uses 1 Credit)</>
+            )}
+          </Button>
+        </div>
+      </Card>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Translation</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will create a new translated version of your story in {targetLanguage}.
+              This action will use 1 credit from your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleTranslate}>
+              Confirm Translation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

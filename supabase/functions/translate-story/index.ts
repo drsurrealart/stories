@@ -31,11 +31,24 @@ serve(async (req) => {
     if (storyError) throw storyError;
     console.log('Original story fetched successfully');
 
-    // Translate the story using OpenAI
-    const translationPrompt = `Translate this story to ${targetLanguage}. Maintain the same tone, style, and meaning:
-    Title: ${originalStory.title}
-    Story: ${originalStory.content}
-    Moral: ${originalStory.moral}`;
+    // Prepare the translation prompt for all components
+    const translationPrompt = `
+    Translate all components of this story to ${targetLanguage}. Maintain the same tone, style, and meaning for each part:
+
+    TITLE: ${originalStory.title}
+
+    STORY CONTENT: ${originalStory.content}
+
+    MORAL: ${originalStory.moral}
+
+    REFLECTION QUESTIONS: ${JSON.stringify(originalStory.reflection_questions)}
+
+    ACTION STEPS: ${JSON.stringify(originalStory.action_steps)}
+
+    RELATED QUOTE: ${originalStory.related_quote}
+
+    DISCUSSION PROMPTS: ${JSON.stringify(originalStory.discussion_prompts)}
+    `;
 
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -48,10 +61,14 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a professional translator. Translate the given story to ${targetLanguage}, maintaining its original meaning, style, and emotional impact. Return the translation in this format:
+            content: `You are a professional translator. Translate the given story and its components to ${targetLanguage}, maintaining the original meaning, style, and emotional impact. Return the translation in this format:
             TITLE: [translated title]
-            STORY: [translated story]
-            MORAL: [translated moral]`,
+            STORY: [translated story content]
+            MORAL: [translated moral]
+            REFLECTION_QUESTIONS: [translated questions as JSON array]
+            ACTION_STEPS: [translated steps as JSON array]
+            RELATED_QUOTE: [translated quote]
+            DISCUSSION_PROMPTS: [translated prompts as JSON array]`,
           },
           {
             role: 'user',
@@ -69,14 +86,33 @@ serve(async (req) => {
     const translatedText = translationData.choices[0].message.content;
     console.log('Translation completed successfully');
 
-    // Parse the translated text
+    // Parse the translated components
     const titleMatch = translatedText.match(/TITLE:\s*(.*)/i);
     const storyMatch = translatedText.match(/STORY:\s*([\s\S]*?)(?=MORAL:)/i);
-    const moralMatch = translatedText.match(/MORAL:\s*([\s\S]*$)/i);
+    const moralMatch = translatedText.match(/MORAL:\s*([\s\S]*?)(?=REFLECTION_QUESTIONS:)/i);
+    const reflectionMatch = translatedText.match(/REFLECTION_QUESTIONS:\s*([\s\S]*?)(?=ACTION_STEPS:)/i);
+    const actionStepsMatch = translatedText.match(/ACTION_STEPS:\s*([\s\S]*?)(?=RELATED_QUOTE:)/i);
+    const quoteMatch = translatedText.match(/RELATED_QUOTE:\s*([\s\S]*?)(?=DISCUSSION_PROMPTS:)/i);
+    const discussionPromptsMatch = translatedText.match(/DISCUSSION_PROMPTS:\s*([\s\S]*$)/i);
 
     const translatedTitle = titleMatch?.[1].trim() || `${originalStory.title} (${targetLanguage})`;
     const translatedContent = storyMatch?.[1].trim() || '';
     const translatedMoral = moralMatch?.[1].trim() || '';
+    
+    // Parse JSON arrays, fallback to original if parsing fails
+    const parseJsonSafely = (match: RegExpMatchArray | null, original: any[]) => {
+      try {
+        return JSON.parse(match?.[1].trim() || '[]');
+      } catch (e) {
+        console.error('Failed to parse JSON component:', e);
+        return original;
+      }
+    };
+
+    const translatedReflectionQuestions = parseJsonSafely(reflectionMatch, originalStory.reflection_questions);
+    const translatedActionSteps = parseJsonSafely(actionStepsMatch, originalStory.action_steps);
+    const translatedRelatedQuote = quoteMatch?.[1].trim() || '';
+    const translatedDiscussionPrompts = parseJsonSafely(discussionPromptsMatch, originalStory.discussion_prompts);
 
     // Insert the translated story
     const { data: translatedStory, error: insertError } = await supabase
@@ -93,10 +129,11 @@ serve(async (req) => {
         tone: originalStory.tone,
         reading_level: originalStory.reading_level,
         length_preference: originalStory.length_preference,
-        reflection_questions: originalStory.reflection_questions,
-        action_steps: originalStory.action_steps,
-        related_quote: originalStory.related_quote,
-        discussion_prompts: originalStory.discussion_prompts,
+        reflection_questions: translatedReflectionQuestions,
+        action_steps: translatedActionSteps,
+        related_quote: translatedRelatedQuote,
+        discussion_prompts: translatedDiscussionPrompts,
+        image_prompt: originalStory.image_prompt,
       })
       .select()
       .single();
