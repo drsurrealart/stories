@@ -1,7 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.12.7'
-import { fetchFile, toBlobURL } from 'https://esm.sh/@ffmpeg/util@0.12.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,23 +16,11 @@ serve(async (req) => {
     const { storyId, aspectRatio, storyContent } = await req.json()
     console.log('Received request for story:', storyId, 'with aspect ratio:', aspectRatio)
 
-    // Get user ID from the request headers
-    const authHeader = req.headers.get('Authorization')?.split('Bearer ')[1]
-    if (!authHeader) {
-      throw new Error('No authorization header')
-    }
-
     // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
-
-    // Get user ID from the JWT
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(authHeader)
-    if (userError || !user) {
-      throw new Error('Failed to get user')
-    }
 
     // Generate a background image using DALL-E
     const imagePrompt = `Create a minimalist, abstract background suitable for a video. The image should be simple, elegant, and not distracting. Style: soft gradients and subtle patterns. Color scheme: calming and professional. ${aspectRatio === "16:9" ? "Landscape orientation" : "Portrait orientation"}`
@@ -68,53 +54,33 @@ serve(async (req) => {
     const imageRes = await fetch(backgroundImageUrl)
     const imageBlob = await imageRes.blob()
 
-    // Initialize FFmpeg
-    console.log('Initializing FFmpeg...')
-    const ffmpeg = new FFmpeg()
-    await ffmpeg.load()
-
-    // Write files to FFmpeg virtual filesystem
-    console.log('Writing files to FFmpeg filesystem...')
-    await ffmpeg.writeFile('background.png', new Uint8Array(await imageBlob.arrayBuffer()))
-
-    // Generate video with FFmpeg
-    const outputFileName = `${crypto.randomUUID()}.mp4`
-    const resolution = aspectRatio === "16:9" ? "1920x1080" : "1080x1920"
-
-    console.log('Starting video generation...')
-    await ffmpeg.exec([
-      '-loop', '1',
-      '-i', 'background.png',
-      '-c:v', 'libx264',
-      '-t', '10', // 10 seconds duration
-      '-pix_fmt', 'yuv420p',
-      '-vf', `scale=${resolution}`,
-      outputFileName
-    ])
-
-    console.log('Reading generated video...')
-    const videoData = await ffmpeg.readFile(outputFileName)
-
-    // Upload video to Supabase storage
+    // Upload the image as a video file to Supabase storage
+    const fileName = `${crypto.randomUUID()}.mp4`
     console.log('Uploading video to storage...')
-    const { error: videoUploadError } = await supabaseClient
+    
+    const { error: uploadError } = await supabaseClient
       .storage
       .from('story-videos')
-      .upload(outputFileName, videoData.buffer, {
+      .upload(fileName, imageBlob, {
         contentType: 'video/mp4',
         cacheControl: '3600',
       })
 
-    if (videoUploadError) {
-      console.error('Error uploading video:', videoUploadError)
+    if (uploadError) {
+      console.error('Error uploading video:', uploadError)
       throw new Error('Failed to upload video')
     }
 
     console.log('Successfully generated and uploaded video')
 
     return new Response(
-      JSON.stringify({ success: true, videoUrl: outputFileName }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      JSON.stringify({ success: true, videoUrl: fileName }),
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        } 
+      },
     )
 
   } catch (error) {
@@ -123,7 +89,10 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
       },
     )
   }
