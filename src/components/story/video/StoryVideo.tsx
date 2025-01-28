@@ -7,7 +7,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { VideoGenerationForm } from "./VideoGenerationForm";
 import { VideoControls } from "./VideoControls";
 
-// Define the allowed aspect ratio types
 type VideoAspectRatio = "16:9" | "9:16";
 
 interface StoryVideoProps {
@@ -91,6 +90,11 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
         throw new Error('Failed to update credits');
       }
 
+      toast({
+        title: "Generating video",
+        description: "Please wait while we create your video...",
+      });
+
       // Generate video using the edge function
       const { data, error } = await supabase.functions.invoke('generate-story-video', {
         body: { 
@@ -106,14 +110,14 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
         throw new Error('No video URL received');
       }
 
-      // Save to Supabase with properly typed aspect ratio
+      // Save to Supabase
       const { error: saveError } = await supabase
         .from('story_videos')
         .insert({
           story_id: storyId,
           user_id: session.user.id,
           video_url: data.videoUrl,
-          aspect_ratio: aspectRatio as "16:9" | "9:16",
+          aspect_ratio: aspectRatio,
           credits_used: creditCost
         });
 
@@ -157,11 +161,12 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
         />
       ) : (
         <>
-          <div className="relative aspect-video w-full rounded-lg overflow-hidden">
+          <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black">
             <video
               src={videoData.video_url}
               controls
-              className="w-full h-full object-contain bg-black"
+              className="w-full h-full object-contain"
+              poster="/placeholder.svg"
             />
           </div>
           <VideoControls 
