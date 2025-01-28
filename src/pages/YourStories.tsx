@@ -96,6 +96,47 @@ const YourStories = () => {
 
   const handleDelete = async (storyId: string) => {
     try {
+      // Delete audio stories
+      const { error: audioError } = await supabase
+        .from('audio_stories')
+        .delete()
+        .eq('story_id', storyId);
+
+      if (audioError) throw audioError;
+
+      // Delete story images
+      const { error: imageError } = await supabase
+        .from('story_images')
+        .delete()
+        .eq('story_id', storyId);
+
+      if (imageError) throw imageError;
+
+      // Delete story PDFs
+      const { error: pdfError } = await supabase
+        .from('story_pdfs')
+        .delete()
+        .eq('story_id', storyId);
+
+      if (pdfError) throw pdfError;
+
+      // Delete story translations
+      const { error: translationError } = await supabase
+        .from('story_translations')
+        .delete()
+        .match({ original_story_id: storyId });
+
+      if (translationError) throw translationError;
+
+      // Delete story favorites
+      const { error: favoriteError } = await supabase
+        .from('story_favorites')
+        .delete()
+        .eq('story_id', storyId);
+
+      if (favoriteError) throw favoriteError;
+
+      // Finally, delete the story itself
       const { error } = await supabase
         .from('stories')
         .delete()
@@ -114,7 +155,7 @@ const YourStories = () => {
 
       toast({
         title: "Success",
-        description: "Story deleted successfully",
+        description: "Story and all associated content deleted successfully",
       });
 
       // Adjust current page if necessary
