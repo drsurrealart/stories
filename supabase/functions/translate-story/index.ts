@@ -37,17 +37,17 @@ serve(async (req) => {
 
     TITLE: ${originalStory.title}
 
-    STORY CONTENT: ${originalStory.content}
+    STORY: ${originalStory.content}
 
     MORAL: ${originalStory.moral}
 
-    REFLECTION QUESTIONS: ${JSON.stringify(originalStory.reflection_questions)}
+    REFLECTION_QUESTIONS: ${JSON.stringify(originalStory.reflection_questions)}
 
-    ACTION STEPS: ${JSON.stringify(originalStory.action_steps)}
+    ACTION_STEPS: ${JSON.stringify(originalStory.action_steps)}
 
-    RELATED QUOTE: ${originalStory.related_quote}
+    RELATED_QUOTE: ${originalStory.related_quote}
 
-    DISCUSSION PROMPTS: ${JSON.stringify(originalStory.discussion_prompts)}
+    DISCUSSION_PROMPTS: ${JSON.stringify(originalStory.discussion_prompts)}
     `;
 
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
