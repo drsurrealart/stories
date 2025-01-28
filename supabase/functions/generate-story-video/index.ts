@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import { FFmpeg } from "https://esm.sh/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,7 +22,7 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     // Generate a background image using DALL-E
@@ -51,49 +50,25 @@ serve(async (req) => {
     const imageData = await imageResponse.json();
     const backgroundImageUrl = imageData.data[0].url;
 
-    // Download the background image and audio
-    console.log('Downloading background image and audio...');
-    const [imageRes, audioRes] = await Promise.all([
-      fetch(backgroundImageUrl),
-      fetch(audioUrl)
-    ]);
+    // Call Python-based video generation service
+    console.log('Calling MoviePy video generation service...');
+    const videoGenerationResponse = await fetch('https://api.moviepy-service.com/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        backgroundImageUrl,
+        audioUrl,
+        aspectRatio,
+      }),
+    });
 
-    const [imageBlob, audioBlob] = await Promise.all([
-      imageRes.blob(),
-      audioRes.blob()
-    ]);
+    if (!videoGenerationResponse.ok) {
+      throw new Error('Failed to generate video');
+    }
 
-    // Initialize FFmpeg
-    const ffmpeg = new FFmpeg();
-    console.log('Loading FFmpeg...');
-    await ffmpeg.load();
-
-    // Convert blobs to array buffers
-    const imageArrayBuffer = await imageBlob.arrayBuffer();
-    const audioArrayBuffer = await audioBlob.arrayBuffer();
-
-    // Write files to FFmpeg virtual filesystem
-    await ffmpeg.writeFile('background.png', new Uint8Array(imageArrayBuffer));
-    await ffmpeg.writeFile('audio.mp3', new Uint8Array(audioArrayBuffer));
-
-    // Generate video from image and audio
-    console.log('Generating video...');
-    await ffmpeg.exec([
-      '-loop', '1',
-      '-i', 'background.png',
-      '-i', 'audio.mp3',
-      '-c:v', 'libx264',
-      '-tune', 'stillimage',
-      '-c:a', 'aac',
-      '-b:a', '192k',
-      '-pix_fmt', 'yuv420p',
-      '-shortest',
-      'output.mp4'
-    ]);
-
-    // Read the generated video
-    const videoData = await ffmpeg.readFile('output.mp4');
-    const videoBlob = new Blob([videoData], { type: 'video/mp4' });
+    const videoData = await videoGenerationResponse.blob();
 
     // Generate a unique filename
     const fileName = `${crypto.randomUUID()}.mp4`;
@@ -103,7 +78,7 @@ serve(async (req) => {
     const { error: uploadError } = await supabaseClient
       .storage
       .from('story-videos')
-      .upload(fileName, videoBlob, {
+      .upload(fileName, videoData, {
         contentType: 'video/mp4',
         cacheControl: '3600',
       });
@@ -116,7 +91,11 @@ serve(async (req) => {
     console.log('Successfully generated and uploaded video');
 
     return new Response(
-      JSON.stringify({ success: true, videoUrl: fileName }),
+      JSON.stringify({ 
+        success: true, 
+        videoUrl: fileName,
+        processingMethod: 'moviepy'
+      }),
       { 
         headers: { 
           ...corsHeaders,

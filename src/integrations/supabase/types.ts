@@ -440,6 +440,9 @@ export type Database = {
           created_at: string
           credits_used: number
           id: string
+          processing_method:
+            | Database["public"]["Enums"]["video_processing_method"]
+            | null
           story_id: string
           updated_at: string
           user_id: string
@@ -450,6 +453,9 @@ export type Database = {
           created_at?: string
           credits_used?: number
           id?: string
+          processing_method?:
+            | Database["public"]["Enums"]["video_processing_method"]
+            | null
           story_id: string
           updated_at?: string
           user_id: string
@@ -460,6 +466,9 @@ export type Database = {
           created_at?: string
           credits_used?: number
           id?: string
+          processing_method?:
+            | Database["public"]["Enums"]["video_processing_method"]
+            | null
           story_id?: string
           updated_at?: string
           user_id?: string
@@ -643,6 +652,7 @@ export type Database = {
         | "lifetime"
         | "credits"
       video_aspect_ratio: "16:9" | "9:16"
+      video_processing_method: "ffmpeg" | "moviepy"
     }
     CompositeTypes: {
       [_ in never]: never
