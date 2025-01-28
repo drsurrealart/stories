@@ -17,12 +17,25 @@ serve(async (req) => {
     const { storyId, voice } = await req.json()
     console.log('Received request for story:', storyId, 'with voice:', voice)
 
-    // Get story content from database
+    // Get user ID from the request headers
+    const authHeader = req.headers.get('Authorization')?.split('Bearer ')[1]
+    if (!authHeader) {
+      throw new Error('No authorization header')
+    }
+
+    // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
+    // Get user ID from the JWT
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(authHeader)
+    if (userError || !user) {
+      throw new Error('Failed to get user')
+    }
+
+    // Get story content from database
     const { data: story, error: storyError } = await supabaseClient
       .from('stories')
       .select('title, content')
@@ -92,8 +105,8 @@ serve(async (req) => {
       .from('audio_stories')
       .insert({
         story_id: storyId,
-        user_id: req.headers.get('x-user-id'),
-        audio_url: publicUrl,
+        user_id: user.id,
+        audio_url: fileName,
         voice_id: voice,
       })
 
