@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Play, Pause, Volume2, VolumeX } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { formatTime } from '@/utils/date';
 
 interface AudioPlayerProps {
   audioUrl: string;
@@ -10,35 +10,27 @@ interface AudioPlayerProps {
 }
 
 export function AudioPlayer({ audioUrl, isKidsMode = false }: AudioPlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
-  const [progress, setProgress] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const progressBarRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
+  const progressInterval = useRef<number>();
 
   useEffect(() => {
-    console.log('Creating new audio element with URL:', audioUrl);
     const audio = new Audio();
     
     const handleLoadedMetadata = () => {
-      console.log('Audio metadata loaded:', {
-        duration: audio.duration,
-        readyState: audio.readyState
-      });
+      console.log('Audio metadata loaded');
       setDuration(audio.duration);
+      setError(null);
     };
 
     const handleError = (e: ErrorEvent) => {
-      console.error('Audio loading error:', e);
-      toast({
-        title: "Error",
-        description: "Failed to load audio. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Audio error:', e);
+      setError('Failed to load audio');
     };
 
     const handleCanPlay = () => {
@@ -49,188 +41,167 @@ export function AudioPlayer({ audioUrl, isKidsMode = false }: AudioPlayerProps) 
     audio.addEventListener('error', handleError);
     audio.addEventListener('canplay', handleCanPlay);
     
-    // Construct the full URL if it's not already a complete URL
+    // Ensure we're using the full URL for the audio file
     const fullUrl = audioUrl.startsWith('http') 
       ? audioUrl 
       : `https://uhxpzeyklqbkeibvreqv.supabase.co/storage/v1/object/public/audio-stories/${audioUrl}`;
     
+    console.log('Setting audio source:', fullUrl);
     audio.src = fullUrl;
     audio.load();
     
     setAudioElement(audio);
 
     return () => {
-      console.log('Cleaning up audio element');
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('error', handleError);
       audio.removeEventListener('canplay', handleCanPlay);
       audio.pause();
-      audio.src = '';
-      setAudioElement(null);
+      if (progressInterval.current) {
+        window.clearInterval(progressInterval.current);
+      }
     };
   }, [audioUrl]);
 
   useEffect(() => {
-    if (audioElement) {
-      const updateProgress = () => {
-        setCurrentTime(audioElement.currentTime);
-        setProgress((audioElement.currentTime / audioElement.duration) * 100);
-      };
+    if (!audioElement) return;
 
-      const handleEnded = () => {
+    if (isPlaying) {
+      audioElement.play().catch(error => {
+        console.error('Playback error:', error);
+        setError('Failed to play audio');
         setIsPlaying(false);
-        setProgress(0);
-        setCurrentTime(0);
-        audioElement.currentTime = 0;
-      };
-
-      audioElement.addEventListener('timeupdate', updateProgress);
-      audioElement.addEventListener('ended', handleEnded);
-
-      return () => {
-        audioElement.removeEventListener('timeupdate', updateProgress);
-        audioElement.removeEventListener('ended', handleEnded);
-      };
-    }
-  }, [audioElement]);
-
-  useEffect(() => {
-    if (audioElement) {
-      audioElement.volume = isMuted ? 0 : volume;
-    }
-  }, [volume, isMuted, audioElement]);
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  const handleProgressClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!audioElement || !progressBarRef.current) return;
-    
-    const rect = progressBarRef.current.getBoundingClientRect();
-    const pos = (event.clientX - rect.left) / rect.width;
-    const newTime = pos * audioElement.duration;
-    
-    audioElement.currentTime = newTime;
-    setCurrentTime(newTime);
-    setProgress(pos * 100);
-  };
-
-  const togglePlayPause = async () => {
-    if (!audioElement) {
-      console.error('No audio element available');
-      return;
-    }
-
-    try {
-      console.log('Attempting to toggle playback, current state:', {
-        isPlaying,
-        readyState: audioElement.readyState,
-        currentSrc: audioElement.currentSrc
       });
-
-      if (isPlaying) {
-        await audioElement.pause();
-      } else {
-        const playPromise = audioElement.play();
-        if (playPromise !== undefined) {
-          await playPromise;
-        }
+      progressInterval.current = window.setInterval(() => {
+        setCurrentTime(audioElement.currentTime);
+      }, 100);
+    } else {
+      audioElement.pause();
+      if (progressInterval.current) {
+        window.clearInterval(progressInterval.current);
       }
-      setIsPlaying(!isPlaying);
-    } catch (error) {
-      console.error('Playback error:', error);
-      toast({
-        title: "Playback Error",
-        description: "Failed to play audio. Please try again.",
-        variant: "destructive",
-      });
+    }
+
+    return () => {
+      if (progressInterval.current) {
+        window.clearInterval(progressInterval.current);
+      }
+    };
+  }, [isPlaying, audioElement]);
+
+  const togglePlayPause = () => {
+    if (error) {
+      // If there was an error, try to reload the audio
+      if (audioElement) {
+        audioElement.load();
+        setError(null);
+      }
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleTimeChange = (newTime: number[]) => {
+    if (audioElement) {
+      audioElement.currentTime = newTime[0];
+      setCurrentTime(newTime[0]);
+    }
+  };
+
+  const handleVolumeChange = (newVolume: number[]) => {
+    if (audioElement) {
+      const volumeValue = newVolume[0];
+      audioElement.volume = volumeValue;
+      setVolume(volumeValue);
+      setIsMuted(volumeValue === 0);
     }
   };
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
+    if (audioElement) {
+      const newMutedState = !isMuted;
+      audioElement.volume = newMutedState ? 0 : volume;
+      setIsMuted(newMutedState);
+    }
   };
+
+  if (isKidsMode) {
+    return (
+      <div className="flex flex-col items-center justify-center space-y-4">
+        <Button
+          size="lg"
+          variant={isPlaying ? "outline" : "default"}
+          onClick={togglePlayPause}
+          className={`w-32 h-32 rounded-full transition-all transform hover:scale-105 ${
+            isPlaying ? 'bg-secondary' : 'bg-violet-500'
+          }`}
+        >
+          {isPlaying ? (
+            <Pause className="w-16 h-16 text-violet-500" />
+          ) : (
+            <Play className="w-16 h-16 text-white" />
+          )}
+        </Button>
+        {error && (
+          <p className="text-red-500 text-center mt-2">{error}</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {isKidsMode ? (
-        <div className="flex justify-center">
-          <Button
-            size="lg"
-            variant={isPlaying ? "outline" : "default"}
-            onClick={togglePlayPause}
-            className={`w-32 h-32 rounded-full transition-all transform hover:scale-105 ${
-              isPlaying ? 'bg-secondary' : 'bg-violet-500'
-            }`}
-          >
-            {isPlaying ? (
-              <Pause className="h-16 w-16" />
-            ) : (
-              <Play className="h-16 w-16" />
-            )}
-          </Button>
-        </div>
-      ) : (
-        <div className="flex flex-col space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-500">{formatTime(currentTime)}</span>
-            <span className="text-sm text-gray-500">{formatTime(duration)}</span>
-          </div>
-          <div 
-            ref={progressBarRef}
-            className="relative h-2 bg-secondary rounded-full cursor-pointer"
-            onClick={handleProgressClick}
-          >
-            <div 
-              className="absolute h-full bg-primary rounded-full transition-all"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-      
-      <div className="flex items-center justify-between">
-        {!isKidsMode && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={togglePlayPause}
-            className="hover:bg-secondary/50"
-          >
-            {isPlaying ? (
-              <Pause className="h-6 w-6" />
-            ) : (
-              <Play className="h-6 w-6" />
-            )}
-          </Button>
-        )}
-        
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleMute}
-            className="hover:bg-secondary/50"
-          >
-            {isMuted ? (
-              <VolumeX className="h-4 w-4" />
-            ) : (
-              <Volume2 className="h-4 w-4" />
-            )}
-          </Button>
+      <div className="flex items-center space-x-4">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={togglePlayPause}
+          className="h-10 w-10"
+        >
+          {isPlaying ? (
+            <Pause className="h-4 w-4" />
+          ) : (
+            <Play className="h-4 w-4" />
+          )}
+        </Button>
+        <div className="flex-1">
           <Slider
-            className="w-24"
-            value={[volume * 100]}
-            min={0}
-            max={100}
-            step={1}
-            onValueChange={(value) => setVolume(value[0] / 100)}
+            value={[currentTime]}
+            max={duration}
+            step={0.1}
+            onValueChange={handleTimeChange}
+          />
+        </div>
+        <span className="text-sm tabular-nums">
+          {formatTime(currentTime)} / {formatTime(duration)}
+        </span>
+      </div>
+
+      <div className="flex items-center space-x-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleMute}
+          className="h-10 w-10"
+        >
+          {isMuted ? (
+            <VolumeX className="h-4 w-4" />
+          ) : (
+            <Volume2 className="h-4 w-4" />
+          )}
+        </Button>
+        <div className="w-32">
+          <Slider
+            value={[isMuted ? 0 : volume]}
+            max={1}
+            step={0.01}
+            onValueChange={handleVolumeChange}
           />
         </div>
       </div>
+
+      {error && (
+        <p className="text-red-500 text-sm">{error}</p>
+      )}
     </div>
   );
 }
