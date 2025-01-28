@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Lightbulb, BookOpen, Clock, GraduationCap } from "lucide-react";
+import { Trash2, Lightbulb, BookOpen, Clock, GraduationCap, Video } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { StorySocialShare } from "@/components/story/StorySocialShare";
 import { StoryEnrichment } from "@/components/story/StoryEnrichment";
@@ -9,6 +9,7 @@ import { AudioStory } from "@/components/story/AudioStory";
 import { StoryImage } from "@/components/story/image/StoryImage";
 import { StoryPDF } from "@/components/story/pdf/StoryPDF";
 import { StoryTranslation } from "@/components/story/translation/StoryTranslation";
+import { StoryVideo } from "@/components/story/video/StoryVideo";
 import { SavedStory } from "@/types/story";
 import { formatDate } from "@/utils/date";
 import {
@@ -137,6 +138,11 @@ export const StoryCard = ({ story, onDelete }: StoryCardProps) => {
       />
 
       <StoryImage 
+        storyId={story.id}
+        storyContent={story.content}
+      />
+
+      <StoryVideo 
         storyId={story.id}
         storyContent={story.content}
       />
