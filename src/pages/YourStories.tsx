@@ -120,13 +120,20 @@ const YourStories = () => {
 
       if (pdfError) throw pdfError;
 
-      // Delete story translations
-      const { error: translationError } = await supabase
+      // Delete story translations where this story is either the original or the translation
+      const { error: translationError1 } = await supabase
         .from('story_translations')
         .delete()
-        .match({ original_story_id: storyId });
+        .eq('original_story_id', storyId);
 
-      if (translationError) throw translationError;
+      if (translationError1) throw translationError1;
+
+      const { error: translationError2 } = await supabase
+        .from('story_translations')
+        .delete()
+        .eq('translated_story_id', storyId);
+
+      if (translationError2) throw translationError2;
 
       // Delete story favorites
       const { error: favoriteError } = await supabase
