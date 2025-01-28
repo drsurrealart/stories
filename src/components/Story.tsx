@@ -10,6 +10,7 @@ import { FavoriteButton } from "./story/FavoriteButton";
 import { AudioStory } from "./story/AudioStory";
 import { StoryImage } from "./story/image/StoryImage";
 import { StoryPDF } from "./story/pdf/StoryPDF";
+import { StoryVideo } from "./story/video/StoryVideo";
 import { useQuery } from "@tanstack/react-query";
 import { Loading } from "@/components/ui/loading";
 
@@ -78,7 +79,6 @@ export function Story({
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6">
-      {/* Main Story Card */}
       <Card className="p-4 md:p-8 space-y-4 md:space-y-6 animate-fade-in bg-story-background">
         <div className="flex justify-between items-start gap-4">
           <h2 className="text-xl md:text-2xl font-semibold">{title}</h2>
@@ -127,6 +127,10 @@ export function Story({
               storyContent={storyWithoutTitle}
             />
             <StoryImage
+              storyId={storyData.id}
+              storyContent={storyWithoutTitle}
+            />
+            <StoryVideo
               storyId={storyData.id}
               storyContent={storyWithoutTitle}
             />

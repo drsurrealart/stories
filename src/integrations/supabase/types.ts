@@ -434,6 +434,47 @@ export type Database = {
           },
         ]
       }
+      story_videos: {
+        Row: {
+          aspect_ratio: Database["public"]["Enums"]["video_aspect_ratio"]
+          created_at: string
+          credits_used: number
+          id: string
+          story_id: string
+          updated_at: string
+          user_id: string
+          video_url: string
+        }
+        Insert: {
+          aspect_ratio: Database["public"]["Enums"]["video_aspect_ratio"]
+          created_at?: string
+          credits_used?: number
+          id?: string
+          story_id: string
+          updated_at?: string
+          user_id: string
+          video_url: string
+        }
+        Update: {
+          aspect_ratio?: Database["public"]["Enums"]["video_aspect_ratio"]
+          created_at?: string
+          credits_used?: number
+          id?: string
+          story_id?: string
+          updated_at?: string
+          user_id?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_videos_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_tiers: {
         Row: {
           created_at: string
@@ -601,6 +642,7 @@ export type Database = {
         | "enterprise"
         | "lifetime"
         | "credits"
+      video_aspect_ratio: "16:9" | "9:16"
     }
     CompositeTypes: {
       [_ in never]: never
