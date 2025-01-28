@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.12.7'
-import { fetchFile } from 'https://esm.sh/@ffmpeg/util@0.12.1'
+import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.11.0'
+import { fetchFile } from 'https://esm.sh/@ffmpeg/util@0.11.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -64,14 +64,10 @@ serve(async (req) => {
       audioRes.blob()
     ]);
 
-    // Initialize FFmpeg with specific core and WASM URLs
+    // Initialize FFmpeg
     const ffmpeg = new FFmpeg();
     console.log('Loading FFmpeg...');
-    await ffmpeg.load({
-      coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
-      wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm',
-      workerURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.worker.js'
-    });
+    await ffmpeg.load();
 
     // Convert blobs to array buffers
     const imageArrayBuffer = await imageBlob.arrayBuffer();
@@ -143,7 +139,7 @@ serve(async (req) => {
         headers: { 
           ...corsHeaders,
           'Content-Type': 'application/json'
-        },
+        } 
       },
     );
   }
