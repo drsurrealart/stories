@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { VideoGenerationForm } from "./VideoGenerationForm";
 import { VideoPlayer } from "./VideoPlayer";
 import { useVideoGeneration } from "./hooks/useVideoGeneration";
@@ -7,6 +8,7 @@ import { VideoHeader } from "./components/VideoHeader";
 import { DeleteVideoButton } from "./components/DeleteVideoButton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 interface StoryVideoProps {
   storyId: string;
@@ -14,6 +16,7 @@ interface StoryVideoProps {
 }
 
 export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { isGenerating, generationStep, handleCreateVideo } = useVideoGeneration(storyId, storyContent);
   const { data: videoData } = useVideoQuery(storyId);
 
@@ -53,8 +56,8 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
       {!videoData ? (
         <VideoGenerationForm
           isGenerating={isGenerating}
-          showConfirmDialog={false}
-          onConfirmDialogChange={() => {}}
+          showConfirmDialog={showConfirmDialog}
+          onConfirmDialogChange={setShowConfirmDialog}
           onGenerate={(aspectRatio) => handleCreateVideo(aspectRatio, audioStory?.audio_url)}
           generationStep={generationStep}
           hasAudioStory={!!audioStory}

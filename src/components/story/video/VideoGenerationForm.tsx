@@ -43,8 +43,9 @@ export function VideoGenerationForm({
     <div className="space-y-4">
       <Button
         className="w-full"
+        variant="secondary"
         onClick={() => onConfirmDialogChange(true)}
-        disabled={isGenerating || !hasAudioStory}
+        disabled={isGenerating}
       >
         {isGenerating ? (
           <div className="flex items-center justify-center gap-2">
