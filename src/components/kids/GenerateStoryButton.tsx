@@ -1,13 +1,19 @@
 import { Button } from "@/components/ui/button";
-import { Wand2 } from "lucide-react";
+import { Wand2, Loader2 } from "lucide-react";
 
 interface GenerateStoryButtonProps {
   storyType: string;
   isGenerating: boolean;
   onClick: () => void;
+  generationStep?: string;
 }
 
-export function GenerateStoryButton({ storyType, isGenerating, onClick }: GenerateStoryButtonProps) {
+export function GenerateStoryButton({ 
+  storyType, 
+  isGenerating, 
+  onClick,
+  generationStep 
+}: GenerateStoryButtonProps) {
   if (!storyType) return null;
 
   return (
@@ -18,8 +24,17 @@ export function GenerateStoryButton({ storyType, isGenerating, onClick }: Genera
         onClick={onClick}
         disabled={!storyType || isGenerating}
       >
-        <Wand2 className="mr-2 h-5 w-5" />
-        Create My Story!
+        {isGenerating ? (
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>{generationStep || "Creating..."}</span>
+          </div>
+        ) : (
+          <>
+            <Wand2 className="mr-2 h-5 w-5" />
+            Create My Story!
+          </>
+        )}
       </Button>
     </div>
   );

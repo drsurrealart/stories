@@ -3,7 +3,6 @@ import { StoryCreatorLayout } from "@/components/kids/StoryCreatorLayout";
 import { StoryCreatorHeader } from "@/components/kids/StoryCreatorHeader";
 import { StoryTypeSelector } from "@/components/kids/StoryTypeSelector";
 import { GenerateStoryButton } from "@/components/kids/GenerateStoryButton";
-import { StoryGenerationModal } from "@/components/kids/StoryGenerationModal";
 import { ConfirmationDialog } from "@/components/kids/ConfirmationDialog";
 import { AgeGroupTabs } from "@/components/kids/AgeGroupTabs";
 import { useToast } from "@/components/ui/use-toast";
@@ -40,7 +39,6 @@ export default function KidsStoryCreator() {
   const [showAudioConfirm, setShowAudioConfirm] = useState(false);
   const { toast } = useToast();
 
-  // Reset all modal states when component unmounts
   useEffect(() => {
     return () => {
       setIsGenerating(false);
@@ -50,28 +48,16 @@ export default function KidsStoryCreator() {
     };
   }, []);
 
-  const handleAgeGroupChange = (value: string) => {
-    setAgeGroup(value);
-    setStoryType(""); // Reset story type when age group changes
-  };
-
   const handleGenerateClick = () => {
     setShowConfirmDialog(true);
-  };
-
-  const handleModalClose = () => {
-    // Use a timeout to ensure state updates are processed in the correct order
-    setTimeout(() => {
-      setIsGenerating(false);
-      setGenerationStep("");
-      setShowConfirmDialog(false);
-    }, 0);
   };
 
   const handleCreateNew = () => {
     setGeneratedStory(null);
     setStoryType("");
-    handleModalClose();
+    setIsGenerating(false);
+    setShowConfirmDialog(false);
+    setGenerationStep("");
   };
 
   const generateStory = async () => {
@@ -87,7 +73,7 @@ export default function KidsStoryCreator() {
           description: "You need to be signed in to create stories",
           variant: "destructive",
         });
-        handleModalClose();
+        setIsGenerating(false);
         return;
       }
 
@@ -112,8 +98,6 @@ export default function KidsStoryCreator() {
         throw new Error(response.error.message || "Failed to generate story");
       }
 
-      setGenerationStep("Saving your story...");
-      
       // Extract the story content and other data
       const { story, enrichment, imagePrompt } = response.data;
       
@@ -158,9 +142,6 @@ export default function KidsStoryCreator() {
       // Set the generated story in state
       setGeneratedStory(savedStory);
       
-      // Clear generation state and close modals
-      handleModalClose();
-
       toast({
         title: "Story created!",
         description: "Your magical story has been created successfully.",
@@ -173,56 +154,14 @@ export default function KidsStoryCreator() {
         description: error.message || "Failed to generate story. Please try again.",
         variant: "destructive",
       });
-      handleModalClose();
+    } finally {
+      setIsGenerating(false);
+      setGenerationStep("");
     }
   };
 
   const handleGenerateAudio = async () => {
-    try {
-      setIsGeneratingAudio(true);
-      setShowAudioConfirm(false);
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const response = await supabase.functions.invoke('text-to-speech', {
-        body: { 
-          storyId: generatedStory.id,
-          voiceId: selectedVoice,
-          userId: session.user.id
-        }
-      });
-
-      if (response.error) throw response.error;
-
-      // Refresh the story data to get the new audio URL
-      const { data: updatedStory, error: refreshError } = await supabase
-        .from('stories')
-        .select(`
-          *,
-          audio_stories (*)
-        `)
-        .eq('id', generatedStory.id)
-        .single();
-
-      if (refreshError) throw refreshError;
-      setGeneratedStory(updatedStory);
-
-      toast({
-        title: "Success",
-        description: "Audio version created successfully!",
-      });
-
-    } catch (error: any) {
-      console.error('Error generating audio:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to generate audio. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingAudio(false);
-    }
+    // ... keep existing code (audio generation logic)
   };
 
   return (
@@ -233,7 +172,7 @@ export default function KidsStoryCreator() {
           
           <AgeGroupTabs
             selectedAgeGroup={ageGroup}
-            onAgeGroupChange={handleAgeGroupChange}
+            onAgeGroupChange={setAgeGroup}
           />
           
           <StoryTypeSelector
@@ -246,7 +185,8 @@ export default function KidsStoryCreator() {
           <GenerateStoryButton
             storyType={storyType}
             isGenerating={isGenerating}
-            onClick={handleGenerateClick}
+            onClick={generateStory}
+            generationStep={generationStep}
           />
 
           <ConfirmationDialog
@@ -254,12 +194,6 @@ export default function KidsStoryCreator() {
             onOpenChange={setShowConfirmDialog}
             onConfirm={generateStory}
             totalCredits={9}
-          />
-
-          <StoryGenerationModal
-            isOpen={isGenerating}
-            generationStep={generationStep}
-            onOpenChange={handleModalClose}
           />
         </div>
       ) : (
