@@ -9,9 +9,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Video } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card } from "@/components/ui/card";
+import { Play } from "lucide-react";
 
 type VideoAspectRatio = "16:9" | "9:16";
 
@@ -30,33 +29,24 @@ export function VideoGenerationForm({
   onGenerate,
   creditCost = 10,
 }: VideoGenerationFormProps) {
+  const [selectedAspectRatio, setSelectedAspectRatio] = useState<VideoAspectRatio | ''>('');
+
   return (
     <div className="space-y-4">
-      <Card className="p-4 bg-muted/50">
-        <div className="flex items-center gap-2 mb-4">
-          <Video className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold">Create Story Video</h3>
-        </div>
-        
-        <p className="text-sm text-muted-foreground mb-4">
-          Transform your story into an engaging video with custom background and audio narration.
-        </p>
-
-        <Button
-          className="w-full"
-          onClick={() => onConfirmDialogChange(true)}
-          disabled={isGenerating}
-        >
-          {isGenerating ? (
-            <div className="flex items-center justify-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Generating video... please wait</span>
-            </div>
-          ) : (
-            <>Create Story Video (Uses {creditCost} Credits)</>
-          )}
-        </Button>
-      </Card>
+      <Button
+        className="w-full"
+        onClick={() => onConfirmDialogChange(true)}
+        disabled={isGenerating}
+      >
+        {isGenerating ? (
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Generating video... please wait</span>
+          </div>
+        ) : (
+          <>Create Story Video (Uses {creditCost} Credits)</>
+        )}
+      </Button>
 
       <AlertDialog open={showConfirmDialog} onOpenChange={onConfirmDialogChange}>
         <AlertDialogContent>
@@ -69,32 +59,43 @@ export function VideoGenerationForm({
                 <li>Audio narration of your story</li>
                 <li>Professional video composition</li>
               </ul>
-              <p className="mt-4 font-medium">Choose your preferred aspect ratio:</p>
+              <div className="mt-6">
+                <p className="font-medium mb-2">Choose your preferred aspect ratio:</p>
+                <Select 
+                  value={selectedAspectRatio} 
+                  onValueChange={(value: VideoAspectRatio) => setSelectedAspectRatio(value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select aspect ratio" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="16:9">
+                      <div className="flex flex-col">
+                        <span>Landscape (16:9)</span>
+                        <span className="text-sm text-muted-foreground">Best for YouTube, Desktop</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="9:16">
+                      <div className="flex flex-col">
+                        <span>Portrait (9:16)</span>
+                        <span className="text-sm text-muted-foreground">Best for Stories, TikTok</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="py-4">
-            <Select onValueChange={(value: VideoAspectRatio) => onGenerate(value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select aspect ratio" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="16:9">
-                  <div className="flex flex-col">
-                    <span>Landscape (16:9)</span>
-                    <span className="text-sm text-muted-foreground">Best for YouTube, Desktop</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="9:16">
-                  <div className="flex flex-col">
-                    <span>Portrait (9:16)</span>
-                    <span className="text-sm text-muted-foreground">Best for Stories, TikTok</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="gap-2">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button 
+              onClick={() => selectedAspectRatio && onGenerate(selectedAspectRatio)}
+              disabled={!selectedAspectRatio || isGenerating}
+              className="gap-2"
+            >
+              <Play className="h-4 w-4" />
+              Generate Video
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
