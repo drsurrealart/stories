@@ -17,6 +17,7 @@ interface StoryVideoProps {
 export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStep, setGenerationStep] = useState<string>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -51,6 +52,8 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
   const handleCreateVideo = async (aspectRatio: VideoAspectRatio) => {
     try {
       setIsGenerating(true);
+      setGenerationStep("Initializing...");
+      
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({
@@ -74,6 +77,7 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
       const creditCost = 10;
       const currentCredits = userCredits?.credits_used || 0;
 
+      setGenerationStep("Updating credits...");
       // Update credits
       const { error: creditError } = await supabase
         .from('user_story_counts')
@@ -95,6 +99,7 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
         description: "Please wait while we create your video...",
       });
 
+      setGenerationStep("Generating background...");
       // Generate video using the edge function
       const { data, error } = await supabase.functions.invoke('generate-story-video', {
         body: { 
@@ -110,6 +115,7 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
         throw new Error('No video URL received');
       }
 
+      setGenerationStep("Saving video...");
       // Save to Supabase
       const { error: saveError } = await supabase
         .from('story_videos')
@@ -142,6 +148,7 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
     } finally {
       setIsGenerating(false);
       setShowConfirmDialog(false);
+      setGenerationStep(undefined);
     }
   };
 
@@ -158,6 +165,7 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
           showConfirmDialog={showConfirmDialog}
           onConfirmDialogChange={setShowConfirmDialog}
           onGenerate={handleCreateVideo}
+          generationStep={generationStep}
         />
       ) : (
         <>

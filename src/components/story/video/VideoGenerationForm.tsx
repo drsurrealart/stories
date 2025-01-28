@@ -21,6 +21,7 @@ interface VideoGenerationFormProps {
   onConfirmDialogChange: (show: boolean) => void;
   onGenerate: (aspectRatio: VideoAspectRatio) => void;
   creditCost?: number;
+  generationStep?: string;
 }
 
 export function VideoGenerationForm({
@@ -29,6 +30,7 @@ export function VideoGenerationForm({
   onConfirmDialogChange,
   onGenerate,
   creditCost = 10,
+  generationStep,
 }: VideoGenerationFormProps) {
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<VideoAspectRatio | ''>('');
 
@@ -42,7 +44,7 @@ export function VideoGenerationForm({
         {isGenerating ? (
           <div className="flex items-center justify-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Generating video... please wait</span>
+            <span>{generationStep || "Generating video... please wait"}</span>
           </div>
         ) : (
           <>Create Story Video (Uses {creditCost} Credits)</>
@@ -94,8 +96,17 @@ export function VideoGenerationForm({
               disabled={!selectedAspectRatio || isGenerating}
               className="gap-2"
             >
-              <Play className="h-4 w-4" />
-              Generate Video
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {generationStep || "Generating..."}
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4" />
+                  Generate Video
+                </>
+              )}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
