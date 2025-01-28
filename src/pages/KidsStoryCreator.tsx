@@ -40,7 +40,7 @@ export default function KidsStoryCreator() {
   const [showAudioConfirm, setShowAudioConfirm] = useState(false);
   const { toast } = useToast();
 
-  // Effect to clean up modals when component unmounts
+  // Reset all modal states when component unmounts
   useEffect(() => {
     return () => {
       setIsGenerating(false);
@@ -60,17 +60,18 @@ export default function KidsStoryCreator() {
   };
 
   const handleModalClose = () => {
-    setIsGenerating(false);
-    setGenerationStep("");
-    setShowConfirmDialog(false);
+    // Use a timeout to ensure state updates are processed in the correct order
+    setTimeout(() => {
+      setIsGenerating(false);
+      setGenerationStep("");
+      setShowConfirmDialog(false);
+    }, 0);
   };
 
   const handleCreateNew = () => {
     setGeneratedStory(null);
     setStoryType("");
-    setIsGenerating(false);
-    setShowConfirmDialog(false);
-    setGenerationStep("");
+    handleModalClose();
   };
 
   const generateStory = async () => {
@@ -172,7 +173,6 @@ export default function KidsStoryCreator() {
         description: error.message || "Failed to generate story. Please try again.",
         variant: "destructive",
       });
-      // Clear generation state and close modals on error
       handleModalClose();
     }
   };

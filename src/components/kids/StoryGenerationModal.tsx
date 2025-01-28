@@ -31,12 +31,10 @@ export function StoryGenerationModal({
   return (
     <Dialog 
       open={isOpen} 
-      modal 
       onOpenChange={onOpenChange}
     >
       <DialogContent 
         className="sm:max-w-md bg-gradient-to-b from-secondary to-background border-4 border-primary"
-        onPointerDownOutside={(e) => e.preventDefault()} // Prevent closing on outside click during generation
       >
         <div className="flex flex-col items-center justify-center space-y-6 py-8">
           {/* Animated Icons */}
