@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { StoryActions } from "@/components/story/StoryActions";
 import { AudioGenerationForm } from "@/components/story/audio/AudioGenerationForm";
 import { AudioPlayer } from "@/components/story/audio/AudioPlayer";
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, Headphones } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface StoryGenerationHandlerProps {
   generatedStory: any;
@@ -46,9 +47,24 @@ export function StoryGenerationHandler({
         throw new Error(response.error.message || "Failed to generate audio");
       }
 
+      // Refresh the story data to get the new audio URL
+      const { data: refreshedStory, error: refreshError } = await supabase
+        .from('stories')
+        .select(`
+          *,
+          audio_stories (*)
+        `)
+        .eq('id', generatedStory.id)
+        .single();
+
+      if (refreshError) throw refreshError;
+      
+      // Update the local story data
+      Object.assign(generatedStory, refreshedStory);
+
       toast({
         title: "Audio generated!",
-        description: "Your audio has been created successfully.",
+        description: "Your audio story is ready to play.",
       });
     } catch (error: any) {
       console.error("Error generating audio:", error);
@@ -87,26 +103,26 @@ export function StoryGenerationHandler({
         </div>
       </Card>
 
-      {generatedStory.audio_stories?.[0]?.audio_url ? (
-        <Card className="p-6">
+      <Card className="p-6">
+        {generatedStory.audio_stories?.[0]?.audio_url ? (
           <AudioPlayer 
             audioUrl={generatedStory.audio_stories[0].audio_url}
             isKidsMode={true}
           />
-        </Card>
-      ) : (
-        <Card className="p-6">
-          <AudioGenerationForm
-            selectedVoice={selectedVoice}
-            onVoiceChange={setSelectedVoice}
-            isGenerating={isGeneratingAudio}
-            showConfirmDialog={showAudioConfirm}
-            onConfirmDialogChange={setShowAudioConfirm}
-            onGenerate={handleGenerateAudio}
-            isKidsMode={true}
-          />
-        </Card>
-      )}
+        ) : (
+          <div className="text-center">
+            <Button
+              size="lg"
+              className="w-full max-w-md h-20 text-xl gap-4 rounded-full bg-violet-500 hover:bg-violet-600"
+              onClick={handleGenerateAudio}
+              disabled={isGeneratingAudio}
+            >
+              <Headphones className="h-8 w-8" />
+              {isGeneratingAudio ? "Creating Audio Story..." : "Create Audio Story"}
+            </Button>
+          </div>
+        )}
+      </Card>
 
       <StoryActions
         onReflect={() => {}}
