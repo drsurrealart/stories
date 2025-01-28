@@ -7,6 +7,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { VideoGenerationForm } from "./VideoGenerationForm";
 import { VideoControls } from "./VideoControls";
 
+// Define the allowed aspect ratio types
+type VideoAspectRatio = "16:9" | "9:16";
+
 interface StoryVideoProps {
   storyId: string;
   storyContent: string;
@@ -46,7 +49,7 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
     },
   });
 
-  const handleCreateVideo = async (aspectRatio: string) => {
+  const handleCreateVideo = async (aspectRatio: VideoAspectRatio) => {
     try {
       setIsGenerating(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -103,14 +106,14 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
         throw new Error('No video URL received');
       }
 
-      // Save to Supabase
+      // Save to Supabase with properly typed aspect ratio
       const { error: saveError } = await supabase
         .from('story_videos')
         .insert({
           story_id: storyId,
           user_id: session.user.id,
           video_url: data.videoUrl,
-          aspect_ratio: aspectRatio,
+          aspect_ratio: aspectRatio as "16:9" | "9:16",
           credits_used: creditCost
         });
 

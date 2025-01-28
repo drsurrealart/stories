@@ -12,11 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+type VideoAspectRatio = "16:9" | "9:16";
+
 interface VideoGenerationFormProps {
   isGenerating: boolean;
   showConfirmDialog: boolean;
   onConfirmDialogChange: (show: boolean) => void;
-  onGenerate: (aspectRatio: string) => void;
+  onGenerate: (aspectRatio: VideoAspectRatio) => void;
   creditCost?: number;
 }
 
@@ -53,7 +55,7 @@ export function VideoGenerationForm({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
-            <Select onValueChange={(value) => onGenerate(value)}>
+            <Select onValueChange={(value: VideoAspectRatio) => onGenerate(value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select aspect ratio" />
               </SelectTrigger>
