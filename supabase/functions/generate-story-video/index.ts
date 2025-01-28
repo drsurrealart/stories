@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { encode as base64Encode } from "https://deno.land/std@0.82.0/encoding/base64.ts";
+import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.12.7'
+import { fetchFile } from 'https://esm.sh/@ffmpeg/util@0.12.1'
+import { toBlobURL } from 'https://esm.sh/@ffmpeg/util@0.12.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -79,47 +81,33 @@ serve(async (req) => {
     const imageData = await imageResponse.json()
     const backgroundImageUrl = imageData.data[0].url
 
-    // Download the background image
-    const imageRes = await fetch(backgroundImageUrl)
-    const imageBlob = await imageRes.blob()
+    // Download the background image and audio
+    const [imageRes, audioRes] = await Promise.all([
+      fetch(backgroundImageUrl),
+      fetch(audioUrl)
+    ])
 
-    // Upload background image to Supabase storage
-    const backgroundFileName = `${crypto.randomUUID()}.png`
-    const { error: uploadError } = await supabaseClient
-      .storage
-      .from('story-videos')
-      .upload(backgroundFileName, imageBlob, {
-        contentType: 'image/png',
-        cacheControl: '3600',
-      })
+    const [imageBlob, audioBlob] = await Promise.all([
+      imageRes.blob(),
+      audioRes.blob()
+    ])
 
-    if (uploadError) {
-      console.error('Error uploading background image:', uploadError)
-      throw new Error('Failed to upload background image')
-    }
-
-    // Get the FFmpeg WebAssembly module
-    const ffmpeg = await import('https://esm.sh/@ffmpeg/ffmpeg@0.12.7')
-    const { createFFmpeg, fetchFile } = ffmpeg
-
-    // Create FFmpeg instance
-    const ffmpegInstance = createFFmpeg({ log: true })
-    await ffmpegInstance.load()
-
-    // Download the audio file
-    const audioRes = await fetch(audioUrl)
-    const audioBlob = await audioRes.blob()
-    const audioArrayBuffer = await audioBlob.arrayBuffer()
-
+    // Initialize FFmpeg
+    const ffmpeg = new FFmpeg()
+    console.log('Loading FFmpeg...')
+    await ffmpeg.load()
+    
     // Write files to FFmpeg virtual filesystem
-    ffmpegInstance.FS('writeFile', 'audio.mp3', new Uint8Array(audioArrayBuffer))
-    ffmpegInstance.FS('writeFile', 'background.png', await fetchFile(backgroundImageUrl))
+    console.log('Writing files to FFmpeg filesystem...')
+    await ffmpeg.writeFile('background.png', new Uint8Array(await imageBlob.arrayBuffer()))
+    await ffmpeg.writeFile('audio.mp3', new Uint8Array(await audioBlob.arrayBuffer()))
 
     // Generate video with FFmpeg
     const outputFileName = `${crypto.randomUUID()}.mp4`
     const resolution = aspectRatio === "16:9" ? "1920x1080" : "1080x1920"
 
-    await ffmpegInstance.run(
+    console.log('Starting video generation...')
+    await ffmpeg.exec([
       '-loop', '1',
       '-i', 'background.png',
       '-i', 'audio.mp3',
@@ -131,12 +119,13 @@ serve(async (req) => {
       '-shortest',
       '-s', resolution,
       outputFileName
-    )
+    ])
 
-    // Read the generated video file
-    const videoData = ffmpegInstance.FS('readFile', outputFileName)
+    console.log('Reading generated video...')
+    const videoData = await ffmpeg.readFile(outputFileName)
 
     // Upload video to Supabase storage
+    console.log('Uploading video to storage...')
     const { error: videoUploadError } = await supabaseClient
       .storage
       .from('story-videos')
