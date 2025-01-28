@@ -8,7 +8,7 @@ import { SearchBar } from "@/components/story/SearchBar";
 import { StoriesList } from "@/components/story/StoriesList";
 import { StoryPagination } from "@/components/story/StoryPagination";
 
-const STORIES_PER_PAGE = 3;
+const STORIES_PER_PAGE = 5;
 
 const YourStories = () => {
   const [stories, setStories] = useState<SavedStory[]>([]);
@@ -139,6 +139,12 @@ const YourStories = () => {
         <SearchBar 
           searchQuery={searchQuery}
           onSearch={handleSearch}
+        />
+
+        <StoryPagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
         />
 
         <StoriesList 
