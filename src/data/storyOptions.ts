@@ -61,50 +61,58 @@ export const genresByAge = {
   ]
 };
 
-export function getGenreIcon(genre: string): JSX.Element {
-  const icons: Record<string, JSX.Element> = {
+type IconProps = {
+  className?: string;
+};
+
+export const getGenreIcon = (genre: string): React.ReactElement => {
+  const iconProps: IconProps = {
+    className: "w-8 h-8"
+  };
+
+  const icons: Record<string, React.ReactElement> = {
     // Preschool icons
-    bedtime: <Moon className="w-8 h-8 text-indigo-500" />,
-    animals: <Paw className="w-8 h-8 text-orange-500" />,
-    family: <Users className="w-8 h-8 text-blue-500" />,
-    nature: <Tree className="w-8 h-8 text-green-500" />,
-    counting: <Hash className="w-8 h-8 text-purple-500" />,
-    colors: <Palette className="w-8 h-8 text-pink-500" />,
-    shapes: <Square className="w-8 h-8 text-yellow-500" />,
-    nursery: <Music className="w-8 h-8 text-red-500" />,
-    "magic-garden": <Flower2 className="w-8 h-8 text-emerald-500" />,
-    "friendly-monsters": <Ghost className="w-8 h-8 text-violet-500" />,
-    dinosaurs: <Footprints className="w-8 h-8 text-amber-500" />,
-    "ocean-friends": <Fish className="w-8 h-8 text-cyan-500" />,
+    bedtime: <Moon {...iconProps} className="w-8 h-8 text-indigo-500" />,
+    animals: <Paw {...iconProps} className="w-8 h-8 text-orange-500" />,
+    family: <Users {...iconProps} className="w-8 h-8 text-blue-500" />,
+    nature: <Tree {...iconProps} className="w-8 h-8 text-green-500" />,
+    counting: <Hash {...iconProps} className="w-8 h-8 text-purple-500" />,
+    colors: <Palette {...iconProps} className="w-8 h-8 text-pink-500" />,
+    shapes: <Square {...iconProps} className="w-8 h-8 text-yellow-500" />,
+    nursery: <Music {...iconProps} className="w-8 h-8 text-red-500" />,
+    "magic-garden": <Flower2 {...iconProps} className="w-8 h-8 text-emerald-500" />,
+    "friendly-monsters": <Ghost {...iconProps} className="w-8 h-8 text-violet-500" />,
+    dinosaurs: <Footprints {...iconProps} className="w-8 h-8 text-amber-500" />,
+    "ocean-friends": <Fish {...iconProps} className="w-8 h-8 text-cyan-500" />,
     
     // Elementary icons
-    adventure: <Map className="w-8 h-8 text-amber-500" />,
-    mystery: <Search className="w-8 h-8 text-purple-500" />,
-    fairytale: <Wand2 className="w-8 h-8 text-pink-500" />,
-    humor: <Laugh className="w-8 h-8 text-yellow-500" />,
-    sports: <Trophy className="w-8 h-8 text-emerald-500" />,
-    school: <GraduationCap className="w-8 h-8 text-blue-500" />,
-    science: <FlaskConical className="w-8 h-8 text-indigo-500" />,
-    superhero: <Sparkles className="w-8 h-8 text-red-500" />,
-    "time-travel": <Clock className="w-8 h-8 text-cyan-500" />,
-    space: <Rocket className="w-8 h-8 text-violet-500" />,
-    pets: <Dog className="w-8 h-8 text-orange-500" />,
-    cooking: <Utensils className="w-8 h-8 text-green-500" />,
+    adventure: <Map {...iconProps} className="w-8 h-8 text-amber-500" />,
+    mystery: <Search {...iconProps} className="w-8 h-8 text-purple-500" />,
+    fairytale: <Wand2 {...iconProps} className="w-8 h-8 text-pink-500" />,
+    humor: <Laugh {...iconProps} className="w-8 h-8 text-yellow-500" />,
+    sports: <Trophy {...iconProps} className="w-8 h-8 text-emerald-500" />,
+    school: <GraduationCap {...iconProps} className="w-8 h-8 text-blue-500" />,
+    science: <FlaskConical {...iconProps} className="w-8 h-8 text-indigo-500" />,
+    superhero: <Sparkles {...iconProps} className="w-8 h-8 text-red-500" />,
+    "time-travel": <Clock {...iconProps} className="w-8 h-8 text-cyan-500" />,
+    space: <Rocket {...iconProps} className="w-8 h-8 text-violet-500" />,
+    pets: <Dog {...iconProps} className="w-8 h-8 text-orange-500" />,
+    cooking: <Utensils {...iconProps} className="w-8 h-8 text-green-500" />,
     
     // Tween icons
-    fantasy: <Sword className="w-8 h-8 text-violet-500" />,
-    friendship: <Heart className="w-8 h-8 text-pink-500" />,
-    detective: <Magnifier className="w-8 h-8 text-amber-500" />,
-    mythology: <Scroll className="w-8 h-8 text-orange-500" />,
-    survival: <Tent className="w-8 h-8 text-emerald-500" />,
-    historical: <Clock3 className="w-8 h-8 text-cyan-500" />,
-    action: <Zap className="w-8 h-8 text-yellow-500" />,
-    comedy: <Theater className="w-8 h-8 text-red-500" />,
-    "science-club": <Microscope className="w-8 h-8 text-indigo-500" />,
-    gaming: <Gamepad2 className="w-8 h-8 text-purple-500" />,
-    "eco-warriors": <Leaf className="w-8 h-8 text-green-500" />,
-    "tech-tales": <Laptop className="w-8 h-8 text-blue-500" />
+    fantasy: <Sword {...iconProps} className="w-8 h-8 text-violet-500" />,
+    friendship: <Heart {...iconProps} className="w-8 h-8 text-pink-500" />,
+    detective: <Magnifier {...iconProps} className="w-8 h-8 text-amber-500" />,
+    mythology: <Scroll {...iconProps} className="w-8 h-8 text-orange-500" />,
+    survival: <Tent {...iconProps} className="w-8 h-8 text-emerald-500" />,
+    historical: <Clock3 {...iconProps} className="w-8 h-8 text-cyan-500" />,
+    action: <Zap {...iconProps} className="w-8 h-8 text-yellow-500" />,
+    comedy: <Theater {...iconProps} className="w-8 h-8 text-red-500" />,
+    "science-club": <Microscope {...iconProps} className="w-8 h-8 text-indigo-500" />,
+    gaming: <Gamepad2 {...iconProps} className="w-8 h-8 text-purple-500" />,
+    "eco-warriors": <Leaf {...iconProps} className="w-8 h-8 text-green-500" />,
+    "tech-tales": <Laptop {...iconProps} className="w-8 h-8 text-blue-500" />
   };
   
   return icons[genre] || <BookOpen className="w-8 h-8 text-gray-500" />;
-}
+};
