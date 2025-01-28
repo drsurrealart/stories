@@ -11,8 +11,17 @@ export const useVideoGeneration = (storyId: string, storyContent: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const handleCreateVideo = async (aspectRatio: VideoAspectRatio) => {
+  const handleCreateVideo = async (aspectRatio: VideoAspectRatio, audioUrl?: string) => {
     try {
+      if (!audioUrl) {
+        toast({
+          title: "Audio Required",
+          description: "Please generate an audio story first before creating a video.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setIsGenerating(true);
       setGenerationStep("Initializing...");
       
@@ -67,7 +76,8 @@ export const useVideoGeneration = (storyId: string, storyContent: string) => {
         body: { 
           storyId,
           aspectRatio,
-          storyContent 
+          storyContent,
+          audioUrl
         },
       });
 

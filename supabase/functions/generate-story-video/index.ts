@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { encode } from "https://deno.land/std@0.177.0/encoding/base64.ts";
+import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.12.7'
+import { fetchFile, toBlobURL } from 'https://esm.sh/@ffmpeg/util@0.12.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,43 +9,23 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { storyId, aspectRatio, storyContent } = await req.json();
+    const { storyId, aspectRatio, storyContent, audioUrl } = await req.json();
     console.log('Received request for story:', storyId, 'with aspect ratio:', aspectRatio);
+
+    if (!audioUrl) {
+      throw new Error('Audio URL is required for video generation');
+    }
 
     // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
-
-    // First, generate audio using OpenAI TTS
-    console.log('Generating audio...');
-    const audioResponse = await fetch('https://api.openai.com/v1/audio/speech', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'tts-1',
-        input: storyContent.slice(0, 4096), // OpenAI has a 4096 character limit
-        voice: 'alloy',
-        response_format: 'mp3',
-      }),
-    });
-
-    if (!audioResponse.ok) {
-      throw new Error('Failed to generate audio');
-    }
-
-    const audioBuffer = await audioResponse.arrayBuffer();
-    console.log('Audio generated successfully');
 
     // Generate a background image using DALL-E
     const imagePrompt = `Create a minimalist, abstract background suitable for a video. The image should be simple, elegant, and not distracting. Style: soft gradients and subtle patterns. Color scheme: calming and professional. ${aspectRatio === "16:9" ? "Landscape orientation" : "Portrait orientation"}`
@@ -71,22 +52,63 @@ serve(async (req) => {
     const imageData = await imageResponse.json();
     const backgroundImageUrl = imageData.data[0].url;
 
-    // Download the background image
-    console.log('Downloading background image...');
-    const imageRes = await fetch(backgroundImageUrl);
-    const imageBlob = await imageRes.blob();
+    // Download the background image and audio
+    console.log('Downloading background image and audio...');
+    const [imageRes, audioRes] = await Promise.all([
+      fetch(backgroundImageUrl),
+      fetch(audioUrl)
+    ]);
 
-    // Create a video file that combines the image and audio
-    // For now, we'll use the image as a video file and store the audio separately
-    // In a future update, we'll implement proper video creation with ffmpeg
+    const [imageBlob, audioBlob] = await Promise.all([
+      imageRes.blob(),
+      audioRes.blob()
+    ]);
+
+    // Initialize FFmpeg
+    const ffmpeg = new FFmpeg();
+    console.log('Loading FFmpeg...');
+    await ffmpeg.load();
+
+    // Convert blobs to array buffers
+    const imageArrayBuffer = await imageBlob.arrayBuffer();
+    const audioArrayBuffer = await audioBlob.arrayBuffer();
+
+    // Write files to FFmpeg virtual filesystem
+    await ffmpeg.writeFile('background.png', new Uint8Array(imageArrayBuffer));
+    await ffmpeg.writeFile('audio.mp3', new Uint8Array(audioArrayBuffer));
+
+    // Get audio duration using FFprobe
+    const { duration } = await ffmpeg.probe('audio.mp3');
+    console.log('Audio duration:', duration);
+
+    // Generate video from image and audio
+    console.log('Generating video...');
+    await ffmpeg.exec([
+      '-loop', '1',
+      '-i', 'background.png',
+      '-i', 'audio.mp3',
+      '-c:v', 'libx264',
+      '-tune', 'stillimage',
+      '-c:a', 'aac',
+      '-b:a', '192k',
+      '-pix_fmt', 'yuv420p',
+      '-shortest',
+      'output.mp4'
+    ]);
+
+    // Read the generated video
+    const videoData = await ffmpeg.readFile('output.mp4');
+    const videoBlob = new Blob([videoData], { type: 'video/mp4' });
+
+    // Generate a unique filename
     const fileName = `${crypto.randomUUID()}.mp4`;
-    console.log('Creating video file...');
+    console.log('Generated filename:', fileName);
 
-    // Upload the video file to Supabase storage
+    // Upload to Supabase Storage
     const { error: uploadError } = await supabaseClient
       .storage
       .from('story-videos')
-      .upload(fileName, imageBlob, {
+      .upload(fileName, videoBlob, {
         contentType: 'video/mp4',
         cacheControl: '3600',
       });
