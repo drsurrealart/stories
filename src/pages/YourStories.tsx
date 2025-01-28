@@ -103,16 +103,22 @@ const YourStories = () => {
 
       if (error) throw error;
 
+      // Update local state after successful deletion
       const updatedStories = stories.filter(story => story.id !== storyId);
       setStories(updatedStories);
-      handleSearch(searchQuery);
+      
+      // Update filtered stories and maintain search results
+      const updatedFilteredStories = filteredStories.filter(story => story.id !== storyId);
+      setFilteredStories(updatedFilteredStories);
+      setTotalStories(updatedFilteredStories.length);
 
       toast({
         title: "Success",
         description: "Story deleted successfully",
       });
 
-      const newTotalPages = Math.ceil(filteredStories.length / STORIES_PER_PAGE);
+      // Adjust current page if necessary
+      const newTotalPages = Math.ceil(updatedFilteredStories.length / STORIES_PER_PAGE);
       if (currentPage > newTotalPages && currentPage > 1) {
         setCurrentPage(currentPage - 1);
       }

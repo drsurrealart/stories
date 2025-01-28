@@ -11,6 +11,17 @@ import { StoryPDF } from "@/components/story/pdf/StoryPDF";
 import { StoryTranslation } from "@/components/story/translation/StoryTranslation";
 import { SavedStory } from "@/types/story";
 import { formatDate } from "@/utils/date";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface StoryCardProps {
   story: SavedStory;
@@ -18,6 +29,10 @@ interface StoryCardProps {
 }
 
 export const StoryCard = ({ story, onDelete }: StoryCardProps) => {
+  const handleDelete = () => {
+    onDelete(story.id);
+  };
+
   return (
     <Card key={story.id} className="p-6 space-y-4">
       <div className="flex justify-between items-start">
@@ -29,14 +44,29 @@ export const StoryCard = ({ story, onDelete }: StoryCardProps) => {
         </div>
         <div className="flex items-center gap-2">
           <FavoriteButton storyId={story.id} />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onDelete(story.id)}
-            className="text-destructive hover:text-destructive"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Story</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this story? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
