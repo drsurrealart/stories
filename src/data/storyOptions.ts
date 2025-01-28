@@ -1,3 +1,13 @@
+import React from 'react';
+import { 
+  Moon, Paw, Users, Tree, Hash, Palette, Square, Music, 
+  Flower2, Ghost, Footprints, Fish, Map, Search, Wand2, 
+  Laugh, Trophy, GraduationCap, FlaskConical, Sparkles, 
+  Clock, Rocket, Dog, Utensils, Sword, Heart, Magnifier, 
+  Scroll, Tent, Clock3, Zap, Theater, Microscope, 
+  Gamepad2, Leaf, Laptop, BookOpen 
+} from 'lucide-react';
+
 export const ageGroups = [
   { value: "preschool", label: "Preschool (3-5)" },
   { value: "elementary", label: "Elementary (6-8)" },
@@ -51,8 +61,7 @@ export const genresByAge = {
   ]
 };
 
-// Helper function to get appropriate icon for each genre
-function getGenreIcon(genre: string): JSX.Element {
+export function getGenreIcon(genre: string): JSX.Element {
   const icons: Record<string, JSX.Element> = {
     // Preschool icons
     bedtime: <Moon className="w-8 h-8 text-indigo-500" />,
@@ -94,7 +103,7 @@ function getGenreIcon(genre: string): JSX.Element {
     "science-club": <Microscope className="w-8 h-8 text-indigo-500" />,
     gaming: <Gamepad2 className="w-8 h-8 text-purple-500" />,
     "eco-warriors": <Leaf className="w-8 h-8 text-green-500" />,
-    "tech-tales": <Laptop className="w-8 h-8 text-blue-500" />,
+    "tech-tales": <Laptop className="w-8 h-8 text-blue-500" />
   };
   
   return icons[genre] || <BookOpen className="w-8 h-8 text-gray-500" />;
