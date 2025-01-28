@@ -67,10 +67,7 @@ serve(async (req) => {
     // Initialize FFmpeg
     const ffmpeg = new FFmpeg();
     console.log('Loading FFmpeg...');
-    await ffmpeg.load({
-      coreURL: 'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js',
-      wasmURL: 'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.wasm'
-    });
+    await ffmpeg.load();
 
     // Convert blobs to array buffers
     const imageArrayBuffer = await imageBlob.arrayBuffer();
@@ -79,10 +76,6 @@ serve(async (req) => {
     // Write files to FFmpeg virtual filesystem
     await ffmpeg.writeFile('background.png', new Uint8Array(imageArrayBuffer));
     await ffmpeg.writeFile('audio.mp3', new Uint8Array(audioArrayBuffer));
-
-    // Get audio duration using FFprobe
-    const { duration } = await ffmpeg.probe('audio.mp3');
-    console.log('Audio duration:', duration);
 
     // Generate video from image and audio
     console.log('Generating video...');
