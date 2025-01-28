@@ -5,6 +5,7 @@ import { Globe, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { LanguageSelect } from "@/components/story/LanguageSelect";
+import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +27,7 @@ export function StoryTranslation({ storyId, onTranslationComplete }: StoryTransl
   const [targetLanguage, setTargetLanguage] = useState("spanish");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleTranslate = async () => {
     try {
@@ -50,6 +52,9 @@ export function StoryTranslation({ storyId, onTranslationComplete }: StoryTransl
 
       if (response.error) throw response.error;
 
+      // Get the translated story ID from the response
+      const translatedStoryId = response.data?.translatedStoryId;
+
       toast({
         title: "Success",
         description: "Story translated successfully!",
@@ -58,6 +63,9 @@ export function StoryTranslation({ storyId, onTranslationComplete }: StoryTransl
       if (onTranslationComplete) {
         onTranslationComplete();
       }
+
+      // Redirect to the My Stories page with the translated story highlighted
+      navigate(`/your-stories?story=${translatedStoryId}`);
 
     } catch (error: any) {
       console.error('Error translating story:', error);
