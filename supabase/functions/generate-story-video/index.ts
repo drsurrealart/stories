@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.11.0'
-import { fetchFile } from 'https://esm.sh/@ffmpeg/util@0.11.0'
+import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.10.1'
+import { fetchFile } from 'https://esm.sh/@ffmpeg/util@0.10.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -67,7 +67,10 @@ serve(async (req) => {
     // Initialize FFmpeg
     const ffmpeg = new FFmpeg();
     console.log('Loading FFmpeg...');
-    await ffmpeg.load();
+    await ffmpeg.load({
+      coreURL: 'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js',
+      wasmURL: 'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.wasm'
+    });
 
     // Convert blobs to array buffers
     const imageArrayBuffer = await imageBlob.arrayBuffer();
