@@ -50,22 +50,26 @@ serve(async (req) => {
     const imageData = await imageResponse.json();
     const backgroundImageUrl = imageData.data[0].url;
 
-    // Call Python-based video generation service
-    console.log('Calling MoviePy video generation service...');
-    const videoGenerationResponse = await fetch('https://api.moviepy-service.com/generate', {
+    // Call Python video generation service
+    console.log('Calling Python video generation service...');
+    const videoGenerationResponse = await fetch('https://api.python-video-service.com/generate', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${Deno.env.get('PYTHON_SERVICE_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         backgroundImageUrl,
         audioUrl,
         aspectRatio,
+        outputFormat: 'mp4'
       }),
     });
 
     if (!videoGenerationResponse.ok) {
-      throw new Error('Failed to generate video');
+      const errorData = await videoGenerationResponse.text();
+      console.error('Video generation failed:', errorData);
+      throw new Error(`Failed to generate video: ${errorData}`);
     }
 
     const videoData = await videoGenerationResponse.blob();
@@ -85,7 +89,7 @@ serve(async (req) => {
 
     if (uploadError) {
       console.error('Error uploading video:', uploadError);
-      throw new Error('Failed to upload video');
+      throw uploadError;
     }
 
     console.log('Successfully generated and uploaded video');
