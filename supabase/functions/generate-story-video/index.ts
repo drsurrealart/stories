@@ -64,12 +64,13 @@ serve(async (req) => {
       audioRes.blob()
     ]);
 
-    // Initialize FFmpeg with the 'core' configuration
+    // Initialize FFmpeg with specific core and WASM URLs
     const ffmpeg = new FFmpeg();
     console.log('Loading FFmpeg...');
     await ffmpeg.load({
       coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
-      wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm'
+      wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm',
+      workerURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.worker.js'
     });
 
     // Convert blobs to array buffers
