@@ -125,7 +125,6 @@ export function StoryGenerationHandler({
       </Card>
 
       <StoryActions
-        onReflect={() => {}}
         onCreateNew={handleCreateNew}
         isKidsMode={true}
       />
