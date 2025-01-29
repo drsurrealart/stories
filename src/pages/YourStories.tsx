@@ -103,7 +103,7 @@ const YourStories = () => {
     genres: string[],
     languages: string[]
   ) => {
-    let filtered = stories;
+    let filtered = [...stories]; // Create a new array from stories
 
     // Apply text search
     if (query.trim()) {
@@ -127,7 +127,7 @@ const YourStories = () => {
 
     // Apply language filter
     if (languages.length > 0) {
-      filtered = filtered.filter(story => languages.includes(story.language));
+      filtered = filtered.filter(story => story.language && languages.includes(story.language.toLowerCase()));
     }
 
     setFilteredStories(filtered);
@@ -160,7 +160,10 @@ const YourStories = () => {
         setSelectedLanguages(updatedFilter);
         break;
     }
-    applyFilters(searchQuery, 
+
+    // Apply all filters with the updated filter values
+    applyFilters(
+      searchQuery,
       filterType === 'age' ? updatedFilter : selectedAgeGroups,
       filterType === 'genre' ? updatedFilter : selectedGenres,
       filterType === 'language' ? updatedFilter : selectedLanguages
@@ -337,7 +340,7 @@ const YourStories = () => {
                 </div>
                 <div className="space-y-4">
                   <h3 className="font-medium">Languages</h3>
-                  {['English', 'Spanish', 'French', 'German', 'Italian'].map((language) => (
+                  {['english', 'spanish', 'french', 'german', 'italian'].map((language) => (
                     <div key={language} className="flex items-center space-x-2">
                       <Checkbox
                         id={`language-${language}`}
@@ -346,7 +349,7 @@ const YourStories = () => {
                           handleFilterChange(language, checked as boolean, 'language')
                         }
                       />
-                      <Label htmlFor={`language-${language}`}>{language}</Label>
+                      <Label htmlFor={`language-${language}`}>{language.charAt(0).toUpperCase() + language.slice(1)}</Label>
                     </div>
                   ))}
                 </div>
