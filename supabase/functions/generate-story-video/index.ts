@@ -40,27 +40,37 @@ serve(async (req) => {
       throw new Error('Failed to download audio file')
     }
     const audioBuffer = await audioResponse.arrayBuffer()
-    const audioBase64 = base64Encode(new Uint8Array(audioBuffer))
 
-    // Create a temporary file for the audio
-    const audioPath = `temp_${crypto.randomUUID()}.mp3`
-    await Deno.writeFile(audioPath, new Uint8Array(audioBuffer))
+    // Create temporary directory
+    const tempDir = await Deno.makeTempDir();
+    const audioPath = `${tempDir}/audio.mp3`;
+    const outputPath = `${tempDir}/output.mp4`;
+    const backgroundPath = `${tempDir}/background.png`;
 
+    // Write audio file
+    await Deno.writeFile(audioPath, new Uint8Array(audioBuffer));
+
+    // Create a simple background image (black rectangle)
+    const width = aspectRatio === "16:9" ? 1920 : 1080;
+    const height = aspectRatio === "16:9" ? 1080 : 1920;
+    
     // Create FFmpeg command
     const ffmpegCmd = new Deno.Command("ffmpeg", {
       args: [
-        "-i", audioPath,           // Input audio file
-        "-i", "background.png",    // Input background image
-        "-c:v", "libx264",        // Video codec
-        "-c:a", "aac",            // Audio codec
-        "-shortest",              // End when shortest input ends
-        "-pix_fmt", "yuv420p",    // Pixel format for compatibility
-        "-y",                     // Overwrite output file
-        "output.mp4"              // Output file
+        "-f", "lavfi", // Use lavfi input format
+        "-i", `color=c=black:s=${width}x${height}`, // Generate black background
+        "-i", audioPath, // Input audio file
+        "-c:v", "libx264", // Video codec
+        "-c:a", "aac", // Audio codec
+        "-shortest", // End when shortest input ends
+        "-pix_fmt", "yuv420p", // Pixel format for compatibility
+        "-y", // Overwrite output file
+        outputPath // Output file
       ]
     });
 
     // Execute FFmpeg command
+    console.log('Executing FFmpeg command...');
     const { success, stdout, stderr } = await ffmpegCmd.output();
     console.log('FFmpeg output:', new TextDecoder().decode(stdout));
     console.log('FFmpeg errors:', new TextDecoder().decode(stderr));
@@ -70,11 +80,11 @@ serve(async (req) => {
     }
 
     // Read the generated video file
-    const videoData = await Deno.readFile("output.mp4");
+    console.log('Reading generated video file...');
+    const videoData = await Deno.readFile(outputPath);
 
-    // Clean up temporary files
-    await Deno.remove(audioPath);
-    await Deno.remove("output.mp4");
+    // Clean up temporary directory
+    await Deno.remove(tempDir, { recursive: true });
 
     // Upload video to Supabase Storage
     console.log('Uploading video to storage...')
