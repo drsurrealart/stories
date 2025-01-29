@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.11.0'
-import { fetchFile, toBlobURL } from 'https://esm.sh/@ffmpeg/util@0.11.0'
+import { toBlobURL } from 'https://esm.sh/@ffmpeg/util'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,13 +28,20 @@ serve(async (req) => {
 
     // Download files
     console.log('Downloading input files...')
-    const imageFile = await fetchFile(imageUrl)
-    const audioFile = await fetchFile(audioUrl)
+    const imageResponse = await fetch(imageUrl)
+    const audioResponse = await fetch(audioUrl)
+    
+    if (!imageResponse.ok || !audioResponse.ok) {
+      throw new Error('Failed to download input files')
+    }
+
+    const imageBuffer = new Uint8Array(await imageResponse.arrayBuffer())
+    const audioBuffer = new Uint8Array(await audioResponse.arrayBuffer())
 
     // Write files to FFmpeg's virtual filesystem
     console.log('Writing files to FFmpeg filesystem...')
-    await ffmpeg.writeFile('input.png', imageFile)
-    await ffmpeg.writeFile('audio.mp3', audioFile)
+    await ffmpeg.writeFile('input.png', imageBuffer)
+    await ffmpeg.writeFile('audio.mp3', audioBuffer)
 
     // Calculate dimensions based on aspect ratio
     const dimensions = aspectRatio === '16:9' ? '1920:1080' : '1080:1920'
