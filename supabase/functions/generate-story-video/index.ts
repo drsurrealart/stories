@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { encode as base64Encode } from "https://deno.land/std@0.82.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,7 +9,7 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
@@ -69,9 +68,10 @@ serve(async (req) => {
 
     const imageData = await imageResponse.json();
     const backgroundImageUrl = imageData.data[0].url;
+    console.log('Background image generated:', backgroundImageUrl);
 
     // Download the background image
-    console.log('Downloading background image:', backgroundImageUrl);
+    console.log('Downloading background image...');
     const backgroundResponse = await fetch(backgroundImageUrl);
     if (!backgroundResponse.ok) {
       throw new Error('Failed to download background image');
@@ -79,32 +79,40 @@ serve(async (req) => {
     const backgroundBuffer = await backgroundResponse.arrayBuffer();
 
     // Download the audio file
-    console.log('Downloading audio file:', audioUrl);
+    console.log('Downloading audio file...');
     const audioResponse = await fetch(audioUrl);
     if (!audioResponse.ok) {
       throw new Error('Failed to download audio file');
     }
     const audioBuffer = await audioResponse.arrayBuffer();
 
-    // Upload image and audio to temporary storage
+    // Upload files to temporary storage
     const imageFileName = `temp_${crypto.randomUUID()}.png`;
     const audioFileName = `temp_${crypto.randomUUID()}.mp3`;
     const videoFileName = `${crypto.randomUUID()}.mp4`;
 
-    // Upload temporary files
-    await supabaseClient.storage
+    console.log('Uploading temporary files...');
+    const { error: imageUploadError } = await supabaseClient.storage
       .from('story-videos')
       .upload(imageFileName, backgroundBuffer, {
         contentType: 'image/png',
         cacheControl: '3600',
       });
 
-    await supabaseClient.storage
+    if (imageUploadError) {
+      throw new Error(`Failed to upload image: ${imageUploadError.message}`);
+    }
+
+    const { error: audioUploadError } = await supabaseClient.storage
       .from('story-videos')
       .upload(audioFileName, audioBuffer, {
         contentType: 'audio/mpeg',
         cacheControl: '3600',
       });
+
+    if (audioUploadError) {
+      throw new Error(`Failed to upload audio: ${audioUploadError.message}`);
+    }
 
     // Get URLs for the uploaded files
     const { data: { publicUrl: imageUrl } } = supabaseClient.storage
@@ -115,10 +123,7 @@ serve(async (req) => {
       .from('story-videos')
       .getPublicUrl(audioFileName);
 
-    // Use FFmpeg.wasm to combine image and audio
-    console.log('Combining image and audio using FFmpeg...');
-    
-    // Call FFmpeg edge function to process the video
+    console.log('Processing video with FFmpeg...');
     const ffmpegResponse = await supabaseClient.functions.invoke('process-story-video', {
       body: {
         imageUrl,
@@ -138,34 +143,23 @@ serve(async (req) => {
       .getPublicUrl(videoFileName);
 
     // Clean up temporary files
+    console.log('Cleaning up temporary files...');
     await Promise.all([
       supabaseClient.storage.from('story-videos').remove([imageFileName]),
       supabaseClient.storage.from('story-videos').remove([audioFileName])
     ]);
 
-    console.log('Successfully generated video:', videoUrl);
-
+    console.log('Video generation completed successfully');
     return new Response(
       JSON.stringify({ videoUrl }),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
-      },
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Error in generate-story-video function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
-        status: 400, 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
-      },
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     );
   }
 })

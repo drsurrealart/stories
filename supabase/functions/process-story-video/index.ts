@@ -15,23 +15,28 @@ serve(async (req) => {
 
   try {
     const { imageUrl, audioUrl, outputFileName, aspectRatio } = await req.json()
-    console.log('Processing video with FFmpeg:', { imageUrl, audioUrl, outputFileName })
+    console.log('Starting FFmpeg processing:', { imageUrl, audioUrl, outputFileName })
 
     const ffmpeg = new FFmpeg()
     await ffmpeg.load()
+    console.log('FFmpeg loaded successfully')
 
     // Download files
+    console.log('Downloading input files...')
     const imageFile = await fetchFile(imageUrl)
     const audioFile = await fetchFile(audioUrl)
 
     // Write files to FFmpeg's virtual filesystem
+    console.log('Writing files to FFmpeg filesystem...')
     await ffmpeg.writeFile('input.png', imageFile)
     await ffmpeg.writeFile('audio.mp3', audioFile)
 
     // Calculate dimensions based on aspect ratio
     const dimensions = aspectRatio === '16:9' ? '1920:1080' : '1080:1920'
-    
+    console.log(`Using dimensions: ${dimensions} for aspect ratio: ${aspectRatio}`)
+
     // Execute FFmpeg command to create video
+    console.log('Executing FFmpeg command...')
     await ffmpeg.exec([
       '-loop', '1',
       '-i', 'input.png',
@@ -45,8 +50,10 @@ serve(async (req) => {
       '-vf', `scale=${dimensions}:force_original_aspect_ratio=decrease,pad=${dimensions}:(ow-iw)/2:(oh-ih)/2`,
       'output.mp4'
     ])
+    console.log('FFmpeg command executed successfully')
 
     // Read the output file
+    console.log('Reading output video file...')
     const outputData = await ffmpeg.readFile('output.mp4')
     const videoBuffer = new Uint8Array(outputData)
 
@@ -57,6 +64,7 @@ serve(async (req) => {
     )
 
     // Upload the final video
+    console.log('Uploading final video...')
     const { error: uploadError } = await supabaseClient.storage
       .from('story-videos')
       .upload(outputFileName, videoBuffer, {
@@ -68,6 +76,7 @@ serve(async (req) => {
       throw new Error(`Failed to upload video: ${uploadError.message}`)
     }
 
+    console.log('Video processing completed successfully')
     return new Response(
       JSON.stringify({ success: true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
