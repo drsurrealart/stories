@@ -506,6 +506,7 @@ export const ProfilesTab = () => {
                           <button
                             onClick={() => handleInterestToggle(interest)}
                             className="ml-1 hover:text-destructive"
+                            type="button"
                           >
                             ×
                           </button>
