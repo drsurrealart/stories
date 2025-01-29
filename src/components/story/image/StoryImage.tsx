@@ -16,18 +16,25 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
 
-  const { data: imageData, isLoading } = useQuery({
+  const { data: imageData, isLoading, error } = useQuery({
     queryKey: ['story-image', storyId],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('story_images')
         .select('*')
         .eq('story_id', storyId)
         .eq('user_id', session.user.id)
-        .single();
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching story image:", error);
+        throw error;
+      }
 
       return data;
     },
@@ -79,6 +86,15 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
       setIsGenerating(false);
     }
   };
+
+  if (error) {
+    toast({
+      title: "Error",
+      description: "Failed to load story image",
+      variant: "destructive",
+    });
+    return null;
+  }
 
   return (
     <Card className="p-4 space-y-4">
