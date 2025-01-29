@@ -5,6 +5,7 @@ import { generateBackgroundImage } from "./services/videoGenerationService";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { type VideoAspectRatio } from "./types";
+import { useQuery } from "@tanstack/react-query";
 
 interface VideoGenerationFormProps {
   isGenerating: boolean;
@@ -38,6 +39,31 @@ export function VideoGenerationForm({
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [processingStep, setProcessingStep] = useState<string>('');
   const { toast } = useToast();
+
+  // Query to fetch existing video data
+  const { data: existingVideo } = useQuery({
+    queryKey: ['video-background', storyId],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+
+      // First check if there's a video entry with a background image
+      const { data: videoData } = await supabase
+        .from('story_videos')
+        .select('*')
+        .eq('story_id', storyId)
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
+      if (videoData?.video_url) {
+        setBackgroundImage(videoData.video_url);
+        setImageGenerated(true);
+        return videoData;
+      }
+
+      return null;
+    },
+  });
 
   const handleGenerateBackground = async () => {
     try {
