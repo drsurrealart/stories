@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { ImageGenerationForm } from "./ImageGenerationForm";
 import { ImageControls } from "./ImageControls";
+import { Loading } from "@/components/ui/loading";
 
 interface StoryImageProps {
   storyId: string;
@@ -16,7 +17,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
 
-  const { data: imageData, isLoading, error } = useQuery({
+  const { data: imageData, isLoading, error, refetch } = useQuery({
     queryKey: ['story-image', storyId],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -74,7 +75,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
       });
 
       // Refresh the image data
-      window.location.reload();
+      refetch();
     } catch (error: any) {
       console.error("Error generating image:", error);
       toast({
@@ -88,6 +89,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
   };
 
   if (error) {
+    console.error("Error loading story image:", error);
     toast({
       title: "Error",
       description: "Failed to load story image",
@@ -96,13 +98,20 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
     return null;
   }
 
+  if (isLoading) {
+    return (
+      <Card className="p-4 space-y-4">
+        <h3 className="text-lg font-semibold">Story Image</h3>
+        <Loading />
+      </Card>
+    );
+  }
+
   return (
     <Card className="p-4 space-y-4">
       <h3 className="text-lg font-semibold">Story Image</h3>
       
-      {isLoading ? (
-        <div>Loading...</div>
-      ) : imageData ? (
+      {imageData ? (
         <div className="space-y-4">
           <img
             src={imageData.image_url}
