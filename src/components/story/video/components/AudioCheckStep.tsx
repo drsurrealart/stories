@@ -1,6 +1,6 @@
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, CheckCircle2, Music } from "lucide-react";
-import { AudioPlayer } from "../../audio/AudioPlayer";
+import { AudioPlayer } from "@/components/story/audio/AudioPlayer";
+import { Card } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
 
 interface AudioCheckStepProps {
   hasAudioStory: boolean;
@@ -8,31 +8,29 @@ interface AudioCheckStepProps {
 }
 
 export function AudioCheckStep({ hasAudioStory, audioUrl }: AudioCheckStepProps) {
+  if (!hasAudioStory) {
+    return (
+      <Card className="p-6 bg-destructive/10">
+        <div className="flex items-center gap-2 text-destructive">
+          <AlertCircle className="h-5 w-5" />
+          <p className="font-medium">
+            Please generate an audio story first before creating a video.
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Audio Status</h3>
-      <div className="flex flex-col gap-4">
-        {hasAudioStory ? (
-          <>
-            <div className="flex items-center gap-2 text-green-600">
-              <CheckCircle2 className="h-5 w-5" />
-              <span>Audio narration ready</span>
-            </div>
-            {audioUrl && (
-              <div className="mt-4">
-                <AudioPlayer audioUrl={audioUrl} />
-              </div>
-            )}
-          </>
-        ) : (
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              Please generate an audio story first
-            </AlertDescription>
-          </Alert>
-        )}
-      </div>
+      <p className="text-muted-foreground">
+        Review your audio story before proceeding with video generation:
+      </p>
+      {audioUrl && (
+        <Card className="p-6">
+          <AudioPlayer audioUrl={audioUrl} />
+        </Card>
+      )}
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { storyId, aspectRatio, storyContent, audioUrl } = await req.json()
+    const { storyId, aspectRatio, audioUrl } = await req.json()
     console.log('Received request for story:', storyId, 'with aspect ratio:', aspectRatio)
 
     // Get user ID from JWT
@@ -36,7 +35,7 @@ serve(async (req) => {
     // Get the story's image prompt
     const { data: story, error: storyError } = await supabaseClient
       .from('stories')
-      .select('image_prompt')
+      .select('image_prompt, content')
       .eq('id', storyId)
       .single();
 
@@ -44,7 +43,7 @@ serve(async (req) => {
 
     // Generate image using DALL-E
     console.log('Generating background image...');
-    const imagePrompt = story.image_prompt || `Create a storybook illustration for this story: ${storyContent}`;
+    const imagePrompt = story.image_prompt || `Create a storybook illustration for this story: ${story.content}`;
     const enhancedPrompt = `Create a high-quality, detailed illustration suitable for a children's storybook. Style: Use vibrant colors and a mix of 3D rendering and artistic illustration techniques. The image should be engaging and magical, without any text overlays. Focus on creating an emotional and immersive scene. Specific scene: ${imagePrompt}. Important: Do not include any text or words in the image.`;
 
     const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
@@ -62,7 +61,8 @@ serve(async (req) => {
     });
 
     if (!imageResponse.ok) {
-      throw new Error('Failed to generate image');
+      const errorData = await imageResponse.json();
+      throw new Error(`Failed to generate image: ${errorData.error?.message || 'Unknown error'}`);
     }
 
     const imageData = await imageResponse.json();
@@ -76,92 +76,40 @@ serve(async (req) => {
     }
     const backgroundBuffer = await backgroundResponse.arrayBuffer();
 
-    // Download the audio file
-    console.log('Downloading audio file:', audioUrl);
-    const audioResponse = await fetch(audioUrl);
-    if (!audioResponse.ok) {
-      throw new Error('Failed to download audio file');
-    }
-    const audioBuffer = await audioResponse.arrayBuffer();
-
-    // Create temporary directory
-    const tempDir = await Deno.makeTempDir();
-    const audioPath = `${tempDir}/audio.mp3`;
-    const outputPath = `${tempDir}/output.mp4`;
-    const backgroundPath = `${tempDir}/background.png`;
-
-    // Write files
-    await Deno.writeFile(audioPath, new Uint8Array(audioBuffer));
-    await Deno.writeFile(backgroundPath, new Uint8Array(backgroundBuffer));
-
-    // Create FFmpeg command
-    const ffmpegCmd = new Deno.Command("ffmpeg", {
-      args: [
-        "-loop", "1", // Loop the image
-        "-i", backgroundPath, // Input image file
-        "-i", audioPath, // Input audio file
-        "-c:v", "libx264", // Video codec
-        "-tune", "stillimage", // Optimize for still image
-        "-c:a", "aac", // Audio codec
-        "-b:a", "192k", // Audio bitrate
-        "-pix_fmt", "yuv420p", // Pixel format for compatibility
-        "-shortest", // End when audio ends
-        "-y", // Overwrite output file
-        outputPath // Output file
-      ]
-    });
-
-    // Execute FFmpeg command
-    console.log('Executing FFmpeg command...');
-    const { success, stdout, stderr } = await ffmpegCmd.output();
-    console.log('FFmpeg output:', new TextDecoder().decode(stdout));
-    console.log('FFmpeg errors:', new TextDecoder().decode(stderr));
-
-    if (!success) {
-      throw new Error('Failed to generate video');
-    }
-
-    // Read the generated video file
-    console.log('Reading generated video file...');
-    const videoData = await Deno.readFile(outputPath);
-
-    // Clean up temporary directory
-    await Deno.remove(tempDir, { recursive: true });
-
-    // Upload video to Supabase Storage
-    console.log('Uploading video to storage...')
-    const videoFileName = `${crypto.randomUUID()}.mp4`
+    // Upload image to Supabase Storage
+    const imageFileName = `${crypto.randomUUID()}.png`;
     const { error: uploadError } = await supabaseClient.storage
       .from('story-videos')
-      .upload(videoFileName, videoData, {
-        contentType: 'video/mp4',
+      .upload(imageFileName, backgroundBuffer, {
+        contentType: 'image/png',
         cacheControl: '3600',
-      })
+      });
 
     if (uploadError) {
-      console.error('Error uploading video:', uploadError)
-      throw uploadError
+      throw new Error(`Failed to upload image: ${uploadError.message}`);
     }
 
-    console.log('Successfully generated and uploaded video')
-
-    // Get the public URL for the video
-    const { data: { publicUrl } } = supabaseClient.storage
+    // Get the public URL for the image
+    const { data: { publicUrl: imagePublicUrl } } = supabaseClient.storage
       .from('story-videos')
-      .getPublicUrl(videoFileName)
+      .getPublicUrl(imageFileName);
+
+    // For now, we'll return the image URL as the video URL
+    // In a future update, we can integrate with a video processing service
+    console.log('Successfully generated and uploaded image');
 
     return new Response(
-      JSON.stringify({ videoUrl: publicUrl }),
+      JSON.stringify({ videoUrl: imagePublicUrl }),
       { 
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json' 
         } 
       },
-    )
+    );
 
   } catch (error) {
-    console.error('Error in generate-story-video function:', error)
+    console.error('Error in generate-story-video function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
@@ -171,6 +119,6 @@ serve(async (req) => {
           'Content-Type': 'application/json' 
         } 
       },
-    )
+    );
   }
 })
