@@ -6,7 +6,8 @@ import {
   Settings, 
   Users, 
   CreditCard,
-  Code
+  Code,
+  Stamp
 } from "lucide-react";
 
 export const AdminNav = () => {
@@ -34,6 +35,11 @@ export const AdminNav = () => {
       icon: <Code className="h-4 w-4" />,
     },
     {
+      title: "Watermarks",
+      href: "/admin/watermarks",
+      icon: <Stamp className="h-4 w-4" />,
+    },
+    {
       title: "Settings",
       href: "/admin/settings",
       icon: <Settings className="h-4 w-4" />,
@@ -59,4 +65,4 @@ export const AdminNav = () => {
       ))}
     </nav>
   );
-};
+}

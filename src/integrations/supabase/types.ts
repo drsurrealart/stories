@@ -660,6 +660,68 @@ export type Database = {
         }
         Relationships: []
       }
+      watermark_settings: {
+        Row: {
+          content_type: Database["public"]["Enums"]["watermark_content_type"]
+          created_at: string
+          id: string
+          is_active: boolean | null
+          subscription_level: Database["public"]["Enums"]["subscription_level"]
+          updated_at: string
+          watermark_template_id: string | null
+        }
+        Insert: {
+          content_type: Database["public"]["Enums"]["watermark_content_type"]
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          subscription_level: Database["public"]["Enums"]["subscription_level"]
+          updated_at?: string
+          watermark_template_id?: string | null
+        }
+        Update: {
+          content_type?: Database["public"]["Enums"]["watermark_content_type"]
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          subscription_level?: Database["public"]["Enums"]["subscription_level"]
+          updated_at?: string
+          watermark_template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watermark_settings_watermark_template_id_fkey"
+            columns: ["watermark_template_id"]
+            isOneToOne: false
+            referencedRelation: "watermark_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      watermark_templates: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_default: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       user_details: {
@@ -755,6 +817,12 @@ export type Database = {
         | "credits"
       video_aspect_ratio: "16:9" | "9:16"
       video_processing_method: "ffmpeg" | "moviepy"
+      watermark_content_type:
+        | "text_story"
+        | "audio_story"
+        | "story_image"
+        | "story_video"
+        | "story_pdf"
     }
     CompositeTypes: {
       [_ in never]: never

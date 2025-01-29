@@ -26,6 +26,7 @@ import Share from "@/pages/Share";
 import Support from "@/pages/Support";
 import Terms from "@/pages/Terms";
 import Contact from "@/pages/Contact";
+import AdminWatermarks from "@/pages/admin/AdminWatermarks";
 
 export function AppRoutes() {
   return (
@@ -184,6 +185,14 @@ export function AppRoutes() {
         element={
           <ProtectedAdminRoute>
             <AdminFunctions />
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/watermarks"
+        element={
+          <ProtectedAdminRoute>
+            <AdminWatermarks />
           </ProtectedAdminRoute>
         }
       />
