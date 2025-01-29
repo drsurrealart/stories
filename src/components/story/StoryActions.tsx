@@ -11,10 +11,10 @@ export function StoryActions({ onReflect, onCreateNew, isKidsMode }: StoryAction
   return (
     <div className="flex flex-wrap gap-2 justify-between">
       <Button
-        variant="destructive"
+        variant="outline"
         size="sm"
         onClick={onReflect}
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 border border-destructive hover:bg-destructive hover:text-destructive-foreground"
       >
         <Trash2 className="h-4 w-4" />
         Delete
