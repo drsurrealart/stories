@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileDown, FileText, Trash2 } from "lucide-react";
+import { FileDown, Share2, Trash2, FilePdf, Printer } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -83,7 +83,6 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
 
       if (response.error) throw response.error;
 
-      // Refetch PDF data after successful generation
       await refetchPDF();
 
       toast({
@@ -110,7 +109,6 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // Delete the file from storage
       const filePath = new URL(pdfData.pdf_url).pathname.split('/').pop();
       if (filePath) {
         const { error: storageError } = await supabase
@@ -121,7 +119,6 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
         if (storageError) throw storageError;
       }
 
-      // Delete the database record
       const { error: dbError } = await supabase
         .from('story_pdfs')
         .delete()
@@ -148,10 +145,53 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
     }
   };
 
+  const handleShare = async () => {
+    if (!pdfData?.pdf_url) return;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Story PDF',
+          url: pdfData.pdf_url
+        });
+        toast({
+          title: "Success",
+          description: "PDF shared successfully!",
+        });
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          toast({
+            title: "Error",
+            description: "Failed to share PDF",
+            variant: "destructive",
+          });
+        }
+      }
+    } else {
+      // Fallback to copying link
+      navigator.clipboard.writeText(pdfData.pdf_url);
+      toast({
+        title: "Link copied!",
+        description: "PDF link has been copied to your clipboard",
+      });
+    }
+  };
+
+  const handlePrint = () => {
+    if (pdfData?.pdf_url) {
+      const printWindow = window.open(pdfData.pdf_url, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+    }
+  };
+
   return (
     <Card className="p-4 md:p-6 space-y-4 bg-card">
       <div className="flex items-center gap-2 mb-4">
-        <FileText className="h-5 w-5 text-primary" />
+        <FilePdf className="h-5 w-5 text-primary" />
         <h3 className="font-semibold text-lg">Printable Story</h3>
       </div>
 
@@ -168,24 +208,51 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
           )}
         </Button>
       ) : (
-        <div className="space-y-2">
-          <Button
-            onClick={() => window.open(pdfData.pdf_url, '_blank')}
-            className="w-full"
-            variant="secondary"
-          >
-            <FileDown className="w-4 h-4 mr-2" />
-            Download Story PDF
-          </Button>
-          <Button
-            onClick={() => setShowDeleteDialog(true)}
-            className="w-full"
-            variant="destructive"
-            disabled={isDeleting}
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete PDF
-          </Button>
+        <div className="space-y-4">
+          <div className="flex justify-center p-4 bg-muted/20 rounded-lg">
+            <FilePdf className="h-24 w-24 text-primary/80" />
+          </div>
+          
+          <div className="flex flex-wrap gap-2 justify-between items-center">
+            <div className="flex gap-2">
+              <Button
+                onClick={() => window.open(pdfData.pdf_url, '_blank')}
+                variant="secondary"
+                size="sm"
+              >
+                <FileDown className="w-4 h-4 mr-2" />
+                Download
+              </Button>
+              
+              <Button
+                onClick={handleShare}
+                variant="secondary"
+                size="sm"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
+
+              <Button
+                onClick={handlePrint}
+                variant="secondary"
+                size="sm"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                Print
+              </Button>
+            </div>
+
+            <Button
+              onClick={() => setShowDeleteDialog(true)}
+              variant="destructive"
+              size="sm"
+              disabled={isDeleting}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
+            </Button>
+          </div>
         </div>
       )}
 
