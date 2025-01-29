@@ -7,13 +7,12 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { storyId, aspectRatio, audioUrl, storyContent } = await req.json()
+    const { storyId, aspectRatio, storyContent, audioUrl } = await req.json()
     console.log('Starting video generation for story:', storyId)
     console.log('Using audio URL:', audioUrl)
 

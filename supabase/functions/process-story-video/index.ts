@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.12.7'
+import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.12.7/dist/esm/index.js'
 import { fetchFile } from 'https://esm.sh/@ffmpeg/util@0.12.1'
 
 const corsHeaders = {
@@ -17,8 +17,12 @@ serve(async (req) => {
     const { imageUrl, audioUrl, outputFileName, aspectRatio } = await req.json()
     console.log('Starting FFmpeg processing:', { imageUrl, audioUrl, outputFileName })
 
+    // Initialize FFmpeg with WASM
     const ffmpeg = new FFmpeg()
-    await ffmpeg.load()
+    await ffmpeg.load({
+      coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
+      wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm',
+    })
     console.log('FFmpeg loaded successfully')
 
     // Download files
