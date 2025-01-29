@@ -48,7 +48,7 @@ export function StoryGenerator({ onStoryGenerated }: StoryGeneratorProps) {
         .from('voice_preferences')
         .select('voice_id')
         .eq('profile_id', selectedProfileId)
-        .single();
+        .maybeSingle();
 
       return data?.voice_id || null;
     },
@@ -62,12 +62,14 @@ export function StoryGenerator({ onStoryGenerated }: StoryGeneratorProps) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
 
+      // Instead of using 'kids' as profile_id, we'll use a null profile_id
+      // with a specific purpose for kids mode
       const { data } = await supabase
         .from('voice_preferences')
         .select('voice_id')
-        .eq('profile_id', 'kids')
+        .is('profile_id', null)
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle();
 
       return data?.voice_id || null;
     }
