@@ -5,11 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Loading } from "@/components/ui/loading";
 import { AudioStory } from "@/components/story/AudioStory";
-import { StoryContent } from "@/components/story/StoryContent";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Trash2, Music, Headphones } from "lucide-react";
+import { BookOpen, Trash2, Music, Headphones, Image as ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 const pastelColors = [
   "bg-[#F2FCE2]", // Soft Green
@@ -54,7 +54,24 @@ const MyAudio = () => {
         .order('created_at', { ascending: false });
 
       if (audioError) throw audioError;
-      return audioData;
+
+      // Fetch story images for each story
+      const storiesWithImages = await Promise.all(
+        audioData.map(async (audio) => {
+          const { data: imageData } = await supabase
+            .from('story_images')
+            .select('image_url')
+            .eq('story_id', audio.story_id)
+            .maybeSingle();
+
+          return {
+            ...audio,
+            image_url: imageData?.image_url
+          };
+        })
+      );
+
+      return storiesWithImages;
     },
   });
 
@@ -123,23 +140,42 @@ const MyAudio = () => {
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
-                <StoryContent 
-                  title={audio.stories.title}
-                  content={audio.stories.content}
-                  moral={audio.stories.moral}
-                  ageGroup={audio.stories.age_group}
-                  genre={audio.stories.genre}
-                  language={audio.stories.language}
-                  tone={audio.stories.tone}
-                  readingLevel={audio.stories.reading_level}
-                  lengthPreference={audio.stories.length_preference}
-                />
-                <div className="mt-4">
-                  <AudioStory 
-                    storyId={audio.stories.id} 
-                    storyContent={audio.stories.content}
-                  />
+
+                {audio.image_url ? (
+                  <div className="relative aspect-video w-full rounded-lg overflow-hidden mb-4">
+                    <img
+                      src={audio.image_url}
+                      alt="Story illustration"
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center bg-muted/50 rounded-lg p-8 mb-4">
+                    <div className="text-center text-muted-foreground">
+                      <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>No image generated yet</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {audio.stories.age_group && (
+                    <Badge variant="secondary">
+                      {audio.stories.age_group}
+                    </Badge>
+                  )}
+                  {audio.stories.genre && (
+                    <Badge variant="secondary">
+                      {audio.stories.genre}
+                    </Badge>
+                  )}
                 </div>
+
+                <AudioStory 
+                  storyId={audio.stories.id} 
+                  storyContent={audio.stories.content}
+                />
+
                 <div className="mt-4">
                   <Button
                     variant="secondary"
