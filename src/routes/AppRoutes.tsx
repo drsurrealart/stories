@@ -18,6 +18,7 @@ import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminSubscriptions from "@/pages/admin/AdminSubscriptions";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminFunctions from "@/pages/admin/AdminFunctions";
+import Explore from "@/pages/Explore";
 
 export function AppRoutes() {
   return (
@@ -25,6 +26,7 @@ export function AppRoutes() {
       {/* Public routes */}
       <Route path="/" element={<Landing />} />
       <Route path="/auth" element={<Auth />} />
+      <Route path="/explore" element={<Explore />} />
       
       {/* Protected routes */}
       <Route
