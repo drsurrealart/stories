@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, Share2, Trash2 } from "lucide-react";
+import { FileDown, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { DeleteMediaDialog } from "../media/DeleteMediaDialog";
+import { ShareMediaDialog } from "../media/ShareMediaDialog";
 
 interface ImageControlsProps {
   storyId: string;
@@ -43,33 +44,19 @@ export function ImageControls({ storyId, imageUrl }: ImageControlsProps) {
     }
   };
 
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'My Story Image',
-          url: imageUrl
-        });
-        
-        toast({
-          title: "Share success",
-          description: "Image shared successfully!",
-        });
-      }
-    } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
-        toast({
-          title: "Share failed",
-          description: "There was an error sharing your image.",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
+      // Delete from storage
+      const fileName = imageUrl.split('/').pop();
+      if (fileName) {
+        const { error: storageError } = await supabase.storage
+          .from('story-images')
+          .remove([fileName]);
+
+        if (storageError) throw storageError;
+      }
+
       // Delete from database
       const { error: dbError } = await supabase
         .from('story_images')
@@ -79,7 +66,7 @@ export function ImageControls({ storyId, imageUrl }: ImageControlsProps) {
       if (dbError) throw dbError;
 
       // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ['story-image-data', storyId] });
+      queryClient.invalidateQueries({ queryKey: ['story-image', storyId] });
 
       toast({
         title: "Success",
@@ -106,27 +93,24 @@ export function ImageControls({ storyId, imageUrl }: ImageControlsProps) {
           variant="outline"
           size="sm"
           onClick={handleDownload}
+          className="flex items-center gap-2"
         >
-          <Download className="h-4 w-4 mr-2" />
+          <FileDown className="h-4 w-4" />
           Download
         </Button>
-        {navigator.share && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleShare}
-          >
-            <Share2 className="h-4 w-4 mr-2" />
-            Share
-          </Button>
-        )}
+        <ShareMediaDialog 
+          title="Story Image"
+          url={imageUrl}
+          type="image"
+        />
       </div>
       <Button
         variant="destructive"
         size="sm"
         onClick={() => setShowDeleteDialog(true)}
+        className="flex items-center gap-2"
       >
-        <Trash2 className="h-4 w-4 mr-2" />
+        <Trash2 className="h-4 w-4" />
         Delete Image
       </Button>
 
