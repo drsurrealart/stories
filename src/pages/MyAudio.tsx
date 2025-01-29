@@ -7,7 +7,7 @@ import { Loading } from "@/components/ui/loading";
 import { AudioStory } from "@/components/story/AudioStory";
 import { StoryContent } from "@/components/story/StoryContent";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Trash2 } from "lucide-react";
+import { BookOpen, Trash2, Music, Headphones } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -83,10 +83,21 @@ const MyAudio = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
+    <div className="min-h-screen bg-gradient-to-b from-secondary/50 to-background">
       <NavigationBar onLogout={async () => {}} />
-      <div className="max-w-4xl mx-auto p-6 space-y-8">
-        <h1 className="text-3xl font-bold text-center mb-8">My Audio Stories</h1>
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+        <div className="space-y-4 text-center max-w-2xl mx-auto">
+          <div className="flex items-center justify-center space-x-2">
+            <Music className="h-8 w-8 text-primary animate-bounce" />
+            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-hover">
+              My Audio Stories
+            </h1>
+            <Headphones className="h-8 w-8 text-primary animate-bounce" />
+          </div>
+          <p className="text-lg text-muted-foreground">
+            Your collection of stories brought to life through the power of voice.
+          </p>
+        </div>
 
         {isLoading ? (
           <Loading text="Loading your audio stories..." />
