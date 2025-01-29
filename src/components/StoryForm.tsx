@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { BookOpen, Settings2, Wand2, Loader2 } from "lucide-react";
+import { BookOpen, Settings2, Wand2, Loader2, UserRound } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +13,15 @@ import {
 import { BasicSettings } from "./story/form/BasicSettings";
 import { AdvancedSettings } from "./story/form/AdvancedSettings";
 import { CreditInfo } from "./story/form/CreditInfo";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const DEFAULT_PREFERENCES = {
   lengthPreference: "medium",
@@ -33,6 +42,15 @@ export interface StoryPreferences {
   language: string;
   tone: string;
   readingLevel: string;
+  selectedProfile?: {
+    name: string;
+    age: number;
+    gender: string | null;
+    ethnicity: string | null;
+    hairColor: string | null;
+    interests: string[];
+  } | null;
+  useProfileName?: boolean;
 }
 
 interface StoryFormProps {
@@ -48,6 +66,8 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     ...DEFAULT_PREFERENCES,
   });
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const [selectedProfileId, setSelectedProfileId] = useState<string>("");
+  const [useProfileName, setUseProfileName] = useState(false);
   const { toast } = useToast();
 
   const { data: userLimits } = useQuery({
@@ -84,6 +104,41 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
     }
   });
 
+  const { data: userProfiles } = useQuery({
+    queryKey: ['user-profiles'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return [];
+
+      const { data: profiles } = await supabase
+        .from('user_sub_profiles')
+        .select('*')
+        .eq('user_id', session.user.id);
+
+      return profiles || [];
+    }
+  });
+
+  useEffect(() => {
+    if (selectedProfileId && userProfiles) {
+      const profile = userProfiles.find(p => p.id === selectedProfileId);
+      if (profile) {
+        setPreferences(prev => ({
+          ...prev,
+          selectedProfile: {
+            name: profile.name,
+            age: profile.age,
+            gender: profile.gender,
+            ethnicity: profile.ethnicity,
+            hairColor: profile.hair_color,
+            interests: profile.interests || [],
+          },
+          characterName1: useProfileName ? profile.name : prev.characterName1
+        }));
+      }
+    }
+  }, [selectedProfileId, useProfileName, userProfiles]);
+
   const handleSubmit = async () => {
     if (!preferences.genre || !preferences.ageGroup || !preferences.moral) {
       toast({
@@ -113,20 +168,12 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
       return;
     }
 
-    // Only include modified advanced settings
     const optimizedPreferences = {
-      genre: preferences.genre,
-      ageGroup: preferences.ageGroup,
-      moral: preferences.moral,
-      ...(preferences.characterName1 && { characterName1: preferences.characterName1 }),
-      ...(preferences.characterName2 && { characterName2: preferences.characterName2 }),
-      ...(preferences.lengthPreference !== DEFAULT_PREFERENCES.lengthPreference && { lengthPreference: preferences.lengthPreference }),
-      ...(preferences.language !== DEFAULT_PREFERENCES.language && { language: preferences.language }),
-      ...(preferences.tone !== DEFAULT_PREFERENCES.tone && { tone: preferences.tone }),
-      ...(preferences.readingLevel !== DEFAULT_PREFERENCES.readingLevel && { readingLevel: preferences.readingLevel }),
+      ...preferences,
+      useProfileName,
     };
 
-    onSubmit(optimizedPreferences as StoryPreferences);
+    onSubmit(optimizedPreferences);
   };
 
   return (
@@ -137,6 +184,45 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
       </div>
 
       <CreditInfo userLimits={userLimits} />
+
+      {userProfiles && userProfiles.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <UserRound className="w-4 h-4 text-primary" />
+            <h3 className="font-semibold">Profile Selection</h3>
+          </div>
+          
+          <Select
+            value={selectedProfileId}
+            onValueChange={setSelectedProfileId}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a profile" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">No profile selected</SelectItem>
+              {userProfiles.map((profile) => (
+                <SelectItem key={profile.id} value={profile.id}>
+                  {profile.name} ({profile.age} years old)
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {selectedProfileId && (
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="useProfileName"
+                checked={useProfileName}
+                onCheckedChange={(checked) => setUseProfileName(checked as boolean)}
+              />
+              <Label htmlFor="useProfileName">
+                Use profile name in the story
+              </Label>
+            </div>
+          )}
+        </div>
+      )}
 
       <BasicSettings
         ageGroup={preferences.ageGroup}

@@ -24,6 +24,21 @@ serve(async (req) => {
       ...preferences
     };
 
+    // Create a more detailed prompt if a profile is selected
+    let profileContext = "";
+    if (fullPreferences.selectedProfile) {
+      const profile = fullPreferences.selectedProfile;
+      profileContext = `
+The main character should be based on this profile:
+- Name: ${fullPreferences.useProfileName ? profile.name : "Choose an appropriate name"}
+- Age: ${profile.age} years old
+- Gender: ${profile.gender || "Not specified"}
+- Physical appearance: ${profile.ethnicity ? `${profile.ethnicity} ethnicity` : ""} ${profile.hairColor ? `with ${profile.hairColor} hair` : ""}
+- Interests: ${profile.interests.join(", ")}
+
+Please incorporate these characteristics naturally into the story, making the character relatable and authentic.`;
+    }
+
     // Generate the story
     const storyPrompt = `Create a ${fullPreferences.lengthPreference} length story for ${fullPreferences.ageGroup} about ${fullPreferences.moral}. 
     Genre: ${fullPreferences.genre}
@@ -32,6 +47,7 @@ serve(async (req) => {
     ${fullPreferences.readingLevel !== "intermediate" ? `Reading Level: ${fullPreferences.readingLevel}` : ''}
     ${fullPreferences.characterName1 ? `Main character name: ${fullPreferences.characterName1}` : ''}
     ${fullPreferences.characterName2 ? `Secondary character name: ${fullPreferences.characterName2}` : ''}
+    ${profileContext}
 
     The story should:
     1. Start with a clear title on the first line (no markdown formatting)
@@ -71,11 +87,23 @@ serve(async (req) => {
     const generatedStory = storyData.choices[0].message.content.replace(/\*\*/g, '');
     console.log('Story generated successfully');
 
-    // Generate image prompt based on story and preferences
+    // Generate image prompt based on story and preferences, including profile details
+    let imagePromptContext = "";
+    if (fullPreferences.selectedProfile) {
+      const profile = fullPreferences.selectedProfile;
+      imagePromptContext = `The main character should be:
+- ${profile.age} years old
+- ${profile.gender || "any gender"}
+- ${profile.ethnicity || "any ethnicity"} ethnicity
+- ${profile.hairColor || "any"} hair color
+Make sure these physical characteristics are accurately represented in the image.`;
+    }
+
     const imagePromptRequest = `Create a concise, detailed image generation prompt for DALL-E based on this story and these parameters:
     Age group: ${fullPreferences.ageGroup}
     Genre: ${fullPreferences.genre}
     Tone: ${fullPreferences.tone}
+    ${imagePromptContext}
     
     Story:
     ${generatedStory}
