@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Steps } from "@/components/ui/steps";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 type VideoAspectRatio = "16:9" | "9:16";
 
@@ -38,6 +39,8 @@ export function VideoGenerationForm({
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<VideoAspectRatio | ''>('');
   const [currentStep, setCurrentStep] = useState(1);
   const [imageGenerated, setImageGenerated] = useState(false);
+  const [backgroundImage, setBackgroundImage] = useState<string>('');
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const steps = [
     { title: "Video Format", description: "Choose video dimensions" },
@@ -55,6 +58,32 @@ export function VideoGenerationForm({
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleGenerateBackground = async () => {
+    setIsGeneratingImage(true);
+    try {
+      // Call your image generation API here
+      const response = await fetch('/api/generate-background', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          aspectRatio: selectedAspectRatio,
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to generate image');
+      
+      const data = await response.json();
+      setBackgroundImage(data.imageUrl);
+      setImageGenerated(true);
+    } catch (error) {
+      console.error('Error generating background:', error);
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
 
@@ -116,20 +145,41 @@ export function VideoGenerationForm({
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Background Image</h3>
-            <div className="flex items-center gap-2">
-              <Image className="h-5 w-5" />
-              {imageGenerated ? (
-                <div className="flex items-center gap-2 text-green-600">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span>Background image ready</span>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Image className="h-5 w-5" />
+                {imageGenerated ? (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span>Background image ready</span>
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={handleGenerateBackground}
+                    disabled={!selectedAspectRatio || isGeneratingImage}
+                  >
+                    {isGeneratingImage ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>Generate Background Image</>
+                    )}
+                  </Button>
+                )}
+              </div>
+              
+              {backgroundImage && (
+                <div className="mt-4 border rounded-lg overflow-hidden">
+                  <AspectRatio ratio={selectedAspectRatio === "16:9" ? 16/9 : 9/16}>
+                    <img 
+                      src={backgroundImage} 
+                      alt="Generated background"
+                      className="w-full h-full object-cover"
+                    />
+                  </AspectRatio>
                 </div>
-              ) : (
-                <Button 
-                  onClick={() => setImageGenerated(true)}
-                  disabled={!selectedAspectRatio}
-                >
-                  Generate Background Image
-                </Button>
               )}
             </div>
           </div>
@@ -139,19 +189,33 @@ export function VideoGenerationForm({
         return (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Final Preview</h3>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-                <span>Video Format: {selectedAspectRatio}</span>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <span>Video Format: {selectedAspectRatio}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <span>Audio Narration: Ready</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <span>Background Image: Generated</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-                <span>Audio Narration: Ready</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-                <span>Background Image: Generated</span>
-              </div>
+
+              {backgroundImage && (
+                <div className="mt-4 border rounded-lg overflow-hidden">
+                  <AspectRatio ratio={selectedAspectRatio === "16:9" ? 16/9 : 9/16}>
+                    <img 
+                      src={backgroundImage} 
+                      alt="Generated background"
+                      className="w-full h-full object-cover"
+                    />
+                  </AspectRatio>
+                </div>
+              )}
             </div>
             <Button 
               className="w-full"
