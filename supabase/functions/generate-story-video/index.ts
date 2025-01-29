@@ -69,70 +69,22 @@ serve(async (req) => {
     const backgroundImageUrl = imageData.data[0].url;
     console.log('Background image generated:', backgroundImageUrl);
 
-    // Download the background image
-    console.log('Downloading background image...');
-    const backgroundResponse = await fetch(backgroundImageUrl);
-    if (!backgroundResponse.ok) {
-      throw new Error('Failed to download background image');
-    }
-    const backgroundBuffer = await backgroundResponse.arrayBuffer();
-
-    // Download the audio file
-    console.log('Downloading audio file...');
-    const audioResponse = await fetch(audioUrl);
-    if (!audioResponse.ok) {
-      throw new Error('Failed to download audio file');
-    }
-    const audioBuffer = await audioResponse.arrayBuffer();
-
-    // Upload files to temporary storage
-    const imageFileName = `temp_${crypto.randomUUID()}.png`;
-    const audioFileName = `temp_${crypto.randomUUID()}.mp3`;
+    // Generate unique filename for the video
     const videoFileName = `${crypto.randomUUID()}.mp4`;
 
-    console.log('Uploading temporary files...');
-    const { error: imageUploadError } = await supabaseClient.storage
-      .from('story-videos')
-      .upload(imageFileName, backgroundBuffer, {
-        contentType: 'image/png',
-        cacheControl: '3600',
-      });
-
-    if (imageUploadError) {
-      throw new Error(`Failed to upload image: ${imageUploadError.message}`);
-    }
-
-    const { error: audioUploadError } = await supabaseClient.storage
-      .from('story-videos')
-      .upload(audioFileName, audioBuffer, {
-        contentType: 'audio/mpeg',
-        cacheControl: '3600',
-      });
-
-    if (audioUploadError) {
-      throw new Error(`Failed to upload audio: ${audioUploadError.message}`);
-    }
-
-    // Get URLs for the uploaded files
-    const { data: { publicUrl: imageUrl } } = supabaseClient.storage
-      .from('story-videos')
-      .getPublicUrl(imageFileName);
-
-    const { data: { publicUrl: tempAudioUrl } } = supabaseClient.storage
-      .from('story-videos')
-      .getPublicUrl(audioFileName);
-
+    // Process video using FFmpeg
     console.log('Processing video with FFmpeg...');
     const ffmpegResponse = await supabaseClient.functions.invoke('process-story-video', {
       body: {
-        imageUrl,
-        audioUrl: tempAudioUrl,
+        imageUrl: backgroundImageUrl,
+        audioUrl,
         outputFileName: videoFileName,
         aspectRatio
       }
     });
 
     if (ffmpegResponse.error) {
+      console.error('FFmpeg processing error:', ffmpegResponse.error);
       throw new Error(`FFmpeg processing failed: ${ffmpegResponse.error}`);
     }
 
@@ -140,13 +92,6 @@ serve(async (req) => {
     const { data: { publicUrl: videoUrl } } = supabaseClient.storage
       .from('story-videos')
       .getPublicUrl(videoFileName);
-
-    // Clean up temporary files
-    console.log('Cleaning up temporary files...');
-    await Promise.all([
-      supabaseClient.storage.from('story-videos').remove([imageFileName]),
-      supabaseClient.storage.from('story-videos').remove([audioFileName])
-    ]);
 
     console.log('Video generation completed successfully');
     return new Response(
