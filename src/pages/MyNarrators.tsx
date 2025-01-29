@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { NavigationBar } from "@/components/NavigationBar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Play, Pause, Mic, Headphones } from "lucide-react";
-import { useState } from "react";
+import { Play, Pause, Mic, Headphones, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { VoicePreferenceSelector } from "@/components/story/audio/VoicePreferenceSelector";
 
 const SAMPLE_TEXT = "Hello! I'm a narrator for LearnMorals.com. I can help bring your stories to life with my voice.";
 
@@ -20,6 +22,7 @@ const NARRATORS = [
 const MyNarrators = () => {
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const [selectedVoiceForPreference, setSelectedVoiceForPreference] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleLogout = async () => {
@@ -183,32 +186,55 @@ const MyNarrators = () => {
 
                 <p className="text-sm text-muted-foreground">{narrator.description}</p>
 
-                <Button
-                  onClick={() => 
-                    playingVoice === narrator.id 
-                      ? stopVoiceSample()
-                      : playVoiceSample(narrator.id)
-                  }
-                  variant="secondary"
-                  className="w-full hover:bg-primary hover:text-primary-foreground transition-colors"
-                >
-                  {playingVoice === narrator.id ? (
-                    <>
-                      <Pause className="w-4 h-4" />
-                      Stop Sample
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4" />
-                      Play Sample
-                    </>
-                  )}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => 
+                      playingVoice === narrator.id 
+                        ? stopVoiceSample()
+                        : playVoiceSample(narrator.id)
+                    }
+                    variant="secondary"
+                    className="flex-1 hover:bg-primary hover:text-primary-foreground transition-colors"
+                  >
+                    {playingVoice === narrator.id ? (
+                      <>
+                        <Pause className="w-4 h-4 mr-2" />
+                        Stop Sample
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 mr-2" />
+                        Play Sample
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setSelectedVoiceForPreference(narrator.id)}
+                  >
+                    <Star className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </Card>
           ))}
         </div>
       </div>
+
+      <Dialog 
+        open={selectedVoiceForPreference !== null} 
+        onOpenChange={() => setSelectedVoiceForPreference(null)}
+      >
+        <DialogContent>
+          {selectedVoiceForPreference && (
+            <VoicePreferenceSelector
+              voiceId={selectedVoiceForPreference}
+              onClose={() => setSelectedVoiceForPreference(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

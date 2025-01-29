@@ -604,6 +604,41 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string | null
+          updated_at: string
+          user_id: string
+          voice_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id?: string | null
+          updated_at?: string
+          user_id: string
+          voice_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string | null
+          updated_at?: string
+          user_id?: string
+          voice_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_preferences_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_sub_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       voice_samples: {
         Row: {
           audio_url: string
