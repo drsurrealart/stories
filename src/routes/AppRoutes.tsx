@@ -10,6 +10,7 @@ import Index from "@/pages/Index";
 import MyAudio from "@/pages/MyAudio";
 import MyFavorites from "@/pages/MyFavorites";
 import MyMorals from "@/pages/MyMorals";
+import MyNarrators from "@/pages/MyNarrators";
 import YourStories from "@/pages/YourStories";
 import AccountSettings from "@/pages/AccountSettings";
 import MySubscriptions from "@/pages/MySubscriptions";
@@ -74,6 +75,14 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <MyAudio />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-narrators"
+        element={
+          <ProtectedRoute>
+            <MyNarrators />
           </ProtectedRoute>
         }
       />
