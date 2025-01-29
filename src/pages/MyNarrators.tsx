@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavigationBar } from "@/components/NavigationBar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Play, Pause, Mic, Headphones, Star } from "lucide-react";
+import { Play, Pause, Mic, Headphones, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -48,18 +48,8 @@ const MyNarrators = () => {
     }
   });
 
-  const getVoicePreference = (voiceId: string) => {
-    const preference = voicePreferences?.find(p => p.voice_id === voiceId);
-    if (!preference) return null;
-    
-    if (preference.profile_id === "personal") {
-      return { name: "Personal", type: "adult" };
-    } else if (preference.profile_id === "kids") {
-      return { name: "Kids Mode", type: "kids" };
-    } else if (preference.user_sub_profiles) {
-      return preference.user_sub_profiles;
-    }
-    return null;
+  const getVoicePreferences = (voiceId: string) => {
+    return voicePreferences?.filter(p => p.voice_id === voiceId) || [];
   };
 
   const handleLogout = async () => {
@@ -205,7 +195,7 @@ const MyNarrators = () => {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {NARRATORS.map((narrator) => {
-            const preference = getVoicePreference(narrator.id);
+            const preferences = getVoicePreferences(narrator.id);
             
             return (
               <Card key={narrator.id} className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in">
@@ -246,21 +236,28 @@ const MyNarrators = () => {
                       )}
                     </Button>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        {preference && (
-                          <Badge variant="secondary" className="text-xs">
-                            Default for {preference.name} ({preference.type})
-                          </Badge>
-                        )}
-                      </div>
+                    <div className="flex flex-wrap gap-2">
+                      {preferences.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {preferences.map((pref) => (
+                            <Badge 
+                              key={pref.id} 
+                              variant="outline" 
+                              className="flex items-center gap-1 text-xs"
+                            >
+                              <Heart className="w-3 h-3 fill-red-500 stroke-red-500" />
+                              {pref.user_sub_profiles?.name || 'Personal'}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                       <Button
                         variant="outline"
-                        size="icon"
+                        size="sm"
                         onClick={() => setSelectedVoiceForPreference(narrator.id)}
-                        className={preference ? "text-yellow-500" : ""}
+                        className="ml-auto"
                       >
-                        <Star className="h-4 w-4" />
+                        <Heart className={`h-4 w-4 ${preferences.length > 0 ? 'fill-red-500 stroke-red-500' : ''}`} />
                       </Button>
                     </div>
                   </div>
