@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { VoicePreferenceSelector } from "@/components/story/audio/VoicePreferenceSelector";
+import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
 
 const SAMPLE_TEXT = "Hello! I'm a narrator for LearnMorals.com. I can help bring your stories to life with my voice.";
 
@@ -24,6 +26,41 @@ const MyNarrators = () => {
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [selectedVoiceForPreference, setSelectedVoiceForPreference] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Fetch voice preferences
+  const { data: voicePreferences } = useQuery({
+    queryKey: ['voice-preferences'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return [];
+
+      const { data } = await supabase
+        .from('voice_preferences')
+        .select(`
+          *,
+          user_sub_profiles (
+            name,
+            type
+          )
+        `);
+
+      return data || [];
+    }
+  });
+
+  const getVoicePreference = (voiceId: string) => {
+    const preference = voicePreferences?.find(p => p.voice_id === voiceId);
+    if (!preference) return null;
+    
+    if (preference.profile_id === "personal") {
+      return { name: "Personal", type: "adult" };
+    } else if (preference.profile_id === "kids") {
+      return { name: "Kids Mode", type: "kids" };
+    } else if (preference.user_sub_profiles) {
+      return preference.user_sub_profiles;
+    }
+    return null;
+  };
 
   const handleLogout = async () => {
     // Handle logout logic here
@@ -167,58 +204,70 @@ const MyNarrators = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {NARRATORS.map((narrator) => (
-            <Card 
-              key={narrator.id} 
-              className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in"
-            >
-              <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="p-6 space-y-4 relative">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h3 className="text-2xl font-semibold text-foreground">{narrator.name}</h3>
-                    <p className="text-sm text-muted-foreground capitalize">{narrator.gender} Voice</p>
+          {NARRATORS.map((narrator) => {
+            const preference = getVoicePreference(narrator.id);
+            
+            return (
+              <Card key={narrator.id} className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in">
+                <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="p-6 space-y-4 relative">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <h3 className="text-2xl font-semibold text-foreground">{narrator.name}</h3>
+                      <p className="text-sm text-muted-foreground capitalize">{narrator.gender} Voice</p>
+                    </div>
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Mic className="h-6 w-6 text-primary" />
+                    </div>
                   </div>
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Mic className="h-6 w-6 text-primary" />
+
+                  <p className="text-sm text-muted-foreground">{narrator.description}</p>
+
+                  <div className="space-y-3">
+                    <Button
+                      onClick={() => 
+                        playingVoice === narrator.id 
+                          ? stopVoiceSample()
+                          : playVoiceSample(narrator.id)
+                      }
+                      variant="secondary"
+                      className="w-full hover:bg-primary hover:text-primary-foreground transition-colors"
+                    >
+                      {playingVoice === narrator.id ? (
+                        <>
+                          <Pause className="w-4 h-4 mr-2" />
+                          Stop Sample
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-4 h-4 mr-2" />
+                          Play Sample
+                        </>
+                      )}
+                    </Button>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        {preference && (
+                          <Badge variant="secondary" className="text-xs">
+                            Default for {preference.name} ({preference.type})
+                          </Badge>
+                        )}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setSelectedVoiceForPreference(narrator.id)}
+                        className={preference ? "text-yellow-500" : ""}
+                      >
+                        <Star className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-
-                <p className="text-sm text-muted-foreground">{narrator.description}</p>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={() => 
-                      playingVoice === narrator.id 
-                        ? stopVoiceSample()
-                        : playVoiceSample(narrator.id)
-                    }
-                    variant="secondary"
-                    className="flex-1 hover:bg-primary hover:text-primary-foreground transition-colors"
-                  >
-                    {playingVoice === narrator.id ? (
-                      <>
-                        <Pause className="w-4 h-4 mr-2" />
-                        Stop Sample
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4 mr-2" />
-                        Play Sample
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setSelectedVoiceForPreference(narrator.id)}
-                  >
-                    <Star className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       </div>
 
