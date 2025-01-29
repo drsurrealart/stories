@@ -40,6 +40,35 @@ export function VideoGenerationForm({
   const [processingStep, setProcessingStep] = useState<string>('');
   const { toast } = useToast();
 
+  // Query to check for existing audio story
+  const { data: audioStory } = useQuery({
+    queryKey: ['audio-story', storyId],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+
+      const { data, error } = await supabase
+        .from('audio_stories')
+        .select('*')
+        .eq('story_id', storyId)
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      
+      if (data) {
+        const { data: { publicUrl } } = supabase
+          .storage
+          .from('audio-stories')
+          .getPublicUrl(data.audio_url);
+        
+        return { ...data, audio_url: publicUrl };
+      }
+      
+      return null;
+    },
+  });
+
   // Query to fetch existing video data
   const { data: existingVideo } = useQuery({
     queryKey: ['video-background', storyId],
@@ -47,7 +76,6 @@ export function VideoGenerationForm({
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
 
-      // First check if there's a video entry with a background image
       const { data: videoData } = await supabase
         .from('story_videos')
         .select('*')
@@ -83,14 +111,13 @@ export function VideoGenerationForm({
       );
 
       if (imageUrl) {
-        // Save the generated image URL to the story_videos table
         const { error: saveError } = await supabase
           .from('story_videos')
           .upsert({
             story_id: storyId,
             user_id: session?.user.id,
             video_url: imageUrl,
-            aspect_ratio: selectedAspectRatio as "16:9" | "9:16", // Type assertion here is safe because we checked above
+            aspect_ratio: selectedAspectRatio,
             credits_used: 10
           });
 
@@ -117,6 +144,15 @@ export function VideoGenerationForm({
   };
 
   const handleVideoGeneration = async () => {
+    if (!audioStory) {
+      toast({
+        title: "Audio Required",
+        description: "Please generate an audio story before creating a video.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!selectedAspectRatio || (selectedAspectRatio !== "16:9" && selectedAspectRatio !== "9:16")) {
       toast({
         title: "Error",
@@ -152,8 +188,8 @@ export function VideoGenerationForm({
         onStepChange={setCurrentStep}
         selectedAspectRatio={selectedAspectRatio}
         onAspectRatioChange={setSelectedAspectRatio}
-        hasAudioStory={hasAudioStory}
-        audioUrl={audioUrl}
+        hasAudioStory={!!audioStory}
+        audioUrl={audioStory?.audio_url}
         storyId={storyId}
         imageGenerated={imageGenerated}
         isGeneratingImage={isGeneratingImage}
