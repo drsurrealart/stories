@@ -79,6 +79,19 @@ export function VideoGenerationForm({
       );
 
       if (imageUrl) {
+        // Save the generated image URL to the story_videos table
+        const { error: saveError } = await supabase
+          .from('story_videos')
+          .upsert({
+            story_id: storyId,
+            user_id: session?.user.id,
+            video_url: imageUrl,
+            aspect_ratio: selectedAspectRatio,
+            credits_used: 10
+          });
+
+        if (saveError) throw saveError;
+
         setBackgroundImage(imageUrl);
         setImageGenerated(true);
         toast({
