@@ -1,7 +1,7 @@
 import { NavigationBar } from "@/components/NavigationBar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, Mic, Headphones } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -145,45 +145,66 @@ const MyNarrators = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
+    <div className="min-h-screen bg-gradient-to-b from-secondary/50 to-background">
       <NavigationBar onLogout={handleLogout} />
       
-      <div className="container mx-auto p-6 space-y-6">
-        <h1 className="text-3xl font-bold">My Narrators</h1>
-        <p className="text-muted-foreground">
-          Listen to our available narrators and choose the perfect voice for your stories.
-        </p>
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <div className="space-y-4 text-center max-w-2xl mx-auto">
+          <div className="flex items-center justify-center space-x-2">
+            <Mic className="h-8 w-8 text-primary animate-bounce" />
+            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-hover">
+              My Narrators
+            </h1>
+            <Headphones className="h-8 w-8 text-primary animate-bounce" />
+          </div>
+          <p className="text-lg text-muted-foreground">
+            Choose from our collection of professional narrators to bring your stories to life.
+            Each voice has been carefully selected to offer unique characteristics and emotions.
+          </p>
+        </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {NARRATORS.map((narrator) => (
-            <Card key={narrator.id} className="p-6 space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-xl font-semibold">{narrator.name}</h3>
-                <p className="text-sm text-muted-foreground">{narrator.description}</p>
-                <p className="text-sm">Gender: {narrator.gender}</p>
-              </div>
+            <Card 
+              key={narrator.id} 
+              className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 animate-fade-in"
+            >
+              <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="p-6 space-y-4 relative">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h3 className="text-2xl font-semibold text-foreground">{narrator.name}</h3>
+                    <p className="text-sm text-muted-foreground capitalize">{narrator.gender} Voice</p>
+                  </div>
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Mic className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
 
-              <Button
-                onClick={() => 
-                  playingVoice === narrator.id 
-                    ? stopVoiceSample()
-                    : playVoiceSample(narrator.id)
-                }
-                variant="secondary"
-                className="w-full"
-              >
-                {playingVoice === narrator.id ? (
-                  <>
-                    <Pause className="w-4 h-4 mr-2" />
-                    Stop Sample
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4 mr-2" />
-                    Play Sample
-                  </>
-                )}
-              </Button>
+                <p className="text-sm text-muted-foreground">{narrator.description}</p>
+
+                <Button
+                  onClick={() => 
+                    playingVoice === narrator.id 
+                      ? stopVoiceSample()
+                      : playVoiceSample(narrator.id)
+                  }
+                  variant="secondary"
+                  className="w-full hover:bg-primary hover:text-primary-foreground transition-colors"
+                >
+                  {playingVoice === narrator.id ? (
+                    <>
+                      <Pause className="w-4 h-4" />
+                      Stop Sample
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4" />
+                      Play Sample
+                    </>
+                  )}
+                </Button>
+              </div>
             </Card>
           ))}
         </div>
