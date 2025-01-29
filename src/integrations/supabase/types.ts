@@ -601,6 +601,27 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_samples: {
+        Row: {
+          audio_url: string
+          created_at: string
+          id: string
+          voice_id: string
+        }
+        Insert: {
+          audio_url: string
+          created_at?: string
+          id?: string
+          voice_id: string
+        }
+        Update: {
+          audio_url?: string
+          created_at?: string
+          id?: string
+          voice_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       user_details: {

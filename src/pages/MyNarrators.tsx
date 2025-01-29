@@ -35,24 +35,81 @@ const MyNarrators = () => {
         setAudioElement(null);
       }
 
-      // Call the text-to-speech edge function using Supabase client
-      const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: {
-          text: SAMPLE_TEXT,
-          voice: voiceId,
-        },
-      });
+      // Check if we have a cached sample
+      const { data: voiceSamples } = await supabase
+        .from('voice_samples')
+        .select('audio_url')
+        .eq('voice_id', voiceId)
+        .single();
 
-      if (error) {
-        throw error;
+      let audioUrl: string;
+
+      if (voiceSamples?.audio_url) {
+        // Use cached audio
+        audioUrl = voiceSamples.audio_url;
+        console.log('Using cached audio:', audioUrl);
+      } else {
+        // Generate new audio
+        const { data, error } = await supabase.functions.invoke('text-to-speech', {
+          body: {
+            text: SAMPLE_TEXT,
+            voice: voiceId,
+          },
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        if (!data?.audioContent) {
+          throw new Error('No audio content received');
+        }
+
+        // Create blob URL from base64 audio
+        const blob = new Blob(
+          [Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))],
+          { type: 'audio/mp3' }
+        );
+        const tempUrl = URL.createObjectURL(blob);
+
+        // Upload to Supabase Storage
+        const fileName = `${voiceId}-sample.mp3`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('audio-stories')
+          .upload(fileName, blob, {
+            contentType: 'audio/mp3',
+            upsert: true
+          });
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        // Get public URL
+        const { data: publicUrlData } = supabase.storage
+          .from('audio-stories')
+          .getPublicUrl(fileName);
+
+        audioUrl = publicUrlData.publicUrl;
+
+        // Save to voice_samples table
+        const { error: dbError } = await supabase
+          .from('voice_samples')
+          .insert({
+            voice_id: voiceId,
+            audio_url: audioUrl,
+          });
+
+        if (dbError) {
+          console.error('Error saving voice sample:', dbError);
+        }
+
+        // Clean up blob URL
+        URL.revokeObjectURL(tempUrl);
       }
 
-      if (!data?.audioContent) {
-        throw new Error('No audio content received');
-      }
-
-      // Create and play audio element
-      const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+      // Play the audio
+      const audio = new Audio(audioUrl);
       setAudioElement(audio);
       
       audio.onended = () => {
