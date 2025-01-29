@@ -22,6 +22,10 @@ import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminFunctions from "@/pages/admin/AdminFunctions";
 import Explore from "@/pages/Explore";
 import Sitemap from "@/pages/Sitemap";
+import Share from "@/pages/Share";
+import Support from "@/pages/Support";
+import Terms from "@/pages/Terms";
+import Contact from "@/pages/Contact";
 
 export function AppRoutes() {
   return (
@@ -31,6 +35,10 @@ export function AppRoutes() {
       <Route path="/auth" element={<Auth />} />
       <Route path="/explore" element={<Explore />} />
       <Route path="/sitemap" element={<Sitemap />} />
+      <Route path="/support" element={<Support />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/share" element={<Share />} />
       
       {/* Protected routes */}
       <Route
@@ -179,7 +187,7 @@ export function AppRoutes() {
           </ProtectedAdminRoute>
         }
       />
-
+      
       {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

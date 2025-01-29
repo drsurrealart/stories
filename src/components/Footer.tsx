@@ -104,7 +104,6 @@ export const Footer = () => {
               </Link>
             </div>
           </div>
-          
         </div>
         
         <div className="mt-8 pt-8 border-t border-gray-700 text-center text-sm text-gray-300">
@@ -113,4 +112,4 @@ export const Footer = () => {
       </div>
     </footer>
   );
-};
+}
