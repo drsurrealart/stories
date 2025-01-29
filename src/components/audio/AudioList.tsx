@@ -86,11 +86,6 @@ export const AudioList = ({ audioStories, onDelete }: AudioListProps) => {
 
       if (uploadError) throw uploadError;
 
-      // Get the public URL
-      const { data: { publicUrl } } = await supabase.storage
-        .from('story-images')
-        .getPublicUrl(filename);
-
       // Save to database
       const { error: dbError } = await supabase
         .from('story_images')
@@ -165,15 +160,17 @@ export const AudioList = ({ audioStories, onDelete }: AudioListProps) => {
             </Button>
           </div>
 
-          {audio.image_url ? (
+          {audio.image_url && (
             <div className="relative aspect-video w-full rounded-lg overflow-hidden mb-4">
               <img
-                src={`https://uhxpzeyklqbkeibvreqv.supabase.co/storage/v1/object/public/story-images/${audio.image_url}`}
+                src={`${supabase.storage.from('story-images').getPublicUrl(audio.image_url).data.publicUrl}`}
                 alt="Story illustration"
                 className="object-cover w-full h-full"
               />
             </div>
-          ) : (
+          )}
+
+          {!audio.image_url && (
             <div className="flex flex-col items-center justify-center bg-muted/50 rounded-lg p-8 mb-4 space-y-4">
               <div className="text-center text-muted-foreground">
                 <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
