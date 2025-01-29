@@ -7,6 +7,7 @@ import { useSearchParams } from "react-router-dom";
 import { SearchBar } from "@/components/story/SearchBar";
 import { StoriesList } from "@/components/story/StoriesList";
 import { StoryPagination } from "@/components/story/StoryPagination";
+import { Book, BookOpen } from "lucide-react";
 
 const STORIES_PER_PAGE = 5;
 
@@ -185,10 +186,21 @@ const YourStories = () => {
   const paginatedStories = filteredStories.slice(startIndex, startIndex + STORIES_PER_PAGE);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
+    <div className="min-h-screen bg-gradient-to-b from-secondary/50 to-background">
       <NavigationBar onLogout={async () => {}} />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6">My Stories</h1>
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+        <div className="space-y-4 text-center max-w-2xl mx-auto">
+          <div className="flex items-center justify-center space-x-2">
+            <Book className="h-8 w-8 text-primary animate-bounce" />
+            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-hover">
+              My Stories
+            </h1>
+            <BookOpen className="h-8 w-8 text-primary animate-bounce" />
+          </div>
+          <p className="text-lg text-muted-foreground">
+            Your personal collection of magical stories that inspire and delight.
+          </p>
+        </div>
         
         <SearchBar 
           searchQuery={searchQuery}
