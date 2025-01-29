@@ -1,6 +1,6 @@
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Image, Loader2 } from "lucide-react";
+import { Image, Loader2 } from "lucide-react";
 import { type VideoAspectRatio } from "../types";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,39 +22,57 @@ export function BackgroundStep({
   onGenerateBackground,
   storyId
 }: BackgroundStepProps) {
-  // Query to fetch existing video background
-  const { data: existingVideo, isLoading } = useQuery({
-    queryKey: ['video-background', storyId],
+  // Query to fetch existing story images for both aspect ratios
+  const { data: storyImages, isLoading } = useQuery({
+    queryKey: ['story-images', storyId],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
 
       const { data } = await supabase
-        .from('story_videos')
-        .select('video_url')
+        .from('story_images')
+        .select('image_url, aspect_ratio')
         .eq('story_id', storyId)
-        .eq('user_id', session.user.id)
-        .maybeSingle();
+        .eq('user_id', session.user.id);
 
-      return data;
+      if (!data) return null;
+
+      // Create an object with both aspect ratios if available
+      return data.reduce((acc, img) => ({
+        ...acc,
+        [img.aspect_ratio]: img.image_url
+      }), {} as Record<string, string>);
     },
   });
+
+  // Get the image URL for the currently selected aspect ratio
+  const currentImage = selectedAspectRatio ? storyImages?.[selectedAspectRatio] : null;
 
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Background Image</h3>
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Image className="h-5 w-5" />
-          {imageGenerated || existingVideo?.video_url ? (
-            <div className="flex items-center gap-2 text-green-600">
-              <CheckCircle2 className="h-5 w-5" />
-              <span>Background image ready</span>
-            </div>
-          ) : (
+        {isLoading ? (
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Loading existing images...</span>
+          </div>
+        ) : currentImage ? (
+          <div className="mt-4 border rounded-lg overflow-hidden">
+            <AspectRatio ratio={selectedAspectRatio === "16:9" ? 16/9 : 9/16}>
+              <img 
+                src={currentImage} 
+                alt="Story background"
+                className="w-full h-full object-cover"
+              />
+            </AspectRatio>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Image className="h-5 w-5" />
             <Button 
-              onClick={() => onGenerateBackground()}
-              disabled={!selectedAspectRatio || isGeneratingImage || isLoading}
+              onClick={onGenerateBackground}
+              disabled={!selectedAspectRatio || isGeneratingImage}
             >
               {isGeneratingImage ? (
                 <>
@@ -65,18 +83,6 @@ export function BackgroundStep({
                 <>Generate Background Image</>
               )}
             </Button>
-          )}
-        </div>
-        
-        {(backgroundImage || existingVideo?.video_url) && (
-          <div className="mt-4 border rounded-lg overflow-hidden">
-            <AspectRatio ratio={selectedAspectRatio === "16:9" ? 16/9 : 9/16}>
-              <img 
-                src={backgroundImage || existingVideo?.video_url} 
-                alt="Generated background"
-                className="w-full h-full object-cover"
-              />
-            </AspectRatio>
           </div>
         )}
       </div>
