@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -16,6 +14,8 @@ import { PreviewStep } from "./components/PreviewStep";
 import { type VideoAspectRatio } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 
 interface VideoGenerationFormProps {
   isGenerating: boolean;
@@ -69,10 +69,10 @@ export function VideoGenerationForm({
   };
 
   const handleGenerateBackground = async () => {
-    if (!storyId) {
+    if (!storyId || !storyContent) {
       toast({
         title: "Error",
-        description: "Story ID is required to generate background image.",
+        description: "Story details are required to generate background image.",
         variant: "destructive",
       });
       return;
@@ -84,7 +84,7 @@ export function VideoGenerationForm({
       if (!session) {
         toast({
           title: "Authentication required",
-          description: "Please sign in to create story images.",
+          description: "Please sign in to generate background image.",
           variant: "destructive",
         });
         return;
@@ -133,19 +133,18 @@ export function VideoGenerationForm({
         throw new Error('Failed to update credits');
       }
 
-      // Get the stored image prompt or create a default one
-      const { data: story, error: storyError } = await supabase
-        .from('stories')
-        .select('image_prompt')
-        .eq('id', storyId)
-        .maybeSingle();
+      // Create a video-specific prompt that's different from the story image
+      const videoPrompt = `Create a cinematic, dynamic scene for a video adaptation of this story: ${storyContent}. 
+        The image should be visually striking and suitable for ${selectedAspectRatio} video format. 
+        Focus on creating a dramatic, atmospheric scene that captures the story's essence.
+        Style: Use rich, cinematic lighting and composition typical of film scenes.`;
 
-      if (storyError) {
-        throw new Error('Failed to fetch story details');
-      }
-
-      const basePrompt = story?.image_prompt || `Create a storybook illustration for this story: ${storyContent}`;
-      const enhancedPrompt = `Create a high-quality, detailed illustration suitable for a children's storybook. Style: Use vibrant colors and a mix of 3D rendering and artistic illustration techniques. The image should be engaging and magical, without any text overlays. Focus on creating an emotional and immersive scene. Specific scene: ${basePrompt}. Important: Do not include any text or words in the image.`;
+      const enhancedPrompt = `Create a high-quality, detailed illustration. 
+        Style: Use vibrant colors and cinematic techniques. 
+        The image should be engaging and dramatic, without any text overlays. 
+        Focus on creating an emotional and immersive scene. 
+        Specific scene: ${videoPrompt}. 
+        Important: Do not include any text or words in the image.`;
 
       // Generate image using the edge function
       const { data, error: genError } = await supabase.functions.invoke('generate-story-image', {
@@ -171,54 +170,6 @@ export function VideoGenerationForm({
       });
     } finally {
       setIsGeneratingImage(false);
-    }
-  };
-
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <VideoFormatStep
-            selectedAspectRatio={selectedAspectRatio}
-            onAspectRatioChange={(value) => setSelectedAspectRatio(value)}
-          />
-        );
-
-      case 2:
-        return (
-          <AudioCheckStep
-            hasAudioStory={hasAudioStory}
-            audioUrl={audioUrl}
-            storyId={storyId}
-          />
-        );
-
-      case 3:
-        return (
-          <BackgroundStep
-            imageGenerated={imageGenerated}
-            isGeneratingImage={isGeneratingImage}
-            selectedAspectRatio={selectedAspectRatio}
-            backgroundImage={backgroundImage}
-            onGenerateBackground={handleGenerateBackground}
-          />
-        );
-
-      case 4:
-        return (
-          <PreviewStep
-            selectedAspectRatio={selectedAspectRatio}
-            backgroundImage={backgroundImage}
-            hasAudioStory={hasAudioStory}
-            imageGenerated={imageGenerated}
-            isGenerating={isGenerating}
-            generationStep={generationStep}
-            onGenerate={() => selectedAspectRatio && onGenerate(selectedAspectRatio)}
-          />
-        );
-
-      default:
-        return null;
     }
   };
 
@@ -258,7 +209,39 @@ export function VideoGenerationForm({
             />
 
             <div className="mt-8">
-              {renderStepContent()}
+              {currentStep === 1 && (
+                <VideoFormatStep
+                  selectedAspectRatio={selectedAspectRatio}
+                  onAspectRatioChange={(value) => setSelectedAspectRatio(value)}
+                />
+              )}
+              {currentStep === 2 && (
+                <AudioCheckStep
+                  hasAudioStory={hasAudioStory}
+                  audioUrl={audioUrl}
+                  storyId={storyId}
+                />
+              )}
+              {currentStep === 3 && (
+                <BackgroundStep
+                  imageGenerated={imageGenerated}
+                  isGeneratingImage={isGeneratingImage}
+                  selectedAspectRatio={selectedAspectRatio}
+                  backgroundImage={backgroundImage}
+                  onGenerateBackground={handleGenerateBackground}
+                />
+              )}
+              {currentStep === 4 && (
+                <PreviewStep
+                  selectedAspectRatio={selectedAspectRatio}
+                  backgroundImage={backgroundImage}
+                  hasAudioStory={hasAudioStory}
+                  imageGenerated={imageGenerated}
+                  isGenerating={isGenerating}
+                  generationStep={generationStep}
+                  onGenerate={() => selectedAspectRatio && onGenerate(selectedAspectRatio)}
+                />
+              )}
             </div>
 
             <div className="flex justify-between mt-8">
