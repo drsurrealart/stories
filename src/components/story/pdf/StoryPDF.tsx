@@ -218,40 +218,40 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
               onClick={() => window.open(pdfData.pdf_url, '_blank')}
               variant="outline"
               size="sm"
-              className="w-full"
+              className="w-full flex items-center justify-center gap-2 hover:bg-primary/10"
             >
-              <FileDown className="w-4 h-4 mr-2" />
-              Download
+              <FileDown className="w-4 h-4" />
+              <span className="hidden sm:inline">Download</span>
             </Button>
             
             <Button
               onClick={handleShare}
               variant="outline"
               size="sm"
-              className="w-full"
+              className="w-full flex items-center justify-center gap-2 hover:bg-primary/10"
             >
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
+              <Share2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Share</span>
             </Button>
 
             <Button
               onClick={handlePrint}
               variant="outline"
               size="sm"
-              className="w-full"
+              className="w-full flex items-center justify-center gap-2 hover:bg-primary/10"
             >
-              <Printer className="w-4 h-4 mr-2" />
-              Print
+              <Printer className="w-4 h-4" />
+              <span className="hidden sm:inline">Print</span>
             </Button>
 
             <Button
               onClick={() => setShowDeleteDialog(true)}
               variant="destructive"
               size="sm"
-              className="w-full"
+              className="w-full flex items-center justify-center gap-2"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete
+              <Trash2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Delete</span>
             </Button>
           </div>
         </div>
