@@ -12,42 +12,20 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, selectedProfile, style = "realistic" } = await req.json()
+    const { prompt, style = "realistic" } = await req.json()
 
-    // Style-specific prompt enhancements
-    const stylePrompts = {
-      realistic: "Create a photorealistic image with natural lighting and detailed textures.",
-      watercolor: "Create a soft, artistic watercolor painting with gentle brush strokes and flowing colors.",
-      cartoon: "Create a vibrant cartoon illustration with bold lines and playful colors.",
-      "3d": "Create a modern 3D rendered scene with depth and dimensional lighting.",
-      storybook: "Create a classic children's book illustration with warm, inviting colors.",
-      fantasy: "Create a magical fantasy art piece with ethereal lighting and mystical elements."
-    };
+    // Sanitize and enhance the prompt
+    const sanitizedPrompt = prompt
+      .replace(/[^\w\s.,!?-]/g, '') // Remove special characters
+      .trim()
+      .slice(0, 500); // Limit length
 
-    // Enhance prompt with profile details if available
-    let enhancedPrompt = prompt
-    if (selectedProfile) {
-      const { name, age, gender, ethnicity, hairColor, interests } = selectedProfile
-      
-      // Create a description of the character based on profile
-      const characterDescription = [
-        `a ${age} year old`,
-        gender ? `${gender}` : '',
-        ethnicity ? `${ethnicity}` : '',
-        'child',
-        hairColor ? `with ${hairColor} hair` : '',
-        'as the main character.',
-        interests?.length ? `They enjoy ${interests.join(', ')}.` : ''
-      ].filter(Boolean).join(' ')
+    // Create a more focused, art-oriented prompt
+    const enhancedPrompt = `Create a high-quality, artistic illustration suitable for a children's story book. Scene description: ${sanitizedPrompt}. Style: ${style}. The image should be family-friendly, engaging, and colorful, without any text overlays or inappropriate content.`;
 
-      // Combine with original prompt and style
-      enhancedPrompt = `Create a high-quality, detailed illustration featuring ${characterDescription} The scene: ${prompt}. ${stylePrompts[style as keyof typeof stylePrompts]} The image should be engaging and magical, without any text overlays. Focus on creating an emotional and immersive scene. Important: Do not include any text or words in the image.`
-    } else {
-      // Use standard prompt enhancement with style
-      enhancedPrompt = `Create a high-quality, detailed illustration. ${stylePrompts[style as keyof typeof stylePrompts]} The scene: ${prompt}. The image should be engaging and magical, without any text overlays. Focus on creating an emotional and immersive scene. Important: Do not include any text or words in the image.`
-    }
+    console.log('Sending prompt to OpenAI:', enhancedPrompt);
 
-    // Call OpenAI API to generate image
+    // Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
@@ -59,13 +37,20 @@ serve(async (req) => {
         prompt: enhancedPrompt,
         n: 1,
         size: "1024x1024",
+        quality: "standard",
       }),
-    })
-
-    const data = await response.json()
+    });
 
     if (!response.ok) {
-      throw new Error(data.error?.message || 'Failed to generate image')
+      const error = await response.json();
+      console.error('OpenAI API error:', error);
+      throw new Error(error.error?.message || 'Failed to generate image');
+    }
+
+    const data = await response.json();
+    
+    if (!data.data?.[0]?.url) {
+      throw new Error('No image URL in response');
     }
 
     return new Response(
@@ -73,10 +58,16 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('Error generating image:', error)
+    console.error('Error in generate-story-image function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      JSON.stringify({ 
+        error: 'Failed to generate image', 
+        details: error.message 
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      }
     )
   }
 })
