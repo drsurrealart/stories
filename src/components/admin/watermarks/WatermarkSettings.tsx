@@ -12,6 +12,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { Database } from "@/integrations/supabase/types";
+
+type WatermarkSetting = Database['public']['Tables']['watermark_settings']['Row'];
 
 const contentTypes = [
   { id: 'text_story', label: 'Text Story' },
@@ -19,29 +22,29 @@ const contentTypes = [
   { id: 'story_image', label: 'Story Image' },
   { id: 'story_video', label: 'Story Video' },
   { id: 'story_pdf', label: 'Story PDF' },
-];
+] as const;
 
 const subscriptionLevels = [
   { id: 'free', label: 'Free' },
   { id: 'basic', label: 'Basic' },
   { id: 'premium', label: 'Premium' },
-];
+] as const;
 
-export const WatermarkSettings = ({ settings = [] }) => {
+export const WatermarkSettings = ({ settings = [] }: { settings: WatermarkSetting[] }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
 
-  const handleToggle = async (contentType: string, subscriptionLevel: string, currentValue: boolean) => {
+  const handleToggle = async (contentType: WatermarkSetting['content_type'], subscriptionLevel: WatermarkSetting['subscription_level'], currentValue: boolean) => {
     setUpdating(true);
     try {
       const { error } = await supabase
         .from('watermark_settings')
-        .upsert({
+        .upsert([{
           content_type: contentType,
           subscription_level: subscriptionLevel,
           is_active: !currentValue,
-        }, {
+        }], {
           onConflict: 'content_type,subscription_level'
         });
 
@@ -65,7 +68,7 @@ export const WatermarkSettings = ({ settings = [] }) => {
     }
   };
 
-  const isEnabled = (contentType: string, subscriptionLevel: string) => {
+  const isEnabled = (contentType: WatermarkSetting['content_type'], subscriptionLevel: WatermarkSetting['subscription_level']) => {
     const setting = settings.find(
       s => s.content_type === contentType && s.subscription_level === subscriptionLevel
     );
