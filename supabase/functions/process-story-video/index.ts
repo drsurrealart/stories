@@ -29,36 +29,43 @@ serve(async (req) => {
     const ffmpeg = new FFmpeg()
     console.log('FFmpeg instance created')
 
-    // Load FFmpeg
+    // Load FFmpeg with explicit core version
+    console.log('Loading FFmpeg core...')
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd'
     await ffmpeg.load({
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
       wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
     })
-    console.log('FFmpeg loaded successfully')
+    console.log('FFmpeg core loaded successfully')
 
-    // Download files
+    // Download files with error handling
     console.log('Downloading input files...')
-    const imageResponse = await fetch(imageUrl)
-    const audioResponse = await fetch(audioUrl)
-    
-    if (!imageResponse.ok || !audioResponse.ok) {
-      throw new Error('Failed to download input files')
+    try {
+      const imageResponse = await fetch(imageUrl)
+      const audioResponse = await fetch(audioUrl)
+      
+      if (!imageResponse.ok || !audioResponse.ok) {
+        throw new Error('Failed to download input files')
+      }
+
+      const imageBuffer = new Uint8Array(await imageResponse.arrayBuffer())
+      const audioBuffer = new Uint8Array(await audioResponse.arrayBuffer())
+
+      // Write files to FFmpeg's virtual filesystem
+      console.log('Writing files to FFmpeg filesystem...')
+      await ffmpeg.writeFile('input.png', imageBuffer)
+      await ffmpeg.writeFile('audio.mp3', audioBuffer)
+      console.log('Files written successfully')
+    } catch (downloadError) {
+      console.error('Error downloading or writing input files:', downloadError)
+      throw new Error(`Failed to process input files: ${downloadError.message}`)
     }
-
-    const imageBuffer = new Uint8Array(await imageResponse.arrayBuffer())
-    const audioBuffer = new Uint8Array(await audioResponse.arrayBuffer())
-
-    // Write files to FFmpeg's virtual filesystem
-    console.log('Writing files to FFmpeg filesystem...')
-    await ffmpeg.writeFile('input.png', imageBuffer)
-    await ffmpeg.writeFile('audio.mp3', audioBuffer)
 
     // Calculate dimensions based on aspect ratio
     const dimensions = aspectRatio === '16:9' ? '1920:1080' : '1080:1920'
     console.log(`Using dimensions: ${dimensions} for aspect ratio: ${aspectRatio}`)
 
-    // Execute FFmpeg command to create video
+    // Execute FFmpeg command with improved error handling
     console.log('Executing FFmpeg command...')
     try {
       await ffmpeg.exec([
@@ -66,12 +73,15 @@ serve(async (req) => {
         '-i', 'input.png',
         '-i', 'audio.mp3',
         '-c:v', 'libx264',
+        '-preset', 'medium', // Balance between speed and quality
         '-tune', 'stillimage',
+        '-crf', '23', // Better quality
         '-c:a', 'aac',
         '-b:a', '192k',
         '-pix_fmt', 'yuv420p',
         '-shortest',
         '-vf', `scale=${dimensions}:force_original_aspect_ratio=decrease,pad=${dimensions}:(ow-iw)/2:(oh-ih)/2`,
+        '-movflags', '+faststart', // Enable streaming
         'output.mp4'
       ])
       console.log('FFmpeg command executed successfully')
