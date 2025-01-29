@@ -17,6 +17,10 @@ serve(async (req) => {
     const { imageUrl, audioUrl, outputFileName, aspectRatio } = await req.json()
     console.log('Starting FFmpeg processing:', { imageUrl, audioUrl, outputFileName })
 
+    if (!imageUrl || !audioUrl || !outputFileName || !aspectRatio) {
+      throw new Error('Missing required parameters for video processing')
+    }
+
     // Initialize FFmpeg
     const ffmpeg = new FFmpeg()
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/umd'
@@ -49,20 +53,25 @@ serve(async (req) => {
 
     // Execute FFmpeg command to create video
     console.log('Executing FFmpeg command...')
-    await ffmpeg.exec([
-      '-loop', '1',
-      '-i', 'input.png',
-      '-i', 'audio.mp3',
-      '-c:v', 'libx264',
-      '-tune', 'stillimage',
-      '-c:a', 'aac',
-      '-b:a', '192k',
-      '-pix_fmt', 'yuv420p',
-      '-shortest',
-      '-vf', `scale=${dimensions}:force_original_aspect_ratio=decrease,pad=${dimensions}:(ow-iw)/2:(oh-ih)/2`,
-      'output.mp4'
-    ])
-    console.log('FFmpeg command executed successfully')
+    try {
+      await ffmpeg.exec([
+        '-loop', '1',
+        '-i', 'input.png',
+        '-i', 'audio.mp3',
+        '-c:v', 'libx264',
+        '-tune', 'stillimage',
+        '-c:a', 'aac',
+        '-b:a', '192k',
+        '-pix_fmt', 'yuv420p',
+        '-shortest',
+        '-vf', `scale=${dimensions}:force_original_aspect_ratio=decrease,pad=${dimensions}:(ow-iw)/2:(oh-ih)/2`,
+        'output.mp4'
+      ])
+      console.log('FFmpeg command executed successfully')
+    } catch (ffmpegError) {
+      console.error('FFmpeg command execution error:', ffmpegError)
+      throw new Error(`FFmpeg command failed: ${ffmpegError.message}`)
+    }
 
     // Read the output file
     console.log('Reading output video file...')
@@ -85,6 +94,7 @@ serve(async (req) => {
       })
 
     if (uploadError) {
+      console.error('Video upload error:', uploadError)
       throw new Error(`Failed to upload video: ${uploadError.message}`)
     }
 
@@ -98,7 +108,10 @@ serve(async (req) => {
     console.error('Error processing video:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+        status: 500 
+      }
     )
   }
 })
