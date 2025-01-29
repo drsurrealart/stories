@@ -27,8 +27,8 @@ const MyNarrators = () => {
   const [selectedVoiceForPreference, setSelectedVoiceForPreference] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Fetch voice preferences
-  const { data: voicePreferences } = useQuery({
+  // Fetch voice preferences with refetch capability
+  const { data: voicePreferences, refetch: refetchPreferences } = useQuery({
     queryKey: ['voice-preferences'],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -174,6 +174,12 @@ const MyNarrators = () => {
     }
   };
 
+  const handlePreferenceClose = async () => {
+    setSelectedVoiceForPreference(null);
+    // Refetch preferences after closing the dialog
+    await refetchPreferences();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/50 to-background">
       <NavigationBar onLogout={handleLogout} />
@@ -276,7 +282,7 @@ const MyNarrators = () => {
           {selectedVoiceForPreference && (
             <VoicePreferenceSelector
               voiceId={selectedVoiceForPreference}
-              onClose={() => setSelectedVoiceForPreference(null)}
+              onClose={handlePreferenceClose}
             />
           )}
         </DialogContent>
