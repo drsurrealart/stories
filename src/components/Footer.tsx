@@ -50,6 +50,11 @@ export const Footer = () => {
                   Subscriptions
                 </Link>
               </li>
+              <li>
+                <Link to="/sitemap" className="text-sm text-gray-300 hover:text-white transition-colors">
+                  Sitemap
+                </Link>
+              </li>
             </ul>
           </div>
           
@@ -99,6 +104,7 @@ export const Footer = () => {
               </Link>
             </div>
           </div>
+          
         </div>
         
         <div className="mt-8 pt-8 border-t border-gray-700 text-center text-sm text-gray-300">

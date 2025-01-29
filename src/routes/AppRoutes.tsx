@@ -21,6 +21,7 @@ import AdminSubscriptions from "@/pages/admin/AdminSubscriptions";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminFunctions from "@/pages/admin/AdminFunctions";
 import Explore from "@/pages/Explore";
+import Sitemap from "@/pages/Sitemap";
 
 export function AppRoutes() {
   return (
@@ -29,6 +30,7 @@ export function AppRoutes() {
       <Route path="/" element={<Landing />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/explore" element={<Explore />} />
+      <Route path="/sitemap" element={<Sitemap />} />
       
       {/* Protected routes */}
       <Route
