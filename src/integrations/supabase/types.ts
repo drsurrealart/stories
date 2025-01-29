@@ -559,6 +559,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sub_profiles: {
+        Row: {
+          age: number
+          created_at: string
+          id: string
+          name: string
+          type: Database["public"]["Enums"]["profile_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age: number
+          created_at?: string
+          id?: string
+          name: string
+          type: Database["public"]["Enums"]["profile_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age?: number
+          created_at?: string
+          id?: string
+          name?: string
+          type?: Database["public"]["Enums"]["profile_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       user_details: {
@@ -638,6 +668,7 @@ export type Database = {
         | "limerick"
         | "free_verse"
         | "narrative_poem"
+      profile_type: "family" | "student"
       reading_level_type:
         | "early_reader"
         | "beginner"
