@@ -31,7 +31,7 @@ export function BackgroundStep({
             </div>
           ) : (
             <Button 
-              onClick={onGenerateBackground}
+              onClick={() => onGenerateBackground()}
               disabled={!selectedAspectRatio || isGeneratingImage}
             >
               {isGeneratingImage ? (

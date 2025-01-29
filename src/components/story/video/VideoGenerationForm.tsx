@@ -63,6 +63,13 @@ export function VideoGenerationForm({
     }
   };
 
+  const handleGenerateBackground = async () => {
+    // This is a placeholder for the actual background generation logic
+    // You would implement the actual API call here
+    setImageGenerated(true);
+    setBackgroundImage('placeholder-url');
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -89,7 +96,7 @@ export function VideoGenerationForm({
             isGeneratingImage={isGenerating}
             selectedAspectRatio={selectedAspectRatio}
             backgroundImage={backgroundImage}
-            onGenerateBackground={() => {}}
+            onGenerateBackground={handleGenerateBackground}
           />
         );
 
