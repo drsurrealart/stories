@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.11.0'
-import { toBlobURL } from 'https://esm.sh/@ffmpeg/util'
+import { FFmpeg } from 'https://esm.sh/@ffmpeg/ffmpeg@0.12.7'
+import { fetchFile, toBlobURL } from 'https://esm.sh/@ffmpeg/util@0.12.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,21 +9,28 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
+    console.log('Starting video processing...')
     const { imageUrl, audioUrl, outputFileName, aspectRatio } = await req.json()
-    console.log('Starting FFmpeg processing:', { imageUrl, audioUrl, outputFileName })
-
+    
     if (!imageUrl || !audioUrl || !outputFileName || !aspectRatio) {
+      console.error('Missing required parameters:', { imageUrl, audioUrl, outputFileName, aspectRatio })
       throw new Error('Missing required parameters for video processing')
     }
 
+    console.log('Parameters received:', { imageUrl, audioUrl, outputFileName, aspectRatio })
+
     // Initialize FFmpeg
     const ffmpeg = new FFmpeg()
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/umd'
+    console.log('FFmpeg instance created')
+
+    // Load FFmpeg
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd'
     await ffmpeg.load({
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
       wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
