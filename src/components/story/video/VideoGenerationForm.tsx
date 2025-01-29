@@ -26,8 +26,8 @@ interface VideoGenerationFormProps {
   generationStep?: string;
   hasAudioStory: boolean;
   audioUrl?: string;
-  storyId?: string;
-  storyContent?: string;
+  storyId: string; // Make storyId required
+  storyContent: string; // Make storyContent required
 }
 
 export function VideoGenerationForm({
@@ -40,7 +40,7 @@ export function VideoGenerationForm({
   hasAudioStory,
   audioUrl,
   storyId,
-  storyContent = "",
+  storyContent,
 }: VideoGenerationFormProps) {
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<VideoAspectRatio | ''>('');
   const [currentStep, setCurrentStep] = useState(1);
@@ -56,28 +56,7 @@ export function VideoGenerationForm({
     { title: "Preview", description: "Review and generate" }
   ];
 
-  const handleNext = () => {
-    if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
   const handleGenerateBackground = async () => {
-    if (!storyId || !storyContent) {
-      toast({
-        title: "Error",
-        description: "Story details are required to generate background image.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       setIsGeneratingImage(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -133,7 +112,7 @@ export function VideoGenerationForm({
         throw new Error('Failed to update credits');
       }
 
-      // Create a video-specific prompt that's different from the story image
+      // Create a video-specific prompt
       const videoPrompt = `Create a cinematic, dynamic scene for a video adaptation of this story: ${storyContent}. 
         The image should be visually striking and suitable for ${selectedAspectRatio} video format. 
         Focus on creating a dramatic, atmospheric scene that captures the story's essence.
@@ -170,6 +149,18 @@ export function VideoGenerationForm({
       });
     } finally {
       setIsGeneratingImage(false);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentStep < steps.length) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
