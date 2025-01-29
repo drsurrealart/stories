@@ -7,8 +7,18 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { SearchBar } from "@/components/story/SearchBar";
 import { StoriesList } from "@/components/story/StoriesList";
 import { StoryPagination } from "@/components/story/StoryPagination";
-import { Book, BookOpen, List } from "lucide-react";
+import { Book, BookOpen, List, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const STORIES_PER_PAGE = 5;
 
@@ -24,6 +34,11 @@ const YourStories = () => {
   const highlightedStoryId = searchParams.get('story');
   const storyRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const navigate = useNavigate();
+
+  // Filter states
+  const [selectedAgeGroups, setSelectedAgeGroups] = useState<string[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
 
   const fetchStories = async () => {
     try {
@@ -79,22 +94,77 @@ const YourStories = () => {
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     setCurrentPage(1);
-    
-    if (!query.trim()) {
-      setFilteredStories(stories);
-      setTotalStories(stories.length);
-      return;
+    applyFilters(query, selectedAgeGroups, selectedGenres, selectedLanguages);
+  };
+
+  const applyFilters = (
+    query: string,
+    ageGroups: string[],
+    genres: string[],
+    languages: string[]
+  ) => {
+    let filtered = stories;
+
+    // Apply text search
+    if (query.trim()) {
+      const searchTerm = query.toLowerCase();
+      filtered = filtered.filter(story => 
+        story.title.toLowerCase().includes(searchTerm) ||
+        story.content.toLowerCase().includes(searchTerm) ||
+        story.moral.toLowerCase().includes(searchTerm)
+      );
     }
 
-    const searchTerm = query.toLowerCase();
-    const filtered = stories.filter(story => 
-      story.title.toLowerCase().includes(searchTerm) ||
-      story.content.toLowerCase().includes(searchTerm) ||
-      story.moral.toLowerCase().includes(searchTerm)
-    );
+    // Apply age group filter
+    if (ageGroups.length > 0) {
+      filtered = filtered.filter(story => ageGroups.includes(story.age_group));
+    }
+
+    // Apply genre filter
+    if (genres.length > 0) {
+      filtered = filtered.filter(story => genres.includes(story.genre));
+    }
+
+    // Apply language filter
+    if (languages.length > 0) {
+      filtered = filtered.filter(story => languages.includes(story.language));
+    }
 
     setFilteredStories(filtered);
     setTotalStories(filtered.length);
+  };
+
+  const handleFilterChange = (
+    value: string,
+    isChecked: boolean,
+    filterType: 'age' | 'genre' | 'language'
+  ) => {
+    let updatedFilter: string[] = [];
+    switch (filterType) {
+      case 'age':
+        updatedFilter = isChecked
+          ? [...selectedAgeGroups, value]
+          : selectedAgeGroups.filter(item => item !== value);
+        setSelectedAgeGroups(updatedFilter);
+        break;
+      case 'genre':
+        updatedFilter = isChecked
+          ? [...selectedGenres, value]
+          : selectedGenres.filter(item => item !== value);
+        setSelectedGenres(updatedFilter);
+        break;
+      case 'language':
+        updatedFilter = isChecked
+          ? [...selectedLanguages, value]
+          : selectedLanguages.filter(item => item !== value);
+        setSelectedLanguages(updatedFilter);
+        break;
+    }
+    applyFilters(searchQuery, 
+      filterType === 'age' ? updatedFilter : selectedAgeGroups,
+      filterType === 'genre' ? updatedFilter : selectedGenres,
+      filterType === 'language' ? updatedFilter : selectedLanguages
+    );
   };
 
   const handleDelete = async (storyId: string) => {
@@ -202,19 +272,88 @@ const YourStories = () => {
           <p className="text-lg text-muted-foreground">
             Your personal collection of magical stories that inspire and delight.
           </p>
-          <Button
-            onClick={() => navigate('/stories-list')}
-            className="flex items-center gap-2"
-          >
-            <List className="h-4 w-4" />
-            View Stories List
-          </Button>
+          <div className="flex justify-center">
+            <Button
+              onClick={() => navigate('/stories-list')}
+              className="flex items-center gap-2"
+            >
+              <List className="h-4 w-4" />
+              View Stories List
+            </Button>
+          </div>
         </div>
         
-        <SearchBar 
-          searchQuery={searchQuery}
-          onSearch={handleSearch}
-        />
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <SearchBar 
+              searchQuery={searchQuery}
+              onSearch={handleSearch}
+            />
+          </div>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                Filters
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Filter Stories</SheetTitle>
+                <SheetDescription>
+                  Select filters to narrow down your stories
+                </SheetDescription>
+              </SheetHeader>
+              <div className="py-4 space-y-6">
+                <div className="space-y-4">
+                  <h3 className="font-medium">Age Groups</h3>
+                  {['3-5', '6-8', '9-12', 'Teenager', 'Young Adult'].map((age) => (
+                    <div key={age} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`age-${age}`}
+                        checked={selectedAgeGroups.includes(age)}
+                        onCheckedChange={(checked) => 
+                          handleFilterChange(age, checked as boolean, 'age')
+                        }
+                      />
+                      <Label htmlFor={`age-${age}`}>{age}</Label>
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-4">
+                  <h3 className="font-medium">Genres</h3>
+                  {['Adventure', 'Fantasy', 'Educational', 'Moral', 'Bedtime'].map((genre) => (
+                    <div key={genre} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`genre-${genre}`}
+                        checked={selectedGenres.includes(genre)}
+                        onCheckedChange={(checked) => 
+                          handleFilterChange(genre, checked as boolean, 'genre')
+                        }
+                      />
+                      <Label htmlFor={`genre-${genre}`}>{genre}</Label>
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-4">
+                  <h3 className="font-medium">Languages</h3>
+                  {['English', 'Spanish', 'French', 'German', 'Italian'].map((language) => (
+                    <div key={language} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`language-${language}`}
+                        checked={selectedLanguages.includes(language)}
+                        onCheckedChange={(checked) => 
+                          handleFilterChange(language, checked as boolean, 'language')
+                        }
+                      />
+                      <Label htmlFor={`language-${language}`}>{language}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
 
         <StoryPagination 
           currentPage={currentPage}
