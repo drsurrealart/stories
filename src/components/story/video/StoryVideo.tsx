@@ -37,8 +37,7 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
       if (error) throw error;
       
       if (data) {
-        const { data: { publicUrl } } = await supabase
-          .storage
+        const { data: { publicUrl } } = supabase.storage
           .from('audio-stories')
           .getPublicUrl(data.audio_url);
         
@@ -62,6 +61,8 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
           generationStep={generationStep}
           hasAudioStory={!!audioStory}
           audioUrl={audioStory?.audio_url}
+          storyId={storyId}
+          storyContent={storyContent}
         />
       ) : (
         <>
