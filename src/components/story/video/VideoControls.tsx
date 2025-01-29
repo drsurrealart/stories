@@ -110,7 +110,7 @@ export function VideoControls({ storyId, videoUrl }: VideoControlsProps) {
         className="flex items-center gap-2"
       >
         <Trash2 className="h-4 w-4" />
-        Delete Video
+        Delete
       </Button>
 
       <DeleteMediaDialog

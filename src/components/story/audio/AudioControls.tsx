@@ -110,7 +110,7 @@ export function AudioControls({ storyId, audioUrl }: AudioControlsProps) {
         className="flex items-center gap-2"
       >
         <Trash2 className="h-4 w-4" />
-        Delete Audio
+        Delete
       </Button>
 
       <DeleteMediaDialog
