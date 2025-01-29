@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -32,80 +33,48 @@ serve(async (req) => {
       throw new Error('Failed to get user')
     }
 
-    // Generate background image using DALL-E
-    console.log('Generating background image...')
-    const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: "dall-e-3",
-        prompt: `Create a background image for a story about: ${storyContent.slice(0, 200)}...`,
-        n: 1,
-        size: aspectRatio === "16:9" ? "1792x1024" : "1024x1792",
-      }),
-    })
+    // Download the audio file
+    console.log('Downloading audio file:', audioUrl)
+    const audioResponse = await fetch(audioUrl)
+    if (!audioResponse.ok) {
+      throw new Error('Failed to download audio file')
+    }
+    const audioBuffer = await audioResponse.arrayBuffer()
+    const audioBase64 = base64Encode(new Uint8Array(audioBuffer))
 
-    if (!imageResponse.ok) {
-      const error = await imageResponse.json()
-      console.error('DALL-E API error:', error)
-      throw new Error('Failed to generate background image')
+    // Create a temporary file for the audio
+    const audioPath = `temp_${crypto.randomUUID()}.mp3`
+    await Deno.writeFile(audioPath, new Uint8Array(audioBuffer))
+
+    // Create FFmpeg command
+    const ffmpegCmd = new Deno.Command("ffmpeg", {
+      args: [
+        "-i", audioPath,           // Input audio file
+        "-i", "background.png",    // Input background image
+        "-c:v", "libx264",        // Video codec
+        "-c:a", "aac",            // Audio codec
+        "-shortest",              // End when shortest input ends
+        "-pix_fmt", "yuv420p",    // Pixel format for compatibility
+        "-y",                     // Overwrite output file
+        "output.mp4"              // Output file
+      ]
+    });
+
+    // Execute FFmpeg command
+    const { success, stdout, stderr } = await ffmpegCmd.output();
+    console.log('FFmpeg output:', new TextDecoder().decode(stdout));
+    console.log('FFmpeg errors:', new TextDecoder().decode(stderr));
+
+    if (!success) {
+      throw new Error('Failed to generate video');
     }
 
-    const imageData = await imageResponse.json()
-    const backgroundImageUrl = imageData.data[0].url
+    // Read the generated video file
+    const videoData = await Deno.readFile("output.mp4");
 
-    // Download background image
-    const imageRes = await fetch(backgroundImageUrl)
-    const imageBlob = await imageRes.blob()
-
-    // Upload background image to Supabase storage
-    const imagePath = `${crypto.randomUUID()}.png`
-    const { error: uploadImageError } = await supabaseClient.storage
-      .from('story-videos')
-      .upload(imagePath, imageBlob, {
-        contentType: 'image/png',
-        cacheControl: '3600',
-      })
-
-    if (uploadImageError) {
-      console.error('Error uploading image:', uploadImageError)
-      throw uploadImageError
-    }
-
-    // Get the public URL of the uploaded image
-    const { data: { publicUrl: backgroundImage } } = supabaseClient.storage
-      .from('story-videos')
-      .getPublicUrl(imagePath)
-
-    // Use FFmpeg to create video
-    console.log('Creating video with FFmpeg...')
-    const ffmpegResponse = await fetch('https://api.ffmpeg.cloud/v1/create-video', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Deno.env.get('FFMPEG_API_KEY')}`,
-      },
-      body: JSON.stringify({
-        backgroundImage,
-        audioUrl,
-        aspectRatio,
-        outputFormat: 'mp4',
-        duration: 30, // Default duration in seconds
-        quality: 'high',
-        fps: 30
-      }),
-    })
-
-    if (!ffmpegResponse.ok) {
-      const errorData = await ffmpegResponse.text()
-      console.error('Video generation failed:', errorData)
-      throw new Error(`Failed to generate video: ${errorData}`)
-    }
-
-    const videoData = await ffmpegResponse.blob()
+    // Clean up temporary files
+    await Deno.remove(audioPath);
+    await Deno.remove("output.mp4");
 
     // Upload video to Supabase Storage
     console.log('Uploading video to storage...')
