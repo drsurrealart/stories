@@ -200,7 +200,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
               <SelectValue placeholder="Select a profile" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No profile selected</SelectItem>
+              <SelectItem value="none">No profile selected</SelectItem>
               {userProfiles.map((profile) => (
                 <SelectItem key={profile.id} value={profile.id}>
                   {profile.name} ({profile.age} years old)
@@ -209,7 +209,7 @@ export function StoryForm({ onSubmit, isLoading }: StoryFormProps) {
             </SelectContent>
           </Select>
 
-          {selectedProfileId && (
+          {selectedProfileId && selectedProfileId !== "none" && (
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="useProfileName"
