@@ -79,18 +79,22 @@ serve(async (req) => {
       .from('story-videos')
       .getPublicUrl(imagePath)
 
-    // Use FFmpeg.wasm to create video
+    // Use FFmpeg to create video
     console.log('Creating video with FFmpeg...')
-    const ffmpegResponse = await fetch('https://ffmpeg-api.example.com/create-video', {
+    const ffmpegResponse = await fetch('https://api.ffmpeg.cloud/v1/create-video', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get('FFMPEG_API_KEY')}`,
       },
       body: JSON.stringify({
         backgroundImage,
         audioUrl,
         aspectRatio,
         outputFormat: 'mp4',
+        duration: 30, // Default duration in seconds
+        quality: 'high',
+        fps: 30
       }),
     })
 
