@@ -38,6 +38,41 @@ export function StoryGenerator({ onStoryGenerated }: StoryGeneratorProps) {
     }
   });
 
+  // Fetch voice preferences for the selected profile
+  const { data: voicePreference } = useQuery({
+    queryKey: ['voice-preference', selectedProfileId],
+    queryFn: async () => {
+      if (!selectedProfileId) return null;
+
+      const { data } = await supabase
+        .from('voice_preferences')
+        .select('voice_id')
+        .eq('profile_id', selectedProfileId)
+        .single();
+
+      return data?.voice_id || null;
+    },
+    enabled: !!selectedProfileId
+  });
+
+  // Fetch kids mode voice preference if no profile is selected
+  const { data: kidsVoicePreference } = useQuery({
+    queryKey: ['kids-voice-preference'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+
+      const { data } = await supabase
+        .from('voice_preferences')
+        .select('voice_id')
+        .eq('profile_id', 'kids')
+        .eq('user_id', session.user.id)
+        .single();
+
+      return data?.voice_id || null;
+    }
+  });
+
   const getRandomMoral = (ageGroup: string) => {
     // Map kids age groups to database age groups
     const dbAgeGroup = mapAgeGroupToDbGroup(ageGroup);
@@ -73,6 +108,11 @@ export function StoryGenerator({ onStoryGenerated }: StoryGeneratorProps) {
         selectedProfile = userProfiles.find(p => p.id === selectedProfileId);
       }
 
+      // Determine which voice to use
+      const voiceToUse = selectedProfileId 
+        ? (voicePreference || 'fable') // Use profile preference or default to fable
+        : (kidsVoicePreference || 'fable'); // Use kids mode preference or default to fable
+
       const response = await supabase.functions.invoke('generate-story', {
         body: { 
           preferences: {
@@ -91,7 +131,8 @@ export function StoryGenerator({ onStoryGenerated }: StoryGeneratorProps) {
               hairColor: selectedProfile.hair_color,
               interests: selectedProfile.interests || [],
             } : null,
-            useProfileName: true // Always use profile name in kids mode if profile is selected
+            useProfileName: true, // Always use profile name in kids mode if profile is selected
+            voice: voiceToUse // Add the voice preference to the story generation
           },
           mode: 'kids'
         }
