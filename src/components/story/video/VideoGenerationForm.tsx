@@ -36,11 +36,13 @@ export function VideoGenerationForm({
   const [imageGenerated, setImageGenerated] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string>('');
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [processingStep, setProcessingStep] = useState<string>('');
   const { toast } = useToast();
 
   const handleGenerateBackground = async () => {
     try {
       setIsGeneratingImage(true);
+      setProcessingStep('Generating background image...');
       const { data: { session } } = await supabase.auth.getSession();
       
       const imageUrl = await generateBackgroundImage(
@@ -67,6 +69,19 @@ export function VideoGenerationForm({
       });
     } finally {
       setIsGeneratingImage(false);
+      setProcessingStep('');
+    }
+  };
+
+  const handleVideoGeneration = async () => {
+    if (!selectedAspectRatio) return;
+    
+    try {
+      setProcessingStep('Initializing video generation...');
+      await onGenerate(selectedAspectRatio);
+    } catch (error) {
+      console.error('Error generating video:', error);
+      setProcessingStep('');
     }
   };
 
@@ -95,8 +110,8 @@ export function VideoGenerationForm({
         backgroundImage={backgroundImage}
         onGenerateBackground={handleGenerateBackground}
         isGenerating={isGenerating}
-        generationStep={generationStep}
-        onGenerate={() => selectedAspectRatio && onGenerate(selectedAspectRatio)}
+        generationStep={processingStep || generationStep}
+        onGenerate={handleVideoGeneration}
       />
     </div>
   );

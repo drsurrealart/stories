@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { encode as base64Encode } from "https://deno.land/std@0.82.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,8 +14,9 @@ serve(async (req) => {
   }
 
   try {
-    const { storyId, aspectRatio, audioUrl } = await req.json()
-    console.log('Received request for story:', storyId, 'with aspect ratio:', aspectRatio)
+    const { storyId, aspectRatio, audioUrl, storyContent } = await req.json()
+    console.log('Starting video generation for story:', storyId)
+    console.log('Using audio URL:', audioUrl)
 
     // Get user ID from JWT
     const authHeader = req.headers.get('Authorization')?.split('Bearer ')[1]
@@ -76,30 +78,75 @@ serve(async (req) => {
     }
     const backgroundBuffer = await backgroundResponse.arrayBuffer();
 
-    // Upload image to Supabase Storage
-    const imageFileName = `${crypto.randomUUID()}.png`;
-    const { error: uploadError } = await supabaseClient.storage
+    // Download the audio file
+    console.log('Downloading audio file:', audioUrl);
+    const audioResponse = await fetch(audioUrl);
+    if (!audioResponse.ok) {
+      throw new Error('Failed to download audio file');
+    }
+    const audioBuffer = await audioResponse.arrayBuffer();
+
+    // Upload image and audio to temporary storage
+    const imageFileName = `temp_${crypto.randomUUID()}.png`;
+    const audioFileName = `temp_${crypto.randomUUID()}.mp3`;
+    const videoFileName = `${crypto.randomUUID()}.mp4`;
+
+    // Upload temporary files
+    await supabaseClient.storage
       .from('story-videos')
       .upload(imageFileName, backgroundBuffer, {
         contentType: 'image/png',
         cacheControl: '3600',
       });
 
-    if (uploadError) {
-      throw new Error(`Failed to upload image: ${uploadError.message}`);
-    }
+    await supabaseClient.storage
+      .from('story-videos')
+      .upload(audioFileName, audioBuffer, {
+        contentType: 'audio/mpeg',
+        cacheControl: '3600',
+      });
 
-    // Get the public URL for the image
-    const { data: { publicUrl: imagePublicUrl } } = supabaseClient.storage
+    // Get URLs for the uploaded files
+    const { data: { publicUrl: imageUrl } } = supabaseClient.storage
       .from('story-videos')
       .getPublicUrl(imageFileName);
 
-    // For now, we'll return the image URL as the video URL
-    // In a future update, we can integrate with a video processing service
-    console.log('Successfully generated and uploaded image');
+    const { data: { publicUrl: tempAudioUrl } } = supabaseClient.storage
+      .from('story-videos')
+      .getPublicUrl(audioFileName);
+
+    // Use FFmpeg.wasm to combine image and audio
+    console.log('Combining image and audio using FFmpeg...');
+    
+    // Call FFmpeg edge function to process the video
+    const ffmpegResponse = await supabaseClient.functions.invoke('process-story-video', {
+      body: {
+        imageUrl,
+        audioUrl: tempAudioUrl,
+        outputFileName: videoFileName,
+        aspectRatio
+      }
+    });
+
+    if (ffmpegResponse.error) {
+      throw new Error(`FFmpeg processing failed: ${ffmpegResponse.error}`);
+    }
+
+    // Get the final video URL
+    const { data: { publicUrl: videoUrl } } = supabaseClient.storage
+      .from('story-videos')
+      .getPublicUrl(videoFileName);
+
+    // Clean up temporary files
+    await Promise.all([
+      supabaseClient.storage.from('story-videos').remove([imageFileName]),
+      supabaseClient.storage.from('story-videos').remove([audioFileName])
+    ]);
+
+    console.log('Successfully generated video:', videoUrl);
 
     return new Response(
-      JSON.stringify({ videoUrl: imagePublicUrl }),
+      JSON.stringify({ videoUrl }),
       { 
         headers: { 
           ...corsHeaders, 
