@@ -7,8 +7,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Steps } from "@/components/ui/steps";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { VideoFormatStep } from "./components/VideoFormatStep";
 import { AudioCheckStep } from "./components/AudioCheckStep";
@@ -25,6 +23,7 @@ interface VideoGenerationFormProps {
   generationStep?: string;
   hasAudioStory: boolean;
   audioUrl?: string;
+  storyId?: string;
   storyContent?: string;
 }
 
@@ -37,14 +36,13 @@ export function VideoGenerationForm({
   generationStep,
   hasAudioStory,
   audioUrl,
+  storyId,
   storyContent = "",
 }: VideoGenerationFormProps) {
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<VideoAspectRatio | ''>('');
   const [currentStep, setCurrentStep] = useState(1);
   const [imageGenerated, setImageGenerated] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string>('');
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const { toast } = useToast();
 
   const steps = [
     { title: "Video Format", description: "Choose video dimensions" },
@@ -65,41 +63,6 @@ export function VideoGenerationForm({
     }
   };
 
-  const handleGenerateBackground = async () => {
-    setIsGeneratingImage(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-story-image', {
-        body: {
-          prompt: `Create a background image for a story about: ${storyContent.slice(0, 200)}...`,
-          aspectRatio: selectedAspectRatio
-        },
-      });
-
-      if (error) throw error;
-      
-      if (!data?.imageUrl) {
-        throw new Error('No image URL received');
-      }
-
-      setBackgroundImage(data.imageUrl);
-      setImageGenerated(true);
-      
-      toast({
-        title: "Success",
-        description: "Background image generated successfully!",
-      });
-    } catch (error) {
-      console.error('Error generating background:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate background image. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
-
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -114,6 +77,8 @@ export function VideoGenerationForm({
         return (
           <AudioCheckStep
             hasAudioStory={hasAudioStory}
+            audioUrl={audioUrl}
+            storyId={storyId}
           />
         );
 
@@ -121,10 +86,10 @@ export function VideoGenerationForm({
         return (
           <BackgroundStep
             imageGenerated={imageGenerated}
-            isGeneratingImage={isGeneratingImage}
+            isGeneratingImage={isGenerating}
             selectedAspectRatio={selectedAspectRatio}
             backgroundImage={backgroundImage}
-            onGenerateBackground={handleGenerateBackground}
+            onGenerateBackground={() => {}}
           />
         );
 
