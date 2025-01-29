@@ -26,7 +26,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Download files with error handling
     console.log('Downloading input files...')
     try {
       const imageResponse = await fetch(imageUrl)
@@ -39,16 +38,17 @@ serve(async (req) => {
       const imageBuffer = await imageResponse.arrayBuffer()
       const audioBuffer = await audioResponse.arrayBuffer()
 
-      // Since FFmpeg processing in Edge Function is problematic,
-      // we'll store the files and trigger an external processing service
-      // For now, we'll store a placeholder video file
+      // For now, we'll create a simple video container
+      // This is a minimal MP4 file header that can be used as a placeholder
       const placeholderVideo = new Uint8Array([
-        // ... minimal MP4 file header bytes
         0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70,
-        0x69, 0x73, 0x6F, 0x6D, 0x00, 0x00, 0x02, 0x00
+        0x69, 0x73, 0x6F, 0x6D, 0x00, 0x00, 0x02, 0x00,
+        0x69, 0x73, 0x6F, 0x6D, 0x69, 0x73, 0x6F, 0x32,
+        0x6D, 0x70, 0x34, 0x31, 0x00, 0x00, 0x00, 0x08,
+        0x66, 0x72, 0x65, 0x65, 0x00, 0x00, 0x00, 0x08
       ])
 
-      // Upload the placeholder video
+      console.log('Uploading placeholder video...')
       const { error: uploadError } = await supabaseClient.storage
         .from('story-videos')
         .upload(outputFileName, placeholderVideo, {
@@ -58,23 +58,17 @@ serve(async (req) => {
 
       if (uploadError) {
         console.error('Video upload error:', uploadError)
-        throw new Error(`Failed to upload video: ${uploadError.message}`)
+        throw uploadError
       }
 
-      console.log('Placeholder video uploaded successfully')
-      
-      // TODO: In a production environment, you would:
-      // 1. Store the input files in a temporary bucket
-      // 2. Trigger a background job for video processing
-      // 3. Update the video file once processing is complete
-      
+      console.log('Video placeholder uploaded successfully')
       return new Response(
         JSON.stringify({ success: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
 
     } catch (error) {
-      console.error('Error processing files:', error)
+      console.error('Error downloading or processing files:', error)
       throw error
     }
 
@@ -84,7 +78,7 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
-        status: 500 
+        status: 400 
       }
     )
   }
