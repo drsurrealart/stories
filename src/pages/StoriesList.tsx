@@ -9,6 +9,7 @@ import { Loading } from "@/components/ui/loading";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Book, ArrowLeft } from "lucide-react";
+import { StoryAssetStatus } from "@/components/story/card/StoryAssetStatus";
 
 const STORIES_PER_PAGE = 50;
 
@@ -86,17 +87,20 @@ const StoriesList = () => {
           <div className="space-y-4">
             {paginatedStories.map((story) => (
               <Card key={story.id} className="p-4">
-                <div className="flex justify-between items-start gap-4">
-                  <div className="space-y-2 flex-1">
-                    <h3 className="text-lg font-semibold">{story.title}</h3>
-                    <p className="text-muted-foreground">{story.moral}</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="space-y-1 flex-1">
+                      <h3 className="text-lg font-semibold">{story.title}</h3>
+                      <p className="text-muted-foreground">{story.moral}</p>
+                    </div>
+                    <Button
+                      onClick={() => handleReadStory(story.id)}
+                      className="shrink-0"
+                    >
+                      Read Story
+                    </Button>
                   </div>
-                  <Button
-                    onClick={() => handleReadStory(story.id)}
-                    className="shrink-0"
-                  >
-                    Read Story
-                  </Button>
+                  <StoryAssetStatus storyId={story.id} />
                 </div>
               </Card>
             ))}
