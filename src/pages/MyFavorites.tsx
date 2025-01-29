@@ -86,7 +86,7 @@ const MyFavorites = () => {
     <div className="min-h-screen bg-gradient-to-b from-secondary/50 to-background">
       <NavigationBar onLogout={async () => {}} />
       
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         <div className="space-y-4 text-center max-w-2xl mx-auto">
           <div className="flex items-center justify-center space-x-2">
             <Mic className="h-8 w-8 text-primary animate-bounce" />
