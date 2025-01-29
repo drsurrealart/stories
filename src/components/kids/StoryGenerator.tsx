@@ -5,6 +5,10 @@ import { StoryTypeSelector } from "./StoryTypeSelector";
 import { GenerateStoryButton } from "./GenerateStoryButton";
 import { AgeGroupTabs } from "./AgeGroupTabs";
 import { moralsByAge } from "@/data/storyOptions";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { UserRound } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 interface StoryGeneratorProps {
   onStoryGenerated: (story: any) => void;
@@ -15,7 +19,24 @@ export function StoryGenerator({ onStoryGenerated }: StoryGeneratorProps) {
   const [storyType, setStoryType] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState("");
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Fetch user profiles
+  const { data: userProfiles } = useQuery({
+    queryKey: ['user-profiles'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return [];
+
+      const { data: profiles } = await supabase
+        .from('user_sub_profiles')
+        .select('*')
+        .eq('user_id', session.user.id);
+
+      return profiles || [];
+    }
+  });
 
   const getRandomMoral = (ageGroup: string) => {
     // Map kids age groups to database age groups
@@ -46,6 +67,12 @@ export function StoryGenerator({ onStoryGenerated }: StoryGeneratorProps) {
       const dbAgeGroup = mapAgeGroupToDbGroup(ageGroup);
       const randomMoral = getRandomMoral(ageGroup);
 
+      // Get selected profile details if one is selected
+      let selectedProfile = null;
+      if (selectedProfileId && userProfiles) {
+        selectedProfile = userProfiles.find(p => p.id === selectedProfileId);
+      }
+
       const response = await supabase.functions.invoke('generate-story', {
         body: { 
           preferences: {
@@ -55,7 +82,16 @@ export function StoryGenerator({ onStoryGenerated }: StoryGeneratorProps) {
             lengthPreference: 'short',
             language: 'english',
             tone: 'playful',
-            readingLevel: 'beginner'
+            readingLevel: 'beginner',
+            selectedProfile: selectedProfile ? {
+              name: selectedProfile.name,
+              age: selectedProfile.age,
+              gender: selectedProfile.gender,
+              ethnicity: selectedProfile.ethnicity,
+              hairColor: selectedProfile.hair_color,
+              interests: selectedProfile.interests || [],
+            } : null,
+            useProfileName: true // Always use profile name in kids mode if profile is selected
           },
           mode: 'kids'
         }
@@ -127,6 +163,36 @@ export function StoryGenerator({ onStoryGenerated }: StoryGeneratorProps) {
         selectedAgeGroup={ageGroup}
         onAgeGroupChange={setAgeGroup}
       />
+      
+      {userProfiles && userProfiles.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {userProfiles.map((profile) => (
+            <Card
+              key={profile.id}
+              className={`p-4 cursor-pointer transition-all ${
+                selectedProfileId === profile.id 
+                  ? 'ring-2 ring-primary shadow-lg' 
+                  : 'hover:shadow-md'
+              }`}
+              onClick={() => setSelectedProfileId(
+                selectedProfileId === profile.id ? null : profile.id
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 p-2 rounded-full">
+                  <UserRound className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">{profile.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {profile.age} years old
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
       
       <StoryTypeSelector
         selectedType={storyType}
