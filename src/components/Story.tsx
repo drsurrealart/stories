@@ -143,7 +143,6 @@ export function Story({
 
         <div className="border-t pt-4 md:pt-6 space-y-4">
           <StoryActions
-            onReflect={onReflect}
             onCreateNew={onCreateNew}
             isKidsMode={isKidsStory}
           />
