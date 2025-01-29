@@ -124,6 +124,7 @@ export function VideoGenerationDialog({
                 selectedAspectRatio={selectedAspectRatio}
                 backgroundImage={backgroundImage}
                 onGenerateBackground={onGenerateBackground}
+                storyId={storyId}
               />
             )}
             {currentStep === 4 && (
