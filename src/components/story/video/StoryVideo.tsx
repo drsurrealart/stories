@@ -57,7 +57,10 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
           storyContent={storyContent}
           showConfirmDialog={showConfirmDialog}
           onConfirmDialogChange={setShowConfirmDialog}
-          onSuccess={() => {
+          isGenerating={false}
+          generationStep=""
+          hasAudioStory={false}
+          onGenerate={() => {
             queryClient.invalidateQueries({ queryKey: ['story-video', storyId] });
           }}
         />
@@ -65,6 +68,7 @@ export function StoryVideo({ storyId, storyContent }: StoryVideoProps) {
         <VideoPlayer 
           videoUrl={videoData.video_url}
           aspectRatio={videoData.aspect_ratio}
+          storyId={storyId}
         />
       )}
     </Card>
