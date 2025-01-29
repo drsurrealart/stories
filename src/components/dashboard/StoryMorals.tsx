@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Lightbulb, ChevronRight, BookOpen } from "lucide-react";
+import { Book, BookOpen, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loading } from "@/components/ui/loading";
@@ -50,18 +50,25 @@ export function StoryMorals() {
 
   return (
     <Card className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Lightbulb className="w-5 h-5 text-primary" />
-          <h2 className="text-xl font-semibold">My Morals</h2>
+      <div className="space-y-4 text-center max-w-2xl mx-auto mb-8">
+        <div className="flex items-center justify-center space-x-2">
+          <Book className="h-8 w-8 text-primary animate-bounce" />
+          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-hover">
+            My Morals
+          </h1>
+          <BookOpen className="h-8 w-8 text-primary animate-bounce" />
         </div>
-        <button 
-          onClick={() => navigate('/my-morals')}
-          className="text-sm text-primary hover:text-primary-hover flex items-center gap-1"
-        >
-          View all
-          <ChevronRight className="w-4 h-4" />
-        </button>
+        <p className="text-lg text-muted-foreground">
+          Your collection of moral lessons and insights from magical stories.
+        </p>
+        <div className="flex justify-center">
+          <Button
+            onClick={() => navigate('/stories-list')}
+            className="flex items-center gap-2"
+          >
+            View Stories List
+          </Button>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
