@@ -5,6 +5,7 @@ import {
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
 import { Steps } from "@/components/ui/steps";
 import { useState } from "react";
@@ -68,6 +69,15 @@ export function VideoGenerationForm({
   };
 
   const handleGenerateBackground = async () => {
+    if (!storyId) {
+      toast({
+        title: "Error",
+        description: "Story ID is required to generate background image.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsGeneratingImage(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -128,7 +138,7 @@ export function VideoGenerationForm({
         .from('stories')
         .select('image_prompt')
         .eq('id', storyId)
-        .single();
+        .maybeSingle();
 
       if (storyError) {
         throw new Error('Failed to fetch story details');
@@ -235,6 +245,10 @@ export function VideoGenerationForm({
               <X className="h-4 w-4" />
             </Button>
           </AlertDialogHeader>
+
+          <AlertDialogDescription>
+            Follow these steps to create a video version of your story.
+          </AlertDialogDescription>
 
           <div className="py-6">
             <Steps
