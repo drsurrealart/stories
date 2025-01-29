@@ -39,21 +39,21 @@ export function ImageGenerationForm({
             <span>Generating... please wait</span>
           </div>
         ) : (
-          <>Create Story Image (Uses {creditCost} Credits)</>
+          <>Create Story Images (Uses {creditCost} Credits)</>
         )}
       </Button>
 
       <AlertDialog open={showConfirmDialog} onOpenChange={onConfirmDialogChange}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Generate Story Image</AlertDialogTitle>
+            <AlertDialogTitle>Generate Story Images</AlertDialogTitle>
             <AlertDialogDescription>
-              This will use {creditCost} credits from your account. The AI will generate an image that matches your story's content. Would you like to proceed?
+              This will use {creditCost} credits from your account. The AI will generate two images that match your story's content - one in 16:9 format for display and one in 9:16 format for video creation. Would you like to proceed?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={onGenerate}>Generate Image</AlertDialogAction>
+            <AlertDialogAction onClick={onGenerate}>Generate Images</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -31,6 +31,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
           .select('*')
           .eq('story_id', storyId)
           .eq('user_id', session.user.id)
+          .eq('aspect_ratio', '16:9')
           .maybeSingle(),
         supabase
           .from('stories')
@@ -114,29 +115,39 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
 
       // Use the stored image prompt or fall back to a default one
       const basePrompt = storyData?.imagePrompt || `Create a storybook illustration for this story: ${storyContent}`;
-      const enhancedPrompt = `Create a high-quality, detailed illustration suitable for a children's storybook. Style: Use vibrant colors and a mix of 3D rendering and artistic illustration techniques. The image should be engaging and magical, without any text overlays. Focus on creating an emotional and immersive scene. Specific scene: ${basePrompt}. Important: Do not include any text or words in the image.`;
+      
+      // Generate both aspect ratios
+      const aspectRatios = ['16:9', '9:16'];
+      const imagePromises = aspectRatios.map(async (ratio) => {
+        const enhancedPrompt = `Create a high-quality, detailed illustration suitable for a children's storybook in ${ratio} aspect ratio. Style: Use vibrant colors and a mix of 3D rendering and artistic illustration techniques. The image should be engaging and magical, without any text overlays. Focus on creating an emotional and immersive scene. Specific scene: ${basePrompt}. Important: Do not include any text or words in the image.`;
 
-      // Generate image using the edge function
-      const { data, error: genError } = await supabase.functions.invoke('generate-story-image', {
-        body: { prompt: enhancedPrompt },
-      });
-
-      if (genError) throw genError;
-
-      // Save to Supabase
-      const { error: saveError } = await supabase
-        .from('story_images')
-        .insert({
-          story_id: storyId,
-          user_id: session.user.id,
-          image_url: data.imageUrl,
-          credits_used: creditCost
+        // Generate image using the edge function
+        const { data, error: genError } = await supabase.functions.invoke('generate-story-image', {
+          body: { prompt: enhancedPrompt },
         });
 
-      if (saveError) {
-        console.error('Error saving image:', saveError);
-        throw new Error('Failed to save image to database');
-      }
+        if (genError) throw genError;
+
+        // Save to Supabase
+        const { error: saveError } = await supabase
+          .from('story_images')
+          .insert({
+            story_id: storyId,
+            user_id: session.user.id,
+            image_url: data.imageUrl,
+            aspect_ratio: ratio,
+            credits_used: creditCost
+          });
+
+        if (saveError) {
+          console.error('Error saving image:', saveError);
+          throw new Error('Failed to save image to database');
+        }
+
+        return data.imageUrl;
+      });
+
+      await Promise.all(imagePromises);
 
       // Invalidate queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['story-image-data', storyId] });
@@ -144,14 +155,14 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
 
       toast({
         title: "Success",
-        description: "Story image created successfully!",
+        description: "Story images created successfully!",
       });
 
     } catch (error: any) {
       console.error('Error creating image:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create story image. Please try again.",
+        description: error.message || "Failed to create story images. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -176,7 +187,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
         />
       ) : (
         <>
-          <div className="relative aspect-square w-full rounded-lg overflow-hidden">
+          <div className="relative aspect-video w-full rounded-lg overflow-hidden">
             <img
               src={storyData.image.image_url}
               alt="Story illustration"

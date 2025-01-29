@@ -312,6 +312,7 @@ export type Database = {
       }
       story_images: {
         Row: {
+          aspect_ratio: string
           created_at: string
           credits_used: number
           id: string
@@ -321,6 +322,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          aspect_ratio?: string
           created_at?: string
           credits_used?: number
           id?: string
@@ -330,6 +332,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          aspect_ratio?: string
           created_at?: string
           credits_used?: number
           id?: string
