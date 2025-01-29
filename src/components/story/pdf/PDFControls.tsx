@@ -74,8 +74,8 @@ export function PDFControls({ storyId, pdfUrl }: PDFControlsProps) {
 
       if (dbError) throw dbError;
 
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ['story-pdf', storyId] });
+      // Invalidate queries to refresh the UI immediately
+      await queryClient.invalidateQueries({ queryKey: ['story-pdf', storyId] });
 
       toast({
         title: "Success",

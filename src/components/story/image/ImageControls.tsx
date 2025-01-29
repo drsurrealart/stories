@@ -65,8 +65,9 @@ export function ImageControls({ storyId, imageUrl }: ImageControlsProps) {
 
       if (dbError) throw dbError;
 
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ['story-image', storyId] });
+      // Invalidate queries to refresh the UI immediately
+      await queryClient.invalidateQueries({ queryKey: ['story-image-data', storyId] });
+      await queryClient.invalidateQueries({ queryKey: ['story-image', storyId] });
 
       toast({
         title: "Success",
