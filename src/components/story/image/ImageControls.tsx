@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Download, Share2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -17,10 +17,60 @@ export function ImageControls({ storyId, imageUrl }: ImageControlsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `story-${storyId}-image.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Download started",
+        description: "Your image is being downloaded.",
+      });
+    } catch (error) {
+      toast({
+        title: "Download failed",
+        description: "There was an error downloading your image.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'My Story Image',
+          url: imageUrl
+        });
+        
+        toast({
+          title: "Share success",
+          description: "Image shared successfully!",
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== 'AbortError') {
+        toast({
+          title: "Share failed",
+          description: "There was an error sharing your image.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      // Delete from database first
+      // Delete from database
       const { error: dbError } = await supabase
         .from('story_images')
         .delete()
@@ -29,7 +79,7 @@ export function ImageControls({ storyId, imageUrl }: ImageControlsProps) {
       if (dbError) throw dbError;
 
       // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ['story-image', storyId] });
+      queryClient.invalidateQueries({ queryKey: ['story-image-data', storyId] });
 
       toast({
         title: "Success",
@@ -50,13 +100,33 @@ export function ImageControls({ storyId, imageUrl }: ImageControlsProps) {
   };
 
   return (
-    <div className="flex justify-end mt-4">
+    <div className="flex justify-between mt-4">
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDownload}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Download
+        </Button>
+        {navigator.share && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleShare}
+          >
+            <Share2 className="h-4 w-4 mr-2" />
+            Share
+          </Button>
+        )}
+      </div>
       <Button
         variant="destructive"
         size="sm"
         onClick={() => setShowDeleteDialog(true)}
       >
-        <Trash2 className="w-4 h-4 mr-2" />
+        <Trash2 className="h-4 w-4 mr-2" />
         Delete Image
       </Button>
 
