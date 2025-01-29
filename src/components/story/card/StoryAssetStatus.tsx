@@ -8,7 +8,7 @@ interface StoryAssetStatusProps {
   storyId: string;
 }
 
-type TableNames = keyof Database['public']['Tables'];
+type TableNames = 'audio_stories' | 'story_images' | 'story_videos' | 'story_pdfs';
 
 interface AssetStatus {
   icon: React.ReactNode;
