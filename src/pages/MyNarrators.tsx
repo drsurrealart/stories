@@ -36,11 +36,16 @@ const MyNarrators = () => {
       }
 
       // Check if we have a cached sample
-      const { data: voiceSamples } = await supabase
+      const { data: voiceSamples, error: sampleError } = await supabase
         .from('voice_samples')
         .select('audio_url')
         .eq('voice_id', voiceId)
-        .single();
+        .maybeSingle();
+
+      if (sampleError) {
+        console.error('Error fetching voice sample:', sampleError);
+        throw sampleError;
+      }
 
       let audioUrl: string;
 
