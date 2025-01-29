@@ -6,10 +6,17 @@ import { Loading } from "@/components/ui/loading";
 import { SavedStory } from "@/types/story";
 import { useToast } from "@/hooks/use-toast";
 import { Mic, Headphones } from "lucide-react";
+import { SearchBar } from "@/components/story/SearchBar";
+import { StoryPagination } from "@/components/story/StoryPagination";
+
+const STORIES_PER_PAGE = 5;
 
 const MyFavorites = () => {
   const [favorites, setFavorites] = useState<SavedStory[]>([]);
+  const [filteredFavorites, setFilteredFavorites] = useState<SavedStory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   const fetchFavorites = async () => {
@@ -42,6 +49,7 @@ const MyFavorites = () => {
 
       const stories = favoritesData.map(f => f.stories as SavedStory).filter(Boolean);
       setFavorites(stories);
+      setFilteredFavorites(stories);
     } catch (error) {
       console.error("Error fetching favorites:", error);
       toast({
@@ -58,6 +66,25 @@ const MyFavorites = () => {
     fetchFavorites();
   }, []);
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+    
+    if (!query.trim()) {
+      setFilteredFavorites(favorites);
+      return;
+    }
+
+    const searchTerm = query.toLowerCase();
+    const filtered = favorites.filter(story => 
+      story.title.toLowerCase().includes(searchTerm) ||
+      story.content.toLowerCase().includes(searchTerm) ||
+      story.moral.toLowerCase().includes(searchTerm)
+    );
+
+    setFilteredFavorites(filtered);
+  };
+
   const handleDelete = async (storyId: string) => {
     try {
       const { error } = await supabase
@@ -68,10 +95,18 @@ const MyFavorites = () => {
       if (error) throw error;
 
       setFavorites(prev => prev.filter(story => story.id !== storyId));
+      setFilteredFavorites(prev => prev.filter(story => story.id !== storyId));
+      
       toast({
         title: "Success",
         description: "Story removed from favorites",
       });
+
+      // Adjust current page if necessary
+      const newTotalPages = Math.ceil((filteredFavorites.length - 1) / STORIES_PER_PAGE);
+      if (currentPage > newTotalPages && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
     } catch (error) {
       console.error("Error removing favorite:", error);
       toast({
@@ -81,6 +116,10 @@ const MyFavorites = () => {
       });
     }
   };
+
+  const totalPages = Math.ceil(filteredFavorites.length / STORIES_PER_PAGE);
+  const startIndex = (currentPage - 1) * STORIES_PER_PAGE;
+  const paginatedFavorites = filteredFavorites.slice(startIndex, startIndex + STORIES_PER_PAGE);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary/50 to-background">
@@ -99,16 +138,30 @@ const MyFavorites = () => {
             Your collection of saved stories that have touched your heart and inspired your mind.
           </p>
         </div>
+
+        <SearchBar 
+          searchQuery={searchQuery}
+          onSearch={handleSearch}
+        />
+
+        <StoryPagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
         
         {isLoading ? (
           <Loading text="Loading your favorite stories..." />
-        ) : favorites.length === 0 ? (
+        ) : filteredFavorites.length === 0 ? (
           <div className="text-center text-gray-500">
-            You haven't saved any stories to your favorites yet.
+            {searchQuery 
+              ? "No stories found matching your search."
+              : "You haven't saved any stories to your favorites yet."
+            }
           </div>
         ) : (
           <div className="space-y-6">
-            {favorites.map((story) => (
+            {paginatedFavorites.map((story) => (
               <StoryCard 
                 key={story.id}
                 story={story}
@@ -117,6 +170,12 @@ const MyFavorites = () => {
             ))}
           </div>
         )}
+
+        <StoryPagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );
