@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Steps } from "@/components/ui/steps";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 type VideoAspectRatio = "16:9" | "9:16";
 
@@ -24,6 +26,7 @@ interface VideoGenerationFormProps {
   generationStep?: string;
   hasAudioStory: boolean;
   audioUrl?: string;
+  storyContent?: string;
 }
 
 export function VideoGenerationForm({
@@ -35,12 +38,14 @@ export function VideoGenerationForm({
   generationStep,
   hasAudioStory,
   audioUrl,
+  storyContent = "",
 }: VideoGenerationFormProps) {
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<VideoAspectRatio | ''>('');
   const [currentStep, setCurrentStep] = useState(1);
   const [imageGenerated, setImageGenerated] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string>('');
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const { toast } = useToast();
 
   const steps = [
     { title: "Video Format", description: "Choose video dimensions" },
@@ -64,24 +69,34 @@ export function VideoGenerationForm({
   const handleGenerateBackground = async () => {
     setIsGeneratingImage(true);
     try {
-      // Call your image generation API here
-      const response = await fetch('/api/generate-background', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      // Call the Supabase Edge Function to generate the image
+      const { data, error } = await supabase.functions.invoke('generate-story-image', {
+        body: {
+          prompt: `Create a background image for a story about: ${storyContent.slice(0, 200)}...`,
+          aspectRatio: selectedAspectRatio
         },
-        body: JSON.stringify({
-          aspectRatio: selectedAspectRatio,
-        }),
       });
+
+      if (error) throw error;
       
-      if (!response.ok) throw new Error('Failed to generate image');
-      
-      const data = await response.json();
+      if (!data?.imageUrl) {
+        throw new Error('No image URL received');
+      }
+
       setBackgroundImage(data.imageUrl);
       setImageGenerated(true);
+      
+      toast({
+        title: "Success",
+        description: "Background image generated successfully!",
+      });
     } catch (error) {
       console.error('Error generating background:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate background image. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsGeneratingImage(false);
     }
