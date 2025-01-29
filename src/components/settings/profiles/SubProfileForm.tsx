@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -51,16 +51,32 @@ const ETHNICITIES = [
 
 export const SubProfileForm = ({ editingProfile, onCancel, onSuccess }: SubProfileFormProps) => {
   const [newProfile, setNewProfile] = useState({
-    name: editingProfile?.name || "",
-    age: editingProfile?.age.toString() || "",
-    type: editingProfile?.type || "family" as "family" | "student",
-    gender: editingProfile?.gender || "",
-    interests: editingProfile?.interests || [] as string[],
-    ethnicity: editingProfile?.ethnicity || "",
-    hair_color: editingProfile?.hair_color || "",
+    name: "",
+    age: "",
+    type: "family" as "family" | "student",
+    gender: "",
+    interests: [] as string[],
+    ethnicity: "",
+    hair_color: "",
     customInterest: ""
   });
   const { toast } = useToast();
+
+  // Load profile data when editing
+  useEffect(() => {
+    if (editingProfile) {
+      setNewProfile({
+        name: editingProfile.name,
+        age: editingProfile.age.toString(),
+        type: editingProfile.type,
+        gender: editingProfile.gender || "",
+        interests: editingProfile.interests || [],
+        ethnicity: editingProfile.ethnicity || "",
+        hair_color: editingProfile.hair_color || "",
+        customInterest: ""
+      });
+    }
+  }, [editingProfile]);
 
   const handleInterestToggle = (interest: string) => {
     setNewProfile(prev => ({
@@ -132,6 +148,18 @@ export const SubProfileForm = ({ editingProfile, onCancel, onSuccess }: SubProfi
       toast({
         title: "Success",
         description: `Profile ${editingProfile ? 'updated' : 'created'} successfully`,
+      });
+
+      // Reset form
+      setNewProfile({
+        name: "",
+        age: "",
+        type: "family",
+        gender: "",
+        interests: [],
+        ethnicity: "",
+        hair_color: "",
+        customInterest: ""
       });
 
       onSuccess();
