@@ -23,7 +23,7 @@ export const MobileNav = ({ isOpen }: MobileNavProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-14 left-0 right-0 border-b bg-gray-800 p-4">
+    <div className="absolute top-14 left-0 right-0 border-b bg-[#2D1B69] p-4">
       <nav className="flex flex-col space-y-2">
         {navigationItems.map((item) => (
           <Link key={item.title} to={item.href} className="w-full">
@@ -33,7 +33,7 @@ export const MobileNav = ({ isOpen }: MobileNavProps) => {
               className={cn(
                 "w-full justify-start text-gray-300 hover:text-white",
                 item.href === "/create" && "bg-[#E2FCE2] hover:bg-[#D0EBD0] text-gray-800",
-                item.href === location.pathname && item.href !== "/create" && "bg-gray-700/50 text-white"
+                item.href === location.pathname && item.href !== "/create" && "bg-[#3D2B79]/50 text-white"
               )}
             >
               {item.icon}

@@ -16,7 +16,7 @@ export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
   const isMobile = useIsMobile();
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-gray-700 bg-gradient-to-r from-[#1A1F2C] via-[#6E59A5] to-[#1A1F2C] backdrop-blur supports-[backdrop-filter]:bg-opacity-90">
+    <nav className="sticky top-0 z-50 w-full border-b border-gray-700 bg-[#2D1B69] backdrop-blur supports-[backdrop-filter]:bg-opacity-90">
       <div className="container flex h-14 items-center">
         <div className="flex w-full justify-between items-center">
           <Link to="/" className="flex items-center gap-2 font-bold text-xl text-white">
