@@ -1,17 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Headphones, Image, FileText, Video, FileCheck } from "lucide-react";
+import { Headphones, Image, FileText, Video } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { Database } from "@/integrations/supabase/types";
 
 interface StoryAssetStatusProps {
   storyId: string;
 }
 
+type TableNames = keyof Database['public']['Tables'];
+
 interface AssetStatus {
   icon: React.ReactNode;
   label: string;
   queryKey: string;
-  table: string;
+  table: TableNames;
 }
 
 const assets: AssetStatus[] = [
