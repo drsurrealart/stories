@@ -74,7 +74,7 @@ export function VideoGenerationDialog({
   const canProceed = 
     (currentStep === 1 && selectedAspectRatio !== '') ||
     (currentStep === 2 && hasAudioStory) ||
-    (currentStep === 3 && imageGenerated) ||
+    (currentStep === 3 && (imageGenerated || !!backgroundImage)) ||
     currentStep === 4;
 
   return (

@@ -47,6 +47,7 @@ export function BackgroundStep({
 
   // Get the image URL for the currently selected aspect ratio
   const currentImage = selectedAspectRatio ? storyImages?.[selectedAspectRatio] : null;
+  const hasValidImage = imageGenerated || !!currentImage || !!backgroundImage;
 
   return (
     <div className="space-y-4">
@@ -57,11 +58,11 @@ export function BackgroundStep({
             <Loader2 className="h-5 w-5 animate-spin" />
             <span>Loading existing images...</span>
           </div>
-        ) : currentImage ? (
+        ) : hasValidImage ? (
           <div className="mt-4 border rounded-lg overflow-hidden">
             <AspectRatio ratio={selectedAspectRatio === "16:9" ? 16/9 : 9/16}>
               <img 
-                src={currentImage} 
+                src={backgroundImage || currentImage} 
                 alt="Story background"
                 className="w-full h-full object-cover"
               />
