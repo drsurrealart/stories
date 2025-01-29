@@ -67,6 +67,10 @@ export function VideoGenerationForm({
 
   const handleGenerateBackground = async () => {
     try {
+      if (!selectedAspectRatio || (selectedAspectRatio !== "16:9" && selectedAspectRatio !== "9:16")) {
+        throw new Error("Please select a valid aspect ratio first");
+      }
+
       setIsGeneratingImage(true);
       setProcessingStep('Generating background image...');
       const { data: { session } } = await supabase.auth.getSession();
@@ -86,7 +90,7 @@ export function VideoGenerationForm({
             story_id: storyId,
             user_id: session?.user.id,
             video_url: imageUrl,
-            aspect_ratio: selectedAspectRatio,
+            aspect_ratio: selectedAspectRatio as "16:9" | "9:16", // Type assertion here is safe because we checked above
             credits_used: 10
           });
 
@@ -113,7 +117,14 @@ export function VideoGenerationForm({
   };
 
   const handleVideoGeneration = async () => {
-    if (!selectedAspectRatio) return;
+    if (!selectedAspectRatio || (selectedAspectRatio !== "16:9" && selectedAspectRatio !== "9:16")) {
+      toast({
+        title: "Error",
+        description: "Please select a valid aspect ratio first",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
       setProcessingStep('Initializing video generation...');
