@@ -563,7 +563,9 @@ export type Database = {
         Row: {
           age: number
           created_at: string
+          ethnicity: string | null
           gender: string | null
+          hair_color: string | null
           id: string
           interests: string[] | null
           name: string
@@ -574,7 +576,9 @@ export type Database = {
         Insert: {
           age: number
           created_at?: string
+          ethnicity?: string | null
           gender?: string | null
+          hair_color?: string | null
           id?: string
           interests?: string[] | null
           name: string
@@ -585,7 +589,9 @@ export type Database = {
         Update: {
           age?: number
           created_at?: string
+          ethnicity?: string | null
           gender?: string | null
+          hair_color?: string | null
           id?: string
           interests?: string[] | null
           name?: string

@@ -41,6 +41,8 @@ interface SubProfile {
   type: 'family' | 'student';
   gender: string | null;
   interests: string[] | null;
+  ethnicity: string | null;
+  hair_color: string | null;
 }
 
 const AVAILABLE_INTERESTS = [
@@ -54,6 +56,28 @@ const AVAILABLE_INTERESTS = [
   "History",
   "Technology",
   "Nature"
+];
+
+const HAIR_COLORS = [
+  "Black",
+  "Brown",
+  "Blonde",
+  "Red",
+  "Gray",
+  "White",
+  "Other"
+];
+
+const ETHNICITIES = [
+  "Asian",
+  "Black",
+  "Hispanic",
+  "Middle Eastern",
+  "Native American",
+  "Pacific Islander",
+  "White",
+  "Mixed",
+  "Other"
 ];
 
 export const ProfilesTab = () => {
@@ -71,6 +95,9 @@ export const ProfilesTab = () => {
     type: "family" as "family" | "student",
     gender: "",
     interests: [] as string[],
+    ethnicity: "",
+    hair_color: "",
+    customInterest: ""
   });
   const { toast } = useToast();
 
@@ -187,9 +214,19 @@ export const ProfilesTab = () => {
     }));
   };
 
+  const handleAddCustomInterest = () => {
+    if (newProfile.customInterest && !newProfile.interests.includes(newProfile.customInterest)) {
+      setNewProfile(prev => ({
+        ...prev,
+        interests: [...prev.interests, prev.customInterest],
+        customInterest: ""
+      }));
+    }
+  };
+
   const handleNewProfileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!newProfile.name || !newProfile.age || !newProfile.gender) {
+    if (!newProfile.name || !newProfile.age || !newProfile.gender || !newProfile.ethnicity || !newProfile.hair_color) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -210,6 +247,8 @@ export const ProfilesTab = () => {
           type: newProfile.type,
           gender: newProfile.gender,
           interests: newProfile.interests,
+          ethnicity: newProfile.ethnicity,
+          hair_color: newProfile.hair_color,
           user_id: user.id
         });
 
@@ -226,6 +265,9 @@ export const ProfilesTab = () => {
         type: "family",
         gender: "",
         interests: [],
+        ethnicity: "",
+        hair_color: "",
+        customInterest: ""
       });
 
       getSubProfiles();
@@ -386,19 +428,39 @@ export const ProfilesTab = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">Profile Type</Label>
+                <Label htmlFor="ethnicity">Ethnicity</Label>
                 <Select
-                  value={newProfile.type}
-                  onValueChange={(value: 'family' | 'student') => 
-                    setNewProfile(prev => ({ ...prev, type: value }))
-                  }
+                  value={newProfile.ethnicity}
+                  onValueChange={(value) => setNewProfile(prev => ({ ...prev, ethnicity: value }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder="Select ethnicity" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="family">Family Member</SelectItem>
-                    <SelectItem value="student">Student</SelectItem>
+                    {ETHNICITIES.map((ethnicity) => (
+                      <SelectItem key={ethnicity} value={ethnicity.toLowerCase()}>
+                        {ethnicity}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="hair_color">Hair Color</Label>
+                <Select
+                  value={newProfile.hair_color}
+                  onValueChange={(value) => setNewProfile(prev => ({ ...prev, hair_color: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select hair color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HAIR_COLORS.map((color) => (
+                      <SelectItem key={color} value={color.toLowerCase()}>
+                        {color}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -419,6 +481,56 @@ export const ProfilesTab = () => {
                     </div>
                   ))}
                 </div>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    placeholder="Add custom interest"
+                    value={newProfile.customInterest}
+                    onChange={(e) => setNewProfile(prev => ({ ...prev, customInterest: e.target.value }))}
+                  />
+                  <Button type="button" onClick={handleAddCustomInterest}>
+                    Add
+                  </Button>
+                </div>
+                {newProfile.interests.length > 0 && (
+                  <div className="mt-2">
+                    <Label>Selected Interests:</Label>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {newProfile.interests.map((interest) => (
+                        <Badge
+                          key={interest}
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                        >
+                          {interest}
+                          <button
+                            onClick={() => handleInterestToggle(interest)}
+                            className="ml-1 hover:text-destructive"
+                          >
+                            ×
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="type">Profile Type</Label>
+                <Select
+                  value={newProfile.type}
+                  onValueChange={(value: 'family' | 'student') => 
+                    setNewProfile(prev => ({ ...prev, type: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="family">Family Member</SelectItem>
+                    <SelectItem value="student">Student</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <Button type="submit" className="w-full">
@@ -440,11 +552,23 @@ export const ProfilesTab = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {subProfile.interests && subProfile.interests.length > 0 && (
-                  <div className="text-sm text-muted-foreground">
-                    <strong>Interests:</strong> {subProfile.interests.join(', ')}
-                  </div>
-                )}
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  {subProfile.ethnicity && (
+                    <div>
+                      <strong>Ethnicity:</strong> {subProfile.ethnicity}
+                    </div>
+                  )}
+                  {subProfile.hair_color && (
+                    <div>
+                      <strong>Hair Color:</strong> {subProfile.hair_color}
+                    </div>
+                  )}
+                  {subProfile.interests && subProfile.interests.length > 0 && (
+                    <div>
+                      <strong>Interests:</strong> {subProfile.interests.join(', ')}
+                    </div>
+                  )}
+                </div>
               </CardContent>
               <CardFooter>
                 <Button
