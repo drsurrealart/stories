@@ -113,7 +113,7 @@ export function StoryGenerationHandler({
           <div className="text-center">
             <Button
               size="lg"
-              className="w-full max-w-md h-20 text-xl gap-4 rounded-full bg-violet-500 hover:bg-violet-600"
+              className="w-full max-w-md h-20 text-xl gap-4 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 shadow-lg hover:shadow-xl transition-all duration-300"
               onClick={handleGenerateAudio}
               disabled={isGeneratingAudio}
             >
