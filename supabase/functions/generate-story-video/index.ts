@@ -33,13 +33,56 @@ serve(async (req) => {
       throw new Error('Failed to get user')
     }
 
-    // Download the audio file
-    console.log('Downloading audio file:', audioUrl)
-    const audioResponse = await fetch(audioUrl)
-    if (!audioResponse.ok) {
-      throw new Error('Failed to download audio file')
+    // Get the story's image prompt
+    const { data: story, error: storyError } = await supabaseClient
+      .from('stories')
+      .select('image_prompt')
+      .eq('id', storyId)
+      .single();
+
+    if (storyError) throw storyError;
+
+    // Generate image using DALL-E
+    console.log('Generating background image...');
+    const imagePrompt = story.image_prompt || `Create a storybook illustration for this story: ${storyContent}`;
+    const enhancedPrompt = `Create a high-quality, detailed illustration suitable for a children's storybook. Style: Use vibrant colors and a mix of 3D rendering and artistic illustration techniques. The image should be engaging and magical, without any text overlays. Focus on creating an emotional and immersive scene. Specific scene: ${imagePrompt}. Important: Do not include any text or words in the image.`;
+
+    const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: "dall-e-3",
+        prompt: enhancedPrompt,
+        n: 1,
+        size: "1024x1024",
+      }),
+    });
+
+    if (!imageResponse.ok) {
+      throw new Error('Failed to generate image');
     }
-    const audioBuffer = await audioResponse.arrayBuffer()
+
+    const imageData = await imageResponse.json();
+    const backgroundImageUrl = imageData.data[0].url;
+
+    // Download the background image
+    console.log('Downloading background image:', backgroundImageUrl);
+    const backgroundResponse = await fetch(backgroundImageUrl);
+    if (!backgroundResponse.ok) {
+      throw new Error('Failed to download background image');
+    }
+    const backgroundBuffer = await backgroundResponse.arrayBuffer();
+
+    // Download the audio file
+    console.log('Downloading audio file:', audioUrl);
+    const audioResponse = await fetch(audioUrl);
+    if (!audioResponse.ok) {
+      throw new Error('Failed to download audio file');
+    }
+    const audioBuffer = await audioResponse.arrayBuffer();
 
     // Create temporary directory
     const tempDir = await Deno.makeTempDir();
@@ -47,23 +90,22 @@ serve(async (req) => {
     const outputPath = `${tempDir}/output.mp4`;
     const backgroundPath = `${tempDir}/background.png`;
 
-    // Write audio file
+    // Write files
     await Deno.writeFile(audioPath, new Uint8Array(audioBuffer));
+    await Deno.writeFile(backgroundPath, new Uint8Array(backgroundBuffer));
 
-    // Create a simple background image (black rectangle)
-    const width = aspectRatio === "16:9" ? 1920 : 1080;
-    const height = aspectRatio === "16:9" ? 1080 : 1920;
-    
     // Create FFmpeg command
     const ffmpegCmd = new Deno.Command("ffmpeg", {
       args: [
-        "-f", "lavfi", // Use lavfi input format
-        "-i", `color=c=black:s=${width}x${height}`, // Generate black background
+        "-loop", "1", // Loop the image
+        "-i", backgroundPath, // Input image file
         "-i", audioPath, // Input audio file
         "-c:v", "libx264", // Video codec
+        "-tune", "stillimage", // Optimize for still image
         "-c:a", "aac", // Audio codec
-        "-shortest", // End when shortest input ends
+        "-b:a", "192k", // Audio bitrate
         "-pix_fmt", "yuv420p", // Pixel format for compatibility
+        "-shortest", // End when audio ends
         "-y", // Overwrite output file
         outputPath // Output file
       ]
