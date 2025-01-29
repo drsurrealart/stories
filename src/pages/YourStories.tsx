@@ -3,11 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { NavigationBar } from "@/components/NavigationBar";
 import { useToast } from "@/hooks/use-toast";
 import { SavedStory } from "@/types/story";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { SearchBar } from "@/components/story/SearchBar";
 import { StoriesList } from "@/components/story/StoriesList";
 import { StoryPagination } from "@/components/story/StoryPagination";
-import { Book, BookOpen } from "lucide-react";
+import { Book, BookOpen, List } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const STORIES_PER_PAGE = 5;
 
@@ -22,6 +23,7 @@ const YourStories = () => {
   const [searchParams] = useSearchParams();
   const highlightedStoryId = searchParams.get('story');
   const storyRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const navigate = useNavigate();
 
   const fetchStories = async () => {
     try {
@@ -200,6 +202,13 @@ const YourStories = () => {
           <p className="text-lg text-muted-foreground">
             Your personal collection of magical stories that inspire and delight.
           </p>
+          <Button
+            onClick={() => navigate('/stories-list')}
+            className="flex items-center gap-2"
+          >
+            <List className="h-4 w-4" />
+            View Stories List
+          </Button>
         </div>
         
         <SearchBar 

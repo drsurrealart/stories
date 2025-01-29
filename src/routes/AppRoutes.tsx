@@ -12,6 +12,7 @@ import MyFavorites from "@/pages/MyFavorites";
 import MyMorals from "@/pages/MyMorals";
 import MyNarrators from "@/pages/MyNarrators";
 import YourStories from "@/pages/YourStories";
+import StoriesList from "@/pages/StoriesList";
 import AccountSettings from "@/pages/AccountSettings";
 import MySubscriptions from "@/pages/MySubscriptions";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -107,6 +108,14 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <YourStories />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/stories-list"
+        element={
+          <ProtectedRoute>
+            <StoriesList />
           </ProtectedRoute>
         }
       />
