@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileDown, Share2, Trash2, FilePdf, Printer } from "lucide-react";
+import { FileDown, Share2, Trash2, FileText, Printer } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -191,7 +191,7 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
   return (
     <Card className="p-4 md:p-6 space-y-4 bg-card">
       <div className="flex items-center gap-2 mb-4">
-        <FilePdf className="h-5 w-5 text-primary" />
+        <FileText className="h-5 w-5 text-primary" />
         <h3 className="font-semibold text-lg">Printable Story</h3>
       </div>
 
@@ -210,7 +210,7 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
       ) : (
         <div className="space-y-4">
           <div className="flex justify-center p-4 bg-muted/20 rounded-lg">
-            <FilePdf className="h-24 w-24 text-primary/80" />
+            <FileText className="h-24 w-24 text-primary/80" />
           </div>
           
           <div className="flex flex-wrap gap-2 justify-between items-center">
