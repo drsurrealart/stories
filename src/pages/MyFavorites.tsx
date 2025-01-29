@@ -5,6 +5,7 @@ import { StoryCard } from "@/components/story/StoryCard";
 import { Loading } from "@/components/ui/loading";
 import { SavedStory } from "@/types/story";
 import { useToast } from "@/hooks/use-toast";
+import { Mic, Headphones } from "lucide-react";
 
 const MyFavorites = () => {
   const [favorites, setFavorites] = useState<SavedStory[]>([]);
@@ -82,10 +83,22 @@ const MyFavorites = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
+    <div className="min-h-screen bg-gradient-to-b from-secondary/50 to-background">
       <NavigationBar onLogout={async () => {}} />
-      <div className="max-w-4xl mx-auto p-6 space-y-8">
-        <h1 className="text-3xl font-bold text-center mb-8">My Favorite Stories</h1>
+      
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <div className="space-y-4 text-center max-w-2xl mx-auto">
+          <div className="flex items-center justify-center space-x-2">
+            <Mic className="h-8 w-8 text-primary animate-bounce" />
+            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-hover">
+              My Favorite Stories
+            </h1>
+            <Headphones className="h-8 w-8 text-primary animate-bounce" />
+          </div>
+          <p className="text-lg text-muted-foreground">
+            Your collection of saved stories that have touched your heart and inspired your mind.
+          </p>
+        </div>
         
         {isLoading ? (
           <Loading text="Loading your favorite stories..." />
