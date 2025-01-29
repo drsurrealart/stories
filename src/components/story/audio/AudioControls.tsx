@@ -104,10 +104,10 @@ export function AudioControls({ storyId, audioUrl }: AudioControlsProps) {
         />
       </div>
       <Button
-        variant="destructive"
+        variant="outline"
         size="sm"
         onClick={() => setShowDeleteDialog(true)}
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
       >
         <Trash2 className="h-4 w-4" />
         Delete

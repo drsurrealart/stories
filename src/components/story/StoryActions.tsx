@@ -14,7 +14,7 @@ export function StoryActions({ onReflect, onCreateNew, isKidsMode }: StoryAction
         variant="outline"
         size="sm"
         onClick={onReflect}
-        className="flex items-center gap-2 border border-destructive hover:bg-destructive hover:text-destructive-foreground"
+        className="flex items-center gap-2 border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
       >
         <Trash2 className="h-4 w-4" />
         Delete
