@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FileDown, Trash2, Printer } from "lucide-react";
+import { FileDown, Trash2, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { DeleteMediaDialog } from "../media/DeleteMediaDialog";
-import { ShareMediaDialog } from "../media/ShareMediaDialog";
 
 interface PDFControlsProps {
   storyId: string;
@@ -41,14 +40,14 @@ export function PDFControls({ storyId, pdfUrl }: PDFControlsProps) {
     }
   };
 
-  const handlePrint = async () => {
+  const handleViewPDF = async () => {
     try {
       const { data } = supabase.storage.from('story-pdfs').getPublicUrl(pdfUrl);
       window.open(data.publicUrl, '_blank');
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to open PDF for printing",
+        description: "Failed to open PDF",
         variant: "destructive",
       });
     }
@@ -96,8 +95,6 @@ export function PDFControls({ storyId, pdfUrl }: PDFControlsProps) {
     }
   };
 
-  const { data: publicUrl } = supabase.storage.from('story-pdfs').getPublicUrl(pdfUrl);
-
   return (
     <div className="flex justify-between mt-4">
       <div className="flex gap-2">
@@ -110,19 +107,14 @@ export function PDFControls({ storyId, pdfUrl }: PDFControlsProps) {
           <FileDown className="h-4 w-4" />
           Download
         </Button>
-        <ShareMediaDialog 
-          title="Story PDF"
-          url={publicUrl.publicUrl}
-          type="pdf"
-        />
         <Button
           variant="outline"
           size="sm"
-          onClick={handlePrint}
+          onClick={handleViewPDF}
           className="flex items-center gap-2"
         >
-          <Printer className="h-4 w-4" />
-          Print
+          <FileText className="h-4 w-4" />
+          View PDF
         </Button>
       </div>
       <Button
