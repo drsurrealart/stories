@@ -10,12 +10,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { ImageStyleSelector } from "./ImageStyleSelector";
+import { useState } from "react";
 
 interface ImageGenerationFormProps {
   isGenerating: boolean;
   showConfirmDialog: boolean;
   onConfirmDialogChange: (show: boolean) => void;
-  onGenerate: () => void;
+  onGenerate: (style: string) => void;
   creditCost?: number;
 }
 
@@ -26,6 +28,8 @@ export function ImageGenerationForm({
   onGenerate,
   creditCost = 5,
 }: ImageGenerationFormProps) {
+  const [selectedStyle, setSelectedStyle] = useState("realistic");
+
   return (
     <div className="space-y-4">
       <Button
@@ -48,12 +52,21 @@ export function ImageGenerationForm({
           <AlertDialogHeader>
             <AlertDialogTitle>Generate Story Images</AlertDialogTitle>
             <AlertDialogDescription>
-              This will use {creditCost} credits from your account. The AI will generate two images that match your story's content - one in 16:9 format for display and one in 9:16 format for video creation. Would you like to proceed?
+              This will use {creditCost} credits from your account. The AI will generate two images that match your story's content - one in 16:9 format for display and one in 9:16 format for video creation.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          
+          <div className="py-4">
+            <ImageStyleSelector
+              selectedStyle={selectedStyle}
+              onStyleChange={setSelectedStyle}
+              disabled={isGenerating}
+            />
+          </div>
+
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={onGenerate}>Generate Images</AlertDialogAction>
+            <AlertDialogAction onClick={() => onGenerate(selectedStyle)}>Generate Images</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

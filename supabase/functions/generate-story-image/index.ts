@@ -12,7 +12,17 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, selectedProfile } = await req.json()
+    const { prompt, selectedProfile, style = "realistic" } = await req.json()
+
+    // Style-specific prompt enhancements
+    const stylePrompts = {
+      realistic: "Create a photorealistic image with natural lighting and detailed textures.",
+      watercolor: "Create a soft, artistic watercolor painting with gentle brush strokes and flowing colors.",
+      cartoon: "Create a vibrant cartoon illustration with bold lines and playful colors.",
+      "3d": "Create a modern 3D rendered scene with depth and dimensional lighting.",
+      storybook: "Create a classic children's book illustration with warm, inviting colors.",
+      fantasy: "Create a magical fantasy art piece with ethereal lighting and mystical elements."
+    };
 
     // Enhance prompt with profile details if available
     let enhancedPrompt = prompt
@@ -30,11 +40,11 @@ serve(async (req) => {
         interests?.length ? `They enjoy ${interests.join(', ')}.` : ''
       ].filter(Boolean).join(' ')
 
-      // Combine with original prompt
-      enhancedPrompt = `Create a high-quality, detailed illustration suitable for a children's storybook featuring ${characterDescription} The scene: ${prompt}. Style: Use vibrant colors and a mix of 3D rendering and artistic illustration techniques. The image should be engaging and magical, without any text overlays. Focus on creating an emotional and immersive scene. Important: Do not include any text or words in the image.`
+      // Combine with original prompt and style
+      enhancedPrompt = `Create a high-quality, detailed illustration featuring ${characterDescription} The scene: ${prompt}. ${stylePrompts[style as keyof typeof stylePrompts]} The image should be engaging and magical, without any text overlays. Focus on creating an emotional and immersive scene. Important: Do not include any text or words in the image.`
     } else {
-      // Use standard prompt enhancement
-      enhancedPrompt = `Create a high-quality, detailed illustration suitable for a children's storybook. Style: Use vibrant colors and a mix of 3D rendering and artistic illustration techniques. The scene: ${prompt}. The image should be engaging and magical, without any text overlays. Focus on creating an emotional and immersive scene. Important: Do not include any text or words in the image.`
+      // Use standard prompt enhancement with style
+      enhancedPrompt = `Create a high-quality, detailed illustration. ${stylePrompts[style as keyof typeof stylePrompts]} The scene: ${prompt}. The image should be engaging and magical, without any text overlays. Focus on creating an emotional and immersive scene. Important: Do not include any text or words in the image.`
     }
 
     // Call OpenAI API to generate image
