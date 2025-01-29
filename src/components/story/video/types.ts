@@ -1,0 +1,1 @@
+export type VideoAspectRatio = "16:9" | "9:16";

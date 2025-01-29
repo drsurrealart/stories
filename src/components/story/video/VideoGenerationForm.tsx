@@ -1,21 +1,20 @@
-import { useState } from "react";
-import { Loader2, Play, AlertTriangle, CheckCircle2, Music, Image } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Steps } from "@/components/ui/steps";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
-type VideoAspectRatio = "16:9" | "9:16";
+import { useState } from "react";
+import { VideoFormatStep } from "./components/VideoFormatStep";
+import { AudioCheckStep } from "./components/AudioCheckStep";
+import { BackgroundStep } from "./components/BackgroundStep";
+import { PreviewStep } from "./components/PreviewStep";
+import { type VideoAspectRatio } from "./types";
 
 interface VideoGenerationFormProps {
   isGenerating: boolean;
@@ -69,7 +68,6 @@ export function VideoGenerationForm({
   const handleGenerateBackground = async () => {
     setIsGeneratingImage(true);
     try {
-      // Call the Supabase Edge Function to generate the image
       const { data, error } = await supabase.functions.invoke('generate-story-image', {
         body: {
           prompt: `Create a background image for a story about: ${storyContent.slice(0, 200)}...`,
@@ -106,150 +104,41 @@ export function VideoGenerationForm({
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Choose Video Format</h3>
-            <Select 
-              value={selectedAspectRatio} 
-              onValueChange={(value: VideoAspectRatio) => setSelectedAspectRatio(value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select aspect ratio" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="16:9">
-                  <div className="flex flex-col">
-                    <span>Landscape (16:9)</span>
-                    <span className="text-sm text-muted-foreground">Best for YouTube, Desktop</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="9:16">
-                  <div className="flex flex-col">
-                    <span>Portrait (9:16)</span>
-                    <span className="text-sm text-muted-foreground">Best for Stories, TikTok</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <VideoFormatStep
+            selectedAspectRatio={selectedAspectRatio}
+            onAspectRatioChange={(value) => setSelectedAspectRatio(value)}
+          />
         );
 
       case 2:
         return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Audio Status</h3>
-            <div className="flex items-center gap-2">
-              <Music className="h-5 w-5" />
-              {hasAudioStory ? (
-                <div className="flex items-center gap-2 text-green-600">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span>Audio narration ready</span>
-                </div>
-              ) : (
-                <Alert variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    Please generate an audio story first
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          </div>
+          <AudioCheckStep
+            hasAudioStory={hasAudioStory}
+          />
         );
 
       case 3:
         return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Background Image</h3>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Image className="h-5 w-5" />
-                {imageGenerated ? (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle2 className="h-5 w-5" />
-                    <span>Background image ready</span>
-                  </div>
-                ) : (
-                  <Button 
-                    onClick={handleGenerateBackground}
-                    disabled={!selectedAspectRatio || isGeneratingImage}
-                  >
-                    {isGeneratingImage ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>Generate Background Image</>
-                    )}
-                  </Button>
-                )}
-              </div>
-              
-              {backgroundImage && (
-                <div className="mt-4 border rounded-lg overflow-hidden">
-                  <AspectRatio ratio={selectedAspectRatio === "16:9" ? 16/9 : 9/16}>
-                    <img 
-                      src={backgroundImage} 
-                      alt="Generated background"
-                      className="w-full h-full object-cover"
-                    />
-                  </AspectRatio>
-                </div>
-              )}
-            </div>
-          </div>
+          <BackgroundStep
+            imageGenerated={imageGenerated}
+            isGeneratingImage={isGeneratingImage}
+            selectedAspectRatio={selectedAspectRatio}
+            backgroundImage={backgroundImage}
+            onGenerateBackground={handleGenerateBackground}
+          />
         );
 
       case 4:
         return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Final Preview</h3>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  <span>Video Format: {selectedAspectRatio}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  <span>Audio Narration: Ready</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  <span>Background Image: Generated</span>
-                </div>
-              </div>
-
-              {backgroundImage && (
-                <div className="mt-4 border rounded-lg overflow-hidden">
-                  <AspectRatio ratio={selectedAspectRatio === "16:9" ? 16/9 : 9/16}>
-                    <img 
-                      src={backgroundImage} 
-                      alt="Generated background"
-                      className="w-full h-full object-cover"
-                    />
-                  </AspectRatio>
-                </div>
-              )}
-            </div>
-            <Button 
-              className="w-full"
-              onClick={() => selectedAspectRatio && onGenerate(selectedAspectRatio)}
-              disabled={!selectedAspectRatio || !hasAudioStory || !imageGenerated || isGenerating}
-            >
-              {isGenerating ? (
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>{generationStep || "Generating..."}</span>
-                </div>
-              ) : (
-                <>
-                  <Play className="h-4 w-4 mr-2" />
-                  Generate Video
-                </>
-              )}
-            </Button>
-          </div>
+          <PreviewStep
+            selectedAspectRatio={selectedAspectRatio}
+            backgroundImage={backgroundImage}
+            hasAudioStory={hasAudioStory}
+            imageGenerated={imageGenerated}
+            isGenerating={isGenerating}
+            generationStep={generationStep}
+            onGenerate={() => selectedAspectRatio && onGenerate(selectedAspectRatio)}
+          />
         );
 
       default:
@@ -269,11 +158,16 @@ export function VideoGenerationForm({
 
       <AlertDialog open={showConfirmDialog} onOpenChange={onConfirmDialogChange}>
         <AlertDialogContent className="sm:max-w-md">
-          <AlertDialogHeader>
+          <AlertDialogHeader className="flex flex-row justify-between items-start">
             <AlertDialogTitle>Generate Story Video</AlertDialogTitle>
-            <AlertDialogDescription>
-              Follow these steps to create your video
-            </AlertDialogDescription>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onConfirmDialogChange(false)}
+              className="h-8 w-8"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </AlertDialogHeader>
 
           <div className="py-6">
