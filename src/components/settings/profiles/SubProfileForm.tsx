@@ -35,6 +35,17 @@ interface SubProfileFormProps {
   onSuccess: () => void;
 }
 
+const INITIAL_PROFILE_STATE = {
+  name: "",
+  age: "",
+  type: "family" as "family" | "student",
+  gender: "",
+  interests: [] as string[],
+  ethnicity: "",
+  hair_color: "",
+  customInterest: ""
+};
+
 const AVAILABLE_INTERESTS = [
   "Reading", "Sports", "Music", "Art", "Science",
   "Math", "Languages", "History", "Technology", "Nature"
@@ -50,16 +61,7 @@ const ETHNICITIES = [
 ];
 
 export const SubProfileForm = ({ editingProfile, onCancel, onSuccess }: SubProfileFormProps) => {
-  const [newProfile, setNewProfile] = useState({
-    name: "",
-    age: "",
-    type: "family" as "family" | "student",
-    gender: "",
-    interests: [] as string[],
-    ethnicity: "",
-    hair_color: "",
-    customInterest: ""
-  });
+  const [newProfile, setNewProfile] = useState(INITIAL_PROFILE_STATE);
   const { toast } = useToast();
 
   // Load profile data when editing
@@ -77,6 +79,11 @@ export const SubProfileForm = ({ editingProfile, onCancel, onSuccess }: SubProfi
       });
     }
   }, [editingProfile]);
+
+  const handleCancel = () => {
+    setNewProfile(INITIAL_PROFILE_STATE);
+    onCancel();
+  };
 
   const handleInterestToggle = (interest: string) => {
     setNewProfile(prev => ({
@@ -151,17 +158,7 @@ export const SubProfileForm = ({ editingProfile, onCancel, onSuccess }: SubProfi
       });
 
       // Reset form
-      setNewProfile({
-        name: "",
-        age: "",
-        type: "family",
-        gender: "",
-        interests: [],
-        ethnicity: "",
-        hair_color: "",
-        customInterest: ""
-      });
-
+      setNewProfile(INITIAL_PROFILE_STATE);
       onSuccess();
     } catch (error: any) {
       console.error("Error saving sub-profile:", error);
@@ -337,7 +334,12 @@ export const SubProfileForm = ({ editingProfile, onCancel, onSuccess }: SubProfi
         )}
       </Button>
       {editingProfile && (
-        <Button type="button" variant="outline" className="w-full mt-2" onClick={onCancel}>
+        <Button 
+          type="button" 
+          variant="outline" 
+          className="w-full mt-2" 
+          onClick={handleCancel}
+        >
           Cancel
         </Button>
       )}
