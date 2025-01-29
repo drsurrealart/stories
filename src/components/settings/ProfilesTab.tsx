@@ -22,6 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@/components/ui/radio-group";
 
 interface Profile {
   first_name: string | null;
@@ -35,7 +39,22 @@ interface SubProfile {
   name: string;
   age: number;
   type: 'family' | 'student';
+  gender: string | null;
+  interests: string[] | null;
 }
+
+const AVAILABLE_INTERESTS = [
+  "Reading",
+  "Sports",
+  "Music",
+  "Art",
+  "Science",
+  "Math",
+  "Languages",
+  "History",
+  "Technology",
+  "Nature"
+];
 
 export const ProfilesTab = () => {
   const [profile, setProfile] = useState<Profile>({
@@ -50,6 +69,8 @@ export const ProfilesTab = () => {
     name: "",
     age: "",
     type: "family" as "family" | "student",
+    gender: "",
+    interests: [] as string[],
   });
   const { toast } = useToast();
 
@@ -157,12 +178,21 @@ export const ProfilesTab = () => {
     }));
   };
 
+  const handleInterestToggle = (interest: string) => {
+    setNewProfile(prev => ({
+      ...prev,
+      interests: prev.interests.includes(interest)
+        ? prev.interests.filter(i => i !== interest)
+        : [...prev.interests, interest]
+    }));
+  };
+
   const handleNewProfileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!newProfile.name || !newProfile.age) {
+    if (!newProfile.name || !newProfile.age || !newProfile.gender) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
@@ -178,7 +208,9 @@ export const ProfilesTab = () => {
           name: newProfile.name,
           age: parseInt(newProfile.age),
           type: newProfile.type,
-          user_id: user.id // Add the user_id here
+          gender: newProfile.gender,
+          interests: newProfile.interests,
+          user_id: user.id
         });
 
       if (error) throw error;
@@ -192,6 +224,8 @@ export const ProfilesTab = () => {
         name: "",
         age: "",
         type: "family",
+        gender: "",
+        interests: [],
       });
 
       getSubProfiles();
@@ -334,6 +368,24 @@ export const ProfilesTab = () => {
               </div>
 
               <div className="space-y-2">
+                <Label>Gender</Label>
+                <RadioGroup
+                  value={newProfile.gender}
+                  onValueChange={(value) => setNewProfile(prev => ({ ...prev, gender: value }))}
+                  className="flex space-x-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="male" id="male" />
+                    <Label htmlFor="male">Male</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="female" id="female" />
+                    <Label htmlFor="female">Female</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="type">Profile Type</Label>
                 <Select
                   value={newProfile.type}
@@ -351,6 +403,24 @@ export const ProfilesTab = () => {
                 </Select>
               </div>
 
+              <div className="space-y-2">
+                <Label>Interests</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {AVAILABLE_INTERESTS.map((interest) => (
+                    <div key={interest} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={interest}
+                        checked={newProfile.interests.includes(interest)}
+                        onChange={() => handleInterestToggle(interest)}
+                        className="rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <Label htmlFor={interest}>{interest}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <Button type="submit" className="w-full">
                 <PlusCircle className="h-4 w-4 mr-2" />
                 Add Profile
@@ -366,8 +436,16 @@ export const ProfilesTab = () => {
                 <CardTitle>{subProfile.name}</CardTitle>
                 <CardDescription>
                   {subProfile.type === 'family' ? 'Family Member' : 'Student'} • Age: {subProfile.age}
+                  {subProfile.gender && ` • ${subProfile.gender}`}
                 </CardDescription>
               </CardHeader>
+              <CardContent>
+                {subProfile.interests && subProfile.interests.length > 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    <strong>Interests:</strong> {subProfile.interests.join(', ')}
+                  </div>
+                )}
+              </CardContent>
               <CardFooter>
                 <Button
                   variant="destructive"

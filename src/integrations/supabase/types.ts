@@ -563,7 +563,9 @@ export type Database = {
         Row: {
           age: number
           created_at: string
+          gender: string | null
           id: string
+          interests: string[] | null
           name: string
           type: Database["public"]["Enums"]["profile_type"]
           updated_at: string
@@ -572,7 +574,9 @@ export type Database = {
         Insert: {
           age: number
           created_at?: string
+          gender?: string | null
           id?: string
+          interests?: string[] | null
           name: string
           type: Database["public"]["Enums"]["profile_type"]
           updated_at?: string
@@ -581,7 +585,9 @@ export type Database = {
         Update: {
           age?: number
           created_at?: string
+          gender?: string | null
           id?: string
+          interests?: string[] | null
           name?: string
           type?: Database["public"]["Enums"]["profile_type"]
           updated_at?: string
