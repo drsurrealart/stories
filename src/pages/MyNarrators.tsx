@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Play, Pause } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const SAMPLE_TEXT = "Hello! I'm a narrator for LearnMorals.com. I can help bring your stories to life with my voice.";
 
@@ -34,24 +35,22 @@ const MyNarrators = () => {
         setAudioElement(null);
       }
 
-      // Call the text-to-speech edge function
-      const response = await fetch('/api/text-to-speech', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Call the text-to-speech edge function using Supabase client
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: {
           text: SAMPLE_TEXT,
           voice: voiceId,
-        }),
+        },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate voice sample');
+      if (error) {
+        throw error;
       }
 
-      const data = await response.json();
-      
+      if (!data?.audioContent) {
+        throw new Error('No audio content received');
+      }
+
       // Create and play audio element
       const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
       setAudioElement(audio);
@@ -64,6 +63,7 @@ const MyNarrators = () => {
       audio.play();
       setPlayingVoice(voiceId);
     } catch (error) {
+      console.error('Error playing voice sample:', error);
       toast({
         title: "Error",
         description: "Failed to play voice sample. Please try again.",
