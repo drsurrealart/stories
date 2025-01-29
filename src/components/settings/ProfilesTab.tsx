@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { UserRound, Users, Trash2, PlusCircle } from "lucide-react";
+import { UserRound, Users, Trash2, PlusCircle, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -90,6 +90,7 @@ export const ProfilesTab = () => {
   });
   const [loading, setLoading] = useState(true);
   const [subProfiles, setSubProfiles] = useState<SubProfile[]>([]);
+  const [editingProfile, setEditingProfile] = useState<SubProfile | null>(null);
   const [newProfile, setNewProfile] = useState({
     name: "",
     age: "",
@@ -215,13 +216,77 @@ export const ProfilesTab = () => {
     }));
   };
 
-  const handleAddCustomInterest = () => {
-    if (newProfile.customInterest && !newProfile.interests.includes(newProfile.customInterest)) {
-      setNewProfile(prev => ({
-        ...prev,
-        interests: [...prev.interests, prev.customInterest],
-        customInterest: ""
-      }));
+  const startEditing = (subProfile: SubProfile) => {
+    setEditingProfile(subProfile);
+    setNewProfile({
+      name: subProfile.name,
+      age: subProfile.age.toString(),
+      type: subProfile.type,
+      gender: subProfile.gender || "",
+      interests: subProfile.interests || [],
+      ethnicity: subProfile.ethnicity || "",
+      hair_color: subProfile.hair_color || "",
+      customInterest: ""
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingProfile(null);
+    setNewProfile({
+      name: "",
+      age: "",
+      type: "family",
+      gender: "",
+      interests: [],
+      ethnicity: "",
+      hair_color: "",
+      customInterest: ""
+    });
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingProfile) return;
+
+    if (!newProfile.name || !newProfile.age || !newProfile.gender || !newProfile.ethnicity || !newProfile.hair_color) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("user_sub_profiles")
+        .update({
+          name: newProfile.name,
+          age: parseInt(newProfile.age),
+          type: newProfile.type,
+          gender: newProfile.gender,
+          interests: newProfile.interests,
+          ethnicity: newProfile.ethnicity,
+          hair_color: newProfile.hair_color,
+        })
+        .eq("id", editingProfile.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+
+      cancelEditing();
+      getSubProfiles();
+    } catch (error: any) {
+      console.error("Error updating sub-profile:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive",
+      });
     }
   };
 
@@ -380,13 +445,13 @@ export const ProfilesTab = () => {
       <TabsContent value="sub-profiles">
         <Card>
           <CardHeader>
-            <CardTitle>Add New Profile</CardTitle>
+            <CardTitle>{editingProfile ? 'Edit Profile' : 'Add New Profile'}</CardTitle>
             <CardDescription>
-              Create profiles for family members or students
+              {editingProfile ? 'Update profile information' : 'Create profiles for family members or students'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleNewProfileSubmit} className="space-y-4">
+            <form onSubmit={editingProfile ? handleUpdateProfile : handleNewProfileSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
                 <Input
@@ -536,9 +601,23 @@ export const ProfilesTab = () => {
               </div>
 
               <Button type="submit" className="w-full">
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Add Profile
+                {editingProfile ? (
+                  <>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Update Profile
+                  </>
+                ) : (
+                  <>
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Add Profile
+                  </>
+                )}
               </Button>
+              {editingProfile && (
+                <Button type="button" variant="outline" className="w-full mt-2" onClick={cancelEditing}>
+                  Cancel
+                </Button>
+              )}
             </form>
           </CardContent>
         </Card>
@@ -572,14 +651,22 @@ export const ProfilesTab = () => {
                   )}
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => startEditing(subProfile)}
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
                 <Button
                   variant="destructive"
                   size="sm"
                   onClick={() => deleteSubProfile(subProfile.id)}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Profile
+                  Delete
                 </Button>
               </CardFooter>
             </Card>
