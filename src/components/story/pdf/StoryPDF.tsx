@@ -199,12 +199,12 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
         <Button
           onClick={() => setShowConfirm(true)}
           disabled={isGenerating}
-          className="w-full"
+          className="w-full bg-primary hover:bg-primary/90 text-white"
         >
           {isGenerating ? (
             "Generating PDF..."
           ) : (
-            <>Create Printable Story (Uses 1 Credit)</>
+            <>Create PDF (Uses 1 Credit)</>
           )}
         </Button>
       ) : (
@@ -213,41 +213,42 @@ export function StoryPDF({ storyId }: StoryPDFProps) {
             <FileText className="h-24 w-24 text-primary/80" />
           </div>
           
-          <div className="flex flex-wrap gap-2 justify-between items-center">
-            <div className="flex gap-2">
-              <Button
-                onClick={() => window.open(pdfData.pdf_url, '_blank')}
-                variant="secondary"
-                size="sm"
-              >
-                <FileDown className="w-4 h-4 mr-2" />
-                Download
-              </Button>
-              
-              <Button
-                onClick={handleShare}
-                variant="secondary"
-                size="sm"
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
-              </Button>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <Button
+              onClick={() => window.open(pdfData.pdf_url, '_blank')}
+              variant="outline"
+              size="sm"
+              className="w-full"
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              Download
+            </Button>
+            
+            <Button
+              onClick={handleShare}
+              variant="outline"
+              size="sm"
+              className="w-full"
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Share
+            </Button>
 
-              <Button
-                onClick={handlePrint}
-                variant="secondary"
-                size="sm"
-              >
-                <Printer className="w-4 h-4 mr-2" />
-                Print
-              </Button>
-            </div>
+            <Button
+              onClick={handlePrint}
+              variant="outline"
+              size="sm"
+              className="w-full"
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              Print
+            </Button>
 
             <Button
               onClick={() => setShowDeleteDialog(true)}
               variant="destructive"
               size="sm"
-              disabled={isDeleting}
+              className="w-full"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Delete
