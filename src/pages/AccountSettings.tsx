@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { NavigationBar } from "@/components/NavigationBar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfilesTab } from "@/components/settings/ProfilesTab";
@@ -6,13 +5,16 @@ import { SecurityTab } from "@/components/settings/SecurityTab";
 import { User, Shield } from "lucide-react";
 
 const AccountSettings = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-secondary to-background">
-      <NavigationBar onLogout={() => navigate("/")} />
-      <div className="max-w-2xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">Account Settings</h1>
+      <NavigationBar />
+      <div className="container max-w-4xl mx-auto p-6 space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
+          <p className="text-muted-foreground">
+            Manage your profile information and security settings
+          </p>
+        </div>
         
         <Tabs defaultValue="profiles" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -25,15 +27,11 @@ const AccountSettings = () => {
               <span>Security</span>
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="profiles">
-            <div className="mt-6">
-              <ProfilesTab />
-            </div>
+          <TabsContent value="profiles" className="space-y-6">
+            <ProfilesTab />
           </TabsContent>
-          <TabsContent value="security">
-            <div className="mt-6">
-              <SecurityTab />
-            </div>
+          <TabsContent value="security" className="space-y-6">
+            <SecurityTab />
           </TabsContent>
         </Tabs>
       </div>
