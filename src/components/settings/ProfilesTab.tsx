@@ -169,12 +169,16 @@ export const ProfilesTab = () => {
     }
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
       const { error } = await supabase
         .from("user_sub_profiles")
         .insert({
           name: newProfile.name,
           age: parseInt(newProfile.age),
           type: newProfile.type,
+          user_id: user.id // Add the user_id here
         });
 
       if (error) throw error;
