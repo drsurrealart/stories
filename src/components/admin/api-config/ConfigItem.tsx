@@ -1,5 +1,6 @@
 import { Switch } from "@/components/ui/switch";
 import { CreditCostInput } from "./CreditCostInput";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ConfigItemProps {
   config: {
@@ -8,12 +9,19 @@ interface ConfigItemProps {
     description: string | null;
     is_active: boolean;
     kids_story_credits_cost: number | null;
+    image_generation_provider?: string;
   };
   onToggle: (id: string, checked: boolean) => void;
   onUpdateCreditsCost: (id: string, cost: number) => void;
+  onUpdateProvider?: (id: string, provider: string) => void;
 }
 
-export const ConfigItem = ({ config, onToggle, onUpdateCreditsCost }: ConfigItemProps) => {
+export const ConfigItem = ({ 
+  config, 
+  onToggle, 
+  onUpdateCreditsCost,
+  onUpdateProvider 
+}: ConfigItemProps) => {
   return (
     <div className="flex items-center justify-between p-4 border rounded-lg">
       <div className="flex-grow">
@@ -27,6 +35,22 @@ export const ConfigItem = ({ config, onToggle, onUpdateCreditsCost }: ConfigItem
             value={config.kids_story_credits_cost || 0}
             onChange={(cost) => onUpdateCreditsCost(config.id, cost)}
           />
+        )}
+        {config.key_name === "RUNWARE_API_KEY" && onUpdateProvider && (
+          <div className="mt-2">
+            <Select
+              value={config.image_generation_provider}
+              onValueChange={(value) => onUpdateProvider(config.id, value)}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select provider" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="openai">OpenAI</SelectItem>
+                <SelectItem value="runware">Runware</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         )}
       </div>
       <div className="flex items-center space-x-2">

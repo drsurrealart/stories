@@ -29,7 +29,7 @@ const API_KEYS = [
   },
 ] as const;
 
-export const APIConfigManager = () => {
+const APIConfigManager = () => {
   const queryClient = useQueryClient();
 
   const { data: configs, isLoading } = useQuery({
@@ -80,6 +80,25 @@ export const APIConfigManager = () => {
     onError: (error) => {
       console.error("Error updating credits cost:", error);
       toast.error("Failed to update credits cost");
+    },
+  });
+
+  const updateProviderMutation = useMutation({
+    mutationFn: async ({ id, provider }: { id: string; provider: string }) => {
+      const { error } = await supabase
+        .from("api_configurations")
+        .update({ image_generation_provider: provider })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["api-configs"] });
+      toast.success("Image generation provider updated successfully");
+    },
+    onError: (error) => {
+      console.error("Error updating provider:", error);
+      toast.error("Failed to update image generation provider");
     },
   });
 
@@ -134,6 +153,9 @@ export const APIConfigManager = () => {
                 onUpdateCreditsCost={(id, cost) =>
                   updateCreditsCost.mutate({ id, cost })
                 }
+                onUpdateProvider={(id, provider) =>
+                  updateProviderMutation.mutate({ id, provider })
+                }
               />
             ))}
           </div>
@@ -142,3 +164,5 @@ export const APIConfigManager = () => {
     </Card>
   );
 };
+
+export default APIConfigManager;
