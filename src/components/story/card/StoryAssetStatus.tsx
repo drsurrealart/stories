@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Headphones, Image, FileText, Video } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { MediaPreviewModal } from "../media/MediaPreviewModal";
+import { VideoAspectRatio } from "../video/types";
 
 interface StoryAssetStatusProps {
   storyId: string;
@@ -54,7 +55,7 @@ export function StoryAssetStatus({ storyId }: StoryAssetStatusProps) {
   const [selectedMedia, setSelectedMedia] = useState<{
     type: "audio" | "image" | "video" | "pdf";
     url: string;
-    aspectRatio?: string;
+    aspectRatio?: VideoAspectRatio;
   } | null>(null);
 
   const assetQueries = assets.map(asset => ({
@@ -88,7 +89,8 @@ export function StoryAssetStatus({ storyId }: StoryAssetStatusProps) {
           return {
             ...data,
             publicUrl,
-            aspectRatio: data.aspect_ratio
+            // Only include aspectRatio if it exists in the data
+            ...(data.aspect_ratio && { aspectRatio: data.aspect_ratio as VideoAspectRatio })
           };
         }
         
@@ -102,7 +104,7 @@ export function StoryAssetStatus({ storyId }: StoryAssetStatusProps) {
       setSelectedMedia({
         type: asset.mediaType,
         url: data.publicUrl,
-        aspectRatio: data.aspectRatio
+        aspectRatio: data.aspectRatio as VideoAspectRatio
       });
     }
   };

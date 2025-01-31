@@ -4,13 +4,14 @@ import { VideoPlayer } from "@/components/story/video/VideoPlayer";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
+import { VideoAspectRatio } from "../video/types";
 
 interface MediaPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   mediaType: "audio" | "image" | "video" | "pdf";
   mediaUrl: string;
-  aspectRatio?: string;
+  aspectRatio?: VideoAspectRatio;
 }
 
 export function MediaPreviewModal({
