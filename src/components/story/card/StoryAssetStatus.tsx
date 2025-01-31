@@ -12,6 +12,34 @@ interface StoryAssetStatusProps {
 
 type TableNames = 'audio_stories' | 'story_images' | 'story_videos' | 'story_pdfs';
 
+interface BaseAsset {
+  id: string;
+  story_id: string;
+  user_id: string;
+  credits_used: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface AudioAsset extends BaseAsset {
+  audio_url: string;
+  voice_id: string;
+}
+
+interface ImageAsset extends BaseAsset {
+  image_url: string;
+  aspect_ratio: string;
+}
+
+interface VideoAsset extends BaseAsset {
+  video_url: string;
+  aspect_ratio: VideoAspectRatio;
+}
+
+interface PDFAsset extends BaseAsset {
+  pdf_url: string;
+}
+
 interface AssetStatus {
   icon: React.ReactNode;
   label: string;
@@ -89,8 +117,12 @@ export function StoryAssetStatus({ storyId }: StoryAssetStatusProps) {
           return {
             ...data,
             publicUrl,
-            // Only include aspectRatio if it exists in the data
-            ...(data.aspect_ratio && { aspectRatio: data.aspect_ratio as VideoAspectRatio })
+            // Only include aspectRatio for video and image assets
+            ...(('aspect_ratio' in data) && { 
+              aspectRatio: asset.mediaType === 'video' 
+                ? data.aspect_ratio as VideoAspectRatio 
+                : data.aspect_ratio 
+            })
           };
         }
         
@@ -104,7 +136,7 @@ export function StoryAssetStatus({ storyId }: StoryAssetStatusProps) {
       setSelectedMedia({
         type: asset.mediaType,
         url: data.publicUrl,
-        aspectRatio: data.aspectRatio as VideoAspectRatio
+        ...(data.aspectRatio && { aspectRatio: data.aspectRatio as VideoAspectRatio })
       });
     }
   };
