@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { ConfigItem } from "./api-config/ConfigItem";
@@ -14,6 +15,25 @@ interface APIConfig {
   kids_story_credits_cost: number | null;
   image_generation_provider?: string;
 }
+
+const API_CATEGORIES = {
+  payments: {
+    label: "Payments",
+    keys: ["STRIPE_SECRET_KEY", "STRIPE_PUBLISHABLE_KEY"],
+  },
+  textGeneration: {
+    label: "Text Generation",
+    keys: ["OPENAI_API_KEY"],
+  },
+  imageGeneration: {
+    label: "Image Generation",
+    keys: ["RUNWARE_API_KEY"],
+  },
+  credits: {
+    label: "Credits & Usage",
+    keys: ["AUDIO_STORY_CREDITS", "IMAGE_STORY_CREDITS", "PDF_STORY_CREDITS"],
+  },
+} as const;
 
 const API_KEYS = [
   {
@@ -36,6 +56,7 @@ const API_KEYS = [
 
 export const APIConfigManager = () => {
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState(Object.keys(API_CATEGORIES)[0]);
 
   const { data: configs, isLoading } = useQuery({
     queryKey: ["api-configs"],
@@ -136,34 +157,51 @@ export const APIConfigManager = () => {
     }
   }, [configs]);
 
+  const getConfigsForCategory = (categoryKeys: string[]) => {
+    return configs?.filter((config) => categoryKeys.includes(config.key_name)) || [];
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>API Configurations</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent>
         {isLoading ? (
           <div className="flex justify-center">
             <Loader2 className="h-6 w-6 animate-spin" />
           </div>
         ) : (
-          <div className="space-y-4">
-            {configs?.map((config) => (
-              <ConfigItem
-                key={config.id}
-                config={config}
-                onToggle={(id, checked) =>
-                  toggleMutation.mutate({ id, is_active: checked })
-                }
-                onUpdateCreditsCost={(id, cost) =>
-                  updateCreditsCost.mutate({ id, cost })
-                }
-                onUpdateProvider={(id, provider) =>
-                  updateProviderMutation.mutate({ id, provider })
-                }
-              />
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid grid-cols-4 w-full">
+              {Object.entries(API_CATEGORIES).map(([key, { label }]) => (
+                <TabsTrigger key={key} value={key} className="text-sm">
+                  {label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {Object.entries(API_CATEGORIES).map(([key, { keys, label }]) => (
+              <TabsContent key={key} value={key} className="space-y-4 mt-4">
+                <div className="space-y-4">
+                  {getConfigsForCategory(keys).map((config) => (
+                    <ConfigItem
+                      key={config.id}
+                      config={config}
+                      onToggle={(id, checked) =>
+                        toggleMutation.mutate({ id, is_active: checked })
+                      }
+                      onUpdateCreditsCost={(id, cost) =>
+                        updateCreditsCost.mutate({ id, cost })
+                      }
+                      onUpdateProvider={(id, provider) =>
+                        updateProviderMutation.mutate({ id, provider })
+                      }
+                    />
+                  ))}
+                </div>
+              </TabsContent>
             ))}
-          </div>
+          </Tabs>
         )}
       </CardContent>
     </Card>
