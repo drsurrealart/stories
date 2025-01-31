@@ -16,7 +16,12 @@ interface APIConfig {
   image_generation_provider?: string;
 }
 
-const API_CATEGORIES = {
+type APICategory = {
+  label: string;
+  keys: readonly string[];
+};
+
+const API_CATEGORIES: Record<string, APICategory> = {
   payments: {
     label: "Payments",
     keys: ["STRIPE_SECRET_KEY", "STRIPE_PUBLISHABLE_KEY"],
@@ -157,7 +162,7 @@ export const APIConfigManager = () => {
     }
   }, [configs]);
 
-  const getConfigsForCategory = (categoryKeys: string[]) => {
+  const getConfigsForCategory = (categoryKeys: readonly string[]) => {
     return configs?.filter((config) => categoryKeys.includes(config.key_name)) || [];
   };
 
