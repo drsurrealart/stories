@@ -30,6 +30,47 @@ const mapAgeGroupToDbGroup = (uiAgeGroup: string): string => {
   }
 };
 
+function getGenreDescription(genre: string): string {
+  const descriptions: Record<string, string> = {
+    bedtime: 'Cozy stories perfect for winding down before sleep',
+    animals: 'Meet and learn about amazing animal friends',
+    family: 'Heartwarming tales about family bonds and togetherness',
+    nature: 'Discover the wonders of the natural world',
+    counting: 'Fun stories that make learning numbers exciting',
+    colors: 'Vibrant adventures exploring the world of colors',
+    shapes: 'Journey through the fascinating world of shapes',
+    nursery: 'Classic rhymes with a modern, fun twist',
+    'magic-garden': 'Enchanting stories from a magical garden',
+    'friendly-monsters': 'Meet lovable, not-so-scary monster friends',
+    dinosaurs: 'Roar into prehistoric adventures with dinosaurs',
+    'ocean-friends': 'Dive into underwater adventures with sea creatures',
+    adventure: 'Epic quests and thrilling journeys',
+    mystery: 'Solve exciting mysteries and puzzles',
+    fairytale: 'Magical stories with enchanting characters',
+    sports: 'Action-packed tales of teamwork and triumph',
+    school: 'Fun and relatable school day stories',
+    science: 'Fascinating discoveries and experiments',
+    fantasy: 'Journey to magical worlds of wonder',
+    action: 'Thrilling adventures with brave heroes',
+    space: 'Blast off into cosmic discoveries',
+    detective: 'Uncover clues and solve mysteries',
+    mythology: 'Ancient tales of gods and heroes',
+    survival: 'Stories of courage and perseverance',
+    'best-friends': 'Heartwarming tales of friendship and fun',
+    'tech-adventures': 'Exciting journeys into the digital world',
+    'eco-warriors': 'Adventures in protecting our planet',
+    'time-travel': 'Journey through different time periods',
+    'magic': 'Discover enchanting magical powers',
+    'friendship': 'Stories about making and keeping friends',
+    'technology': 'Explore amazing technological wonders',
+    'superhero': 'Become a hero and save the day',
+    'science-club': 'Join exciting scientific discoveries',
+    'gaming': 'Adventures in virtual worlds',
+    default: 'An exciting story adventure!'
+  };
+  return descriptions[genre] || descriptions.default;
+}
+
 export function StoryTypeSelector({ selectedType, onSelect, ageGroup, disabled = false }: StoryTypeSelectorProps) {
   const dbAgeGroup = mapAgeGroupToDbGroup(ageGroup);
   const genres = genresByAge[dbAgeGroup as keyof typeof genresByAge] || [];
@@ -91,36 +132,4 @@ function getGenreIcon(genre: string): string {
     default: '📖'
   };
   return icons[genre] || icons.default;
-}
-
-// Helper function to get description for each genre
-function getGenreDescription(genre: string): string {
-  const descriptions: Record<string, string> = {
-    bedtime: 'Cozy stories perfect for winding down before sleep',
-    animals: 'Meet and learn about amazing animal friends',
-    family: 'Heartwarming tales about family bonds and togetherness',
-    nature: 'Discover the wonders of the natural world',
-    counting: 'Fun stories that make learning numbers exciting',
-    colors: 'Vibrant adventures exploring the world of colors',
-    shapes: 'Journey through the fascinating world of shapes',
-    nursery: 'Classic rhymes with a modern, fun twist',
-    'magic-garden': 'Enchanting stories from a magical garden',
-    'friendly-monsters': 'Meet lovable, not-so-scary monster friends',
-    dinosaurs: 'Roar into prehistoric adventures with dinosaurs',
-    'ocean-friends': 'Dive into underwater adventures with sea creatures',
-    adventure: 'Epic quests and thrilling journeys',
-    mystery: 'Solve exciting mysteries and puzzles',
-    fairytale: 'Magical stories with enchanting characters',
-    sports: 'Action-packed tales of teamwork and triumph',
-    school: 'Fun and relatable school day stories',
-    science: 'Fascinating discoveries and experiments',
-    fantasy: 'Journey to magical worlds of wonder',
-    action: 'Thrilling adventures with brave heroes',
-    space: 'Blast off into cosmic discoveries',
-    detective: 'Uncover clues and solve mysteries',
-    mythology: 'Ancient tales of gods and heroes',
-    survival: 'Stories of courage and perseverance',
-    default: 'An exciting story adventure!'
-  };
-  return descriptions[genre] || descriptions.default;
 }
