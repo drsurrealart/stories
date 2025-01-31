@@ -12,6 +12,7 @@ interface APIConfig {
   description: string | null;
   is_active: boolean;
   kids_story_credits_cost: number | null;
+  image_generation_provider?: string;
 }
 
 const API_KEYS = [
@@ -27,9 +28,13 @@ const API_KEYS = [
     key: "STRIPE_PUBLISHABLE_KEY",
     description: "Publishable key for Stripe payment processing",
   },
+  {
+    key: "RUNWARE_API_KEY",
+    description: "API key for Runware.ai image generation service",
+  },
 ] as const;
 
-const APIConfigManager = () => {
+export const APIConfigManager = () => {
   const queryClient = useQueryClient();
 
   const { data: configs, isLoading } = useQuery({
@@ -164,5 +169,3 @@ const APIConfigManager = () => {
     </Card>
   );
 };
-
-export default APIConfigManager;
