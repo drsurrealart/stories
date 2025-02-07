@@ -13,20 +13,20 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { FeatureSetting, FEATURE_LABELS } from "./types";
+import { FeatureSetting, FEATURE_LABELS, SubscriptionLevel } from "./types";
 
-const subscriptionLevels = [
+const subscriptionLevels: { id: SubscriptionLevel; label: string }[] = [
   { id: 'free', label: 'Free' },
   { id: 'basic', label: 'Basic' },
   { id: 'premium', label: 'Premium' },
-] as const;
+];
 
 export const FeatureSettings = ({ settings = [] }: { settings: FeatureSetting[] }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [updating, setUpdating] = useState(false);
 
-  const handleToggle = async (featureType: FeatureSetting['feature_type'], subscriptionLevel: FeatureSetting['subscription_level'], currentValue: boolean) => {
+  const handleToggle = async (featureType: FeatureSetting['feature_type'], subscriptionLevel: SubscriptionLevel, currentValue: boolean) => {
     setUpdating(true);
     try {
       const { error } = await supabase
@@ -55,7 +55,7 @@ export const FeatureSettings = ({ settings = [] }: { settings: FeatureSetting[] 
     }
   };
 
-  const isEnabled = (featureType: FeatureSetting['feature_type'], subscriptionLevel: FeatureSetting['subscription_level']) => {
+  const isEnabled = (featureType: FeatureSetting['feature_type'], subscriptionLevel: SubscriptionLevel) => {
     const setting = settings.find(
       s => s.feature_type === featureType && s.subscription_level === subscriptionLevel
     );

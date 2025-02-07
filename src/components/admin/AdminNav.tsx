@@ -9,7 +9,7 @@ import {
   CreditCard,
   Code,
   Stamp,
-  Toggle
+  ToggleLeft
 } from "lucide-react";
 
 export const AdminNav = () => {
@@ -44,7 +44,7 @@ export const AdminNav = () => {
     {
       title: "Features",
       href: "/admin/features",
-      icon: <Toggle className="h-4 w-4" />,
+      icon: <ToggleLeft className="h-4 w-4" />,
     },
     {
       title: "Settings",

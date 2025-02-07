@@ -9,10 +9,12 @@ export type FeatureType =
   | 'story_favorite'
   | 'story_share';
 
+export type SubscriptionLevel = 'free' | 'basic' | 'premium';
+
 export interface FeatureSetting {
   id: string;
   feature_type: FeatureType;
-  subscription_level: string;
+  subscription_level: SubscriptionLevel;
   is_active: boolean;
   created_at: string;
   updated_at: string;
