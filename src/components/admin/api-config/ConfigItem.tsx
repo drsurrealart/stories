@@ -1,3 +1,4 @@
+
 import { Switch } from "@/components/ui/switch";
 import { CreditCostInput } from "./CreditCostInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,7 +10,6 @@ interface ConfigItemProps {
     description: string | null;
     is_active: boolean;
     kids_story_credits_cost: number | null;
-    image_generation_provider?: string;
   };
   onToggle: (id: string, checked: boolean) => void;
   onUpdateCreditsCost: (id: string, cost: number) => void;
@@ -36,10 +36,10 @@ export const ConfigItem = ({
             onChange={(cost) => onUpdateCreditsCost(config.id, cost)}
           />
         )}
-        {config.key_name === "RUNWARE_API_KEY" && onUpdateProvider && (
+        {config.key_name === "IMAGE_GENERATION_PROVIDER" && onUpdateProvider && (
           <div className="mt-2">
             <Select
-              value={config.image_generation_provider}
+              value={config.is_active ? "runware" : "openai"}
               onValueChange={(value) => onUpdateProvider(config.id, value)}
             >
               <SelectTrigger className="w-[200px]">
@@ -54,13 +54,17 @@ export const ConfigItem = ({
         )}
       </div>
       <div className="flex items-center space-x-2">
-        <Switch
-          checked={config.is_active}
-          onCheckedChange={(checked) => onToggle(config.id, checked)}
-        />
-        <span className="text-sm">
-          {config.is_active ? "Active" : "Inactive"}
-        </span>
+        {config.key_name !== "IMAGE_GENERATION_PROVIDER" && (
+          <>
+            <Switch
+              checked={config.is_active}
+              onCheckedChange={(checked) => onToggle(config.id, checked)}
+            />
+            <span className="text-sm">
+              {config.is_active ? "Active" : "Inactive"}
+            </span>
+          </>
+        )}
       </div>
     </div>
   );

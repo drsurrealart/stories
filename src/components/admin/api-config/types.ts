@@ -5,7 +5,6 @@ export interface APIConfig {
   description: string | null;
   is_active: boolean;
   kids_story_credits_cost: number | null;
-  image_generation_provider?: string;
 }
 
 export type APICategory = {
@@ -24,7 +23,7 @@ export const API_CATEGORIES: Record<string, APICategory> = {
   },
   imageGeneration: {
     label: "Image Generation",
-    keys: ["RUNWARE_API_KEY"],
+    keys: ["RUNWARE_API_KEY", "IMAGE_GENERATION_PROVIDER"],
   },
   credits: {
     label: "Credits & Usage",
@@ -49,5 +48,8 @@ export const API_KEYS = [
     key: "RUNWARE_API_KEY",
     description: "API key for Runware.ai image generation service",
   },
+  {
+    key: "IMAGE_GENERATION_PROVIDER",
+    description: "Select the active image generation provider",
+  },
 ] as const;
-
