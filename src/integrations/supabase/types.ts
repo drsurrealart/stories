@@ -16,7 +16,6 @@ export type Database = {
           description: string | null
           id: string
           image_credits_cost: number | null
-          image_generation_provider: string | null
           is_active: boolean | null
           key_name: string
           kids_story_credits_cost: number | null
@@ -29,7 +28,6 @@ export type Database = {
           description?: string | null
           id?: string
           image_credits_cost?: number | null
-          image_generation_provider?: string | null
           is_active?: boolean | null
           key_name: string
           kids_story_credits_cost?: number | null
@@ -42,7 +40,6 @@ export type Database = {
           description?: string | null
           id?: string
           image_credits_cost?: number | null
-          image_generation_provider?: string | null
           is_active?: boolean | null
           key_name?: string
           kids_story_credits_cost?: number | null
