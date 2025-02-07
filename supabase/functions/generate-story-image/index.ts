@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
@@ -22,11 +23,11 @@ serve(async (req) => {
 
     const { data: config } = await supabaseClient
       .from('api_configurations')
-      .select('image_generation_provider, is_active')
-      .eq('key_name', 'RUNWARE_API_KEY')
+      .select('*')
+      .eq('key_name', 'IMAGE_GENERATION_PROVIDER')
       .single();
 
-    const useRunware = config?.is_active && config?.image_generation_provider === 'runware';
+    const useRunware = config?.is_active;
 
     if (useRunware) {
       // Use Runware.ai
