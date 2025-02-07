@@ -76,7 +76,10 @@ export const generateBackgroundImage = async (
 
   // Generate image using the edge function
   const { data, error: genError } = await supabase.functions.invoke('generate-story-image', {
-    body: { prompt: enhancedPrompt },
+    body: { 
+      prompt: enhancedPrompt,
+      aspectRatio: selectedAspectRatio 
+    },
   });
 
   if (genError) throw genError;

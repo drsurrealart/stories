@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, style = "realistic" } = await req.json();
+    const { prompt, style = "realistic", aspectRatio = "16:9" } = await req.json();
 
     // Get the active image generation provider
     const supabaseClient = createClient(
@@ -36,6 +36,9 @@ serve(async (req) => {
         throw new Error('Runware API key not configured');
       }
 
+      const width = aspectRatio === "16:9" ? 1024 : 576;
+      const height = aspectRatio === "16:9" ? 576 : 1024;
+
       const response = await fetch('https://api.runware.ai/v1', {
         method: 'POST',
         headers: {
@@ -51,10 +54,14 @@ serve(async (req) => {
             taskUUID: crypto.randomUUID(),
             positivePrompt: prompt,
             model: "runware:100@1",
-            width: 1024,
-            height: 1024,
+            width,
+            height,
             numberResults: 1,
-            outputFormat: "WEBP"
+            outputFormat: "WEBP",
+            steps: 4,
+            CFGScale: 1,
+            scheduler: "FlowMatchEulerDiscreteScheduler",
+            strength: 0.8
           }
         ])
       });
