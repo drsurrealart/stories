@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -7,7 +8,7 @@ import { Json } from "@/integrations/supabase/types";
 
 interface PricingTier {
   id: string;
-  level: 'free' | 'basic' | 'premium' | 'enterprise' | 'lifetime' | 'credits';
+  level: 'free' | 'basic' | 'premium' | 'enterprise' | 'credits';
   name: string;
   price: number;
   yearly_price: number;
@@ -43,7 +44,7 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
         return;
       }
 
-      const isOneTimePayment = ['lifetime', 'credits'].includes(tier.level);
+      const isOneTimePayment = tier.level === 'credits';
       // For one-time payments, always use stripe_price_id regardless of isYearly
       const priceId = isOneTimePayment 
         ? tier.stripe_price_id 
@@ -99,11 +100,11 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
 
   // Separate tiers into subscriptions and upgrades
   const subscriptionTiers = tiers.filter(tier => 
-    !['lifetime', 'credits'].includes(tier.level)
+    tier.level !== 'credits'
   );
   
   const upgradeTiers = tiers.filter(tier => 
-    ['lifetime', 'credits'].includes(tier.level)
+    tier.level === 'credits'
   );
 
   return (
