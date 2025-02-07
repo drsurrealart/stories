@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -17,7 +18,7 @@ export function StoryGenerationHandler({
   generatedStory,
   handleCreateNew 
 }: StoryGenerationHandlerProps) {
-  const [selectedVoice, setSelectedVoice] = useState("alloy");
+  const [selectedVoice, setSelectedVoice] = useState("nova"); // Changed default voice to Nova
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [showAudioConfirm, setShowAudioConfirm] = useState(false);
   const { toast } = useToast();
