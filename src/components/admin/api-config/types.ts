@@ -23,7 +23,7 @@ export const API_CATEGORIES: Record<string, APICategory> = {
   },
   imageGeneration: {
     label: "Image Generation",
-    keys: ["RUNWARE_API_KEY", "IMAGE_GENERATION_PROVIDER"],
+    keys: ["IMAGE_GENERATION_PROVIDER", "RUNWARE_API_KEY", "OPENAI_API_KEY"],
   },
   credits: {
     label: "Credits & Usage",
