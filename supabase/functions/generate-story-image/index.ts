@@ -58,7 +58,7 @@ serve(async (req) => {
           {
             taskType: "imageInference",
             taskUUID: crypto.randomUUID(),
-            positivePrompt: prompt,
+            positivePrompt: `Create a safe, family-friendly illustration: ${prompt}`,
             model: "runware:100@1",
             width,
             height,
@@ -96,7 +96,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           model: "dall-e-3",
-          prompt: prompt,
+          prompt: `Create a safe, family-friendly illustration: ${prompt}. The image should be suitable for all ages and avoid any inappropriate content.`,
           n: 1,
           size: "1024x1024",
           quality: "standard",

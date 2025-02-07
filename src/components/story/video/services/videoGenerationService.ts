@@ -73,22 +73,20 @@ export const generateBackgroundImage = async (
     throw new Error('Failed to update credits');
   }
 
-  // Create a video-specific prompt that removes problematic content
-  const videoPrompt = `Create a cinematic, dynamic scene: ${storyContent}. 
-    The image should be visually striking and suitable for ${selectedAspectRatio} video format. 
-    Focus on creating a dramatic, atmospheric scene.
-    Style: Use rich, cinematic lighting and composition typical of film scenes.`;
+  // Sanitize and format the prompt
+  const sanitizedContent = storyContent
+    .replace(/[^\w\s,.!?-]/g, '') // Remove special characters
+    .trim();
 
-  const enhancedPrompt = `Create a high-quality, detailed illustration. 
-    Style: Use vibrant colors and cinematic techniques. 
-    The image should be engaging and dramatic, without any text overlays. 
-    Focus on creating an emotional and immersive scene. 
-    Important: Do not include any text, words, or explicit content in the image.`;
+  const videoPrompt = `Create a family-friendly cinematic scene: ${sanitizedContent}. 
+    The image should be visually striking and suitable for ${selectedAspectRatio} video format. 
+    Focus on creating a gentle, positive, and appropriate scene.
+    Style: Use soft, pleasant lighting and composition typical of family-friendly content.`;
 
   // Generate image using the edge function
   const { data, error: genError } = await supabase.functions.invoke('generate-story-image', {
     body: { 
-      prompt: enhancedPrompt,
+      prompt: videoPrompt,
       aspectRatio: selectedAspectRatio 
     },
   });
