@@ -7,7 +7,6 @@ import { loadContentFilters, containsInappropriateContent } from "@/utils/conten
 export const generateBackgroundImage = async (
   storyId: string,
   storyContent: string,
-  selectedAspectRatio: VideoAspectRatio | '',
   session: any
 ) => {
   if (!session) {
@@ -79,19 +78,46 @@ export const generateBackgroundImage = async (
     .trim();
 
   const videoPrompt = `Create a family-friendly cinematic scene: ${sanitizedContent}. 
-    The image should be visually striking and suitable for ${selectedAspectRatio} video format. 
     Focus on creating a gentle, positive, and appropriate scene.
     Style: Use soft, pleasant lighting and composition typical of family-friendly content.`;
 
-  // Generate image using the edge function
-  const { data, error: genError } = await supabase.functions.invoke('generate-story-image', {
-    body: { 
-      prompt: videoPrompt,
-      aspectRatio: selectedAspectRatio 
-    },
-  });
+  // Generate image using the edge function for both aspect ratios
+  const [landscapeResponse, portraitResponse] = await Promise.all([
+    supabase.functions.invoke('generate-story-image', {
+      body: { 
+        prompt: videoPrompt,
+        aspectRatio: "16:9" 
+      },
+    }),
+    supabase.functions.invoke('generate-story-image', {
+      body: { 
+        prompt: videoPrompt,
+        aspectRatio: "9:16" 
+      },
+    })
+  ]);
 
-  if (genError) throw genError;
+  if (landscapeResponse.error) throw landscapeResponse.error;
+  if (portraitResponse.error) throw portraitResponse.error;
 
-  return data.imageUrl;
+  // Save both images
+  await Promise.all([
+    supabase.from('story_images').insert({
+      story_id: storyId,
+      user_id: session.user.id,
+      image_url: landscapeResponse.data.imageUrl,
+      aspect_ratio: "16:9"
+    }),
+    supabase.from('story_images').insert({
+      story_id: storyId,
+      user_id: session.user.id,
+      image_url: portraitResponse.data.imageUrl,
+      aspect_ratio: "9:16"
+    })
+  ]);
+
+  return {
+    landscape: landscapeResponse.data.imageUrl,
+    portrait: portraitResponse.data.imageUrl
+  };
 };

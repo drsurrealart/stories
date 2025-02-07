@@ -30,8 +30,7 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
         .eq('story_id', storyId)
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(2);
 
       if (error) {
         console.error("Error fetching story image:", error);
@@ -52,27 +51,16 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
         throw new Error("Please sign in to generate images");
       }
 
-      // Generate image using the edge function
+      // Generate images using the edge function
       const response = await supabase.functions.invoke('generate-story-image', {
         body: { prompt: storyContent, style }
       });
 
       if (response.error) throw response.error;
 
-      // Save image URL to database
-      const { error: saveError } = await supabase
-        .from('story_images')
-        .insert({
-          story_id: storyId,
-          user_id: session.user.id,
-          image_url: response.data.imageUrl,
-        });
-
-      if (saveError) throw saveError;
-
       toast({
         title: "Success",
-        description: "Story image generated successfully",
+        description: "Story images generated successfully",
       });
 
       // Refresh the image data
@@ -112,17 +100,21 @@ export function StoryImage({ storyId, storyContent }: StoryImageProps) {
     <Card className="p-4 space-y-4">
       <h3 className="text-lg font-semibold">Story Image</h3>
       
-      {imageData ? (
+      {imageData && imageData.length > 0 ? (
         <div className="space-y-4">
-          <img
-            src={imageData.image_url}
-            alt="Story illustration"
-            className="w-full rounded-lg"
-          />
-          <ImageControls
-            storyId={storyId}
-            imageUrl={imageData.image_url}
-          />
+          {imageData.map((image, index) => (
+            <div key={image.id} className="space-y-4">
+              <img
+                src={image.image_url}
+                alt={`Story illustration ${image.aspect_ratio}`}
+                className="w-full rounded-lg"
+              />
+              <ImageControls
+                storyId={storyId}
+                imageUrl={image.image_url}
+              />
+            </div>
+          ))}
         </div>
       ) : (
         <ImageGenerationForm
