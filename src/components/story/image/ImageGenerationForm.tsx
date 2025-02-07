@@ -1,3 +1,4 @@
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,7 +53,7 @@ export function ImageGenerationForm({
           <AlertDialogHeader>
             <AlertDialogTitle>Generate Story Images</AlertDialogTitle>
             <AlertDialogDescription>
-              This will use {creditCost} credits from your account. The AI will generate two images that match your story's content - one in 16:9 format for display and one in 9:16 format for video creation.
+              This will use {creditCost} credits from your account. The AI will generate images that match your story's content in both landscape and portrait formats.
             </AlertDialogDescription>
           </AlertDialogHeader>
           
@@ -66,7 +67,9 @@ export function ImageGenerationForm({
 
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => onGenerate(selectedStyle)}>Generate Images</AlertDialogAction>
+            <AlertDialogAction onClick={() => onGenerate(selectedStyle)}>
+              Generate Images
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

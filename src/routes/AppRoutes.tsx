@@ -27,7 +27,6 @@ import Support from "@/pages/Support";
 import Terms from "@/pages/Terms";
 import Contact from "@/pages/Contact";
 import AdminWatermarks from "@/pages/admin/AdminWatermarks";
-import AdminFeatures from "@/pages/admin/AdminFeatures";
 
 export function AppRoutes() {
   return (
@@ -194,14 +193,6 @@ export function AppRoutes() {
         element={
           <ProtectedAdminRoute>
             <AdminWatermarks />
-          </ProtectedAdminRoute>
-        }
-      />
-      <Route
-        path="/admin/features"
-        element={
-          <ProtectedAdminRoute>
-            <AdminFeatures />
           </ProtectedAdminRoute>
         }
       />

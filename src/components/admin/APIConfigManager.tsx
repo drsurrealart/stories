@@ -66,12 +66,30 @@ export const APIConfigManager = () => {
 
   const updateProviderMutation = useMutation({
     mutationFn: async ({ id, provider }: { id: string; provider: string }) => {
-      const { error } = await supabase
+      // First, update all image generation related configs to inactive
+      const { error: deactivateError } = await supabase
         .from("api_configurations")
-        .update({ image_generation_provider: provider })
+        .update({ is_active: false })
+        .in("key_name", ["RUNWARE_API_KEY", "OPENAI_API_KEY"]);
+
+      if (deactivateError) throw deactivateError;
+
+      // Then activate only the selected provider's API key
+      const keyToActivate = provider === "runware" ? "RUNWARE_API_KEY" : "OPENAI_API_KEY";
+      const { error: activateError } = await supabase
+        .from("api_configurations")
+        .update({ is_active: true })
+        .eq("key_name", keyToActivate);
+
+      if (activateError) throw activateError;
+
+      // Finally, update the provider configuration
+      const { error: updateError } = await supabase
+        .from("api_configurations")
+        .update({ is_active: provider === "runware" })
         .eq("id", id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["api-configs"] });
@@ -157,4 +175,3 @@ export const APIConfigManager = () => {
     </Card>
   );
 };
-
