@@ -9,7 +9,7 @@ export type FeatureType =
   | 'story_favorite'
   | 'story_share';
 
-export type SubscriptionLevel = 'free' | 'basic' | 'premium';
+export type SubscriptionLevel = 'free' | 'basic' | 'premium' | 'enterprise' | 'lifetime' | 'credits';
 
 export interface FeatureSetting {
   id: string;

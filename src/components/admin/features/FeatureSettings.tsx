@@ -19,6 +19,9 @@ const subscriptionLevels: { id: SubscriptionLevel; label: string }[] = [
   { id: 'free', label: 'Free' },
   { id: 'basic', label: 'Basic' },
   { id: 'premium', label: 'Premium' },
+  { id: 'enterprise', label: 'Enterprise' },
+  { id: 'lifetime', label: 'Lifetime' },
+  { id: 'credits', label: 'Credits' }
 ];
 
 export const FeatureSettings = ({ settings = [] }: { settings: FeatureSetting[] }) => {
