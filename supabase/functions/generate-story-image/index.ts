@@ -13,12 +13,18 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, style = "realistic", aspectRatio = "16:9" } = await req.json();
+    const { prompt, aspectRatio = "16:9" } = await req.json();
 
-    // Basic content safety check
-    const bannedPhrases = ['nude', 'naked', 'explicit', 'nsfw', 'porn', 'violence', 'gore', 'blood'];
-    if (bannedPhrases.some(phrase => prompt.toLowerCase().includes(phrase))) {
-      throw new Error('Content safety check failed');
+    // Enhanced content safety check with more comprehensive list
+    const bannedPhrases = [
+      'nude', 'naked', 'explicit', 'nsfw', 'porn', 'violence', 'gore', 'blood',
+      'death', 'kill', 'weapon', 'gun', 'inappropriate', 'adult', 'sexual'
+    ];
+    
+    const normalizedPrompt = prompt.toLowerCase();
+    if (bannedPhrases.some(phrase => normalizedPrompt.includes(phrase))) {
+      console.error('Content safety check failed for prompt:', prompt);
+      throw new Error('Content contains inappropriate terms');
     }
 
     // Get the active image generation provider
@@ -36,7 +42,6 @@ serve(async (req) => {
     const useRunware = config?.is_active;
 
     if (useRunware) {
-      // Use Runware.ai
       const runwareApiKey = Deno.env.get('RUNWARE_API_KEY');
       if (!runwareApiKey) {
         throw new Error('Runware API key not configured');
@@ -44,6 +49,11 @@ serve(async (req) => {
 
       const width = aspectRatio === "16:9" ? 1024 : 576;
       const height = aspectRatio === "16:9" ? 576 : 1024;
+
+      // Enhanced prompt with stronger family-friendly emphasis
+      const enhancedPrompt = `Create a gentle, family-friendly illustration suitable for children: ${prompt}. 
+        Style: Use soft colors and avoid any scary or inappropriate elements. 
+        Make it suitable for all ages.`;
 
       const response = await fetch('https://api.runware.ai/v1', {
         method: 'POST',
@@ -58,7 +68,7 @@ serve(async (req) => {
           {
             taskType: "imageInference",
             taskUUID: crypto.randomUUID(),
-            positivePrompt: `Create a safe, family-friendly illustration: ${prompt}`,
+            positivePrompt: enhancedPrompt,
             model: "runware:100@1",
             width,
             height,
@@ -67,12 +77,15 @@ serve(async (req) => {
             steps: 4,
             CFGScale: 1,
             scheduler: "FlowMatchEulerDiscreteScheduler",
-            strength: 0.8
+            strength: 0.8,
+            safetyFilter: true
           }
         ])
       });
 
       const data = await response.json();
+      console.log('Runware response:', JSON.stringify(data));
+      
       if (data.error || !data.data?.[1]?.imageURL) {
         throw new Error(data.error?.message || 'Failed to generate image with Runware');
       }
@@ -82,11 +95,15 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else {
-      // Use OpenAI (existing implementation)
       const openAiApiKey = Deno.env.get('OPENAI_API_KEY');
       if (!openAiApiKey) {
         throw new Error('OpenAI API key not configured');
       }
+
+      // Enhanced prompt with stronger family-friendly emphasis for DALL-E
+      const enhancedPrompt = `Create a gentle, family-friendly illustration suitable for children: ${prompt}. 
+        The image must be completely safe and appropriate for all ages. 
+        Use soft colors and cheerful elements.`;
 
       const response = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
@@ -96,15 +113,17 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           model: "dall-e-3",
-          prompt: `Create a safe, family-friendly illustration: ${prompt}. The image should be suitable for all ages and avoid any inappropriate content.`,
+          prompt: enhancedPrompt,
           n: 1,
           size: "1024x1024",
           quality: "standard",
+          style: "natural"
         }),
       });
 
       if (!response.ok) {
         const error = await response.json();
+        console.error('OpenAI error:', error);
         throw new Error(error.error?.message || 'Failed to generate image with OpenAI');
       }
 
@@ -117,8 +136,15 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in generate-story-image function:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to generate image', details: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      JSON.stringify({ 
+        error: 'Failed to generate image', 
+        details: error.message,
+        timestamp: new Date().toISOString()
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+        status: 500 
+      }
     );
   }
 });
