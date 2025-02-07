@@ -137,6 +137,33 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_settings: {
+        Row: {
+          created_at: string
+          feature_type: Database["public"]["Enums"]["feature_type"]
+          id: string
+          is_active: boolean | null
+          subscription_level: Database["public"]["Enums"]["subscription_level"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          feature_type: Database["public"]["Enums"]["feature_type"]
+          id?: string
+          is_active?: boolean | null
+          subscription_level: Database["public"]["Enums"]["subscription_level"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          feature_type?: Database["public"]["Enums"]["feature_type"]
+          id?: string
+          is_active?: boolean | null
+          subscription_level?: Database["public"]["Enums"]["subscription_level"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           created_at: string
@@ -794,6 +821,15 @@ export type Database = {
       }
     }
     Enums: {
+      feature_type:
+        | "text_story"
+        | "audio_story"
+        | "story_image"
+        | "story_video"
+        | "story_pdf"
+        | "story_translation"
+        | "story_favorite"
+        | "story_share"
       poetic_style_type:
         | "prose"
         | "rhyming"
