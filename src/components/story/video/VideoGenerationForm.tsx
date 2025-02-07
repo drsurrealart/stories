@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { VideoGenerationDialog } from "./components/VideoGenerationDialog";
@@ -35,7 +36,10 @@ export function VideoGenerationForm({
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<VideoAspectRatio | ''>('');
   const [currentStep, setCurrentStep] = useState(1);
   const [imageGenerated, setImageGenerated] = useState(false);
-  const [backgroundImage, setBackgroundImage] = useState<string>('');
+  const [backgroundImages, setBackgroundImages] = useState<Record<VideoAspectRatio, string>>({
+    "16:9": "",
+    "9:16": ""
+  });
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [processingStep, setProcessingStep] = useState<string>('');
   const { toast } = useToast();
@@ -84,7 +88,10 @@ export function VideoGenerationForm({
         .maybeSingle();
 
       if (videoData?.video_url) {
-        setBackgroundImage(videoData.video_url);
+        setBackgroundImages({
+          "16:9": videoData.video_url,
+          "9:16": videoData.video_url
+        });
         setImageGenerated(true);
         return videoData;
       }
@@ -95,46 +102,33 @@ export function VideoGenerationForm({
 
   const handleGenerateBackground = async () => {
     try {
-      if (!selectedAspectRatio || (selectedAspectRatio !== "16:9" && selectedAspectRatio !== "9:16")) {
-        throw new Error("Please select a valid aspect ratio first");
-      }
-
       setIsGeneratingImage(true);
-      setProcessingStep('Generating background image...');
+      setProcessingStep('Generating background images...');
       const { data: { session } } = await supabase.auth.getSession();
       
-      const imageUrl = await generateBackgroundImage(
+      if (!session) {
+        throw new Error("Please sign in to generate images");
+      }
+      
+      const images = await generateBackgroundImage(
         storyId,
         storyContent,
-        selectedAspectRatio,
-        session
+        session.user.id
       );
 
-      if (imageUrl) {
-        const { error: saveError } = await supabase
-          .from('story_videos')
-          .upsert({
-            story_id: storyId,
-            user_id: session?.user.id,
-            video_url: imageUrl,
-            aspect_ratio: selectedAspectRatio,
-            credits_used: 10
-          });
-
-        if (saveError) throw saveError;
-
-        setBackgroundImage(imageUrl);
+      if (images) {
+        setBackgroundImages(images);
         setImageGenerated(true);
         toast({
           title: "Success",
-          description: "Background image generated successfully!",
+          description: "Background images generated successfully!",
         });
       }
     } catch (error: any) {
       console.error('Error generating background:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to generate background image. Please try again.",
+        description: error.message || "Failed to generate background images. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -193,7 +187,7 @@ export function VideoGenerationForm({
         storyId={storyId}
         imageGenerated={imageGenerated}
         isGeneratingImage={isGeneratingImage}
-        backgroundImage={backgroundImage}
+        backgroundImage={backgroundImages[selectedAspectRatio] || ""}
         onGenerateBackground={handleGenerateBackground}
         isGenerating={isGenerating}
         generationStep={processingStep || generationStep}
