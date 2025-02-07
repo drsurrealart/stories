@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { NavigationBar } from "@/components/NavigationBar";
@@ -42,7 +43,8 @@ const MySubscriptions = () => {
         throw error;
       }
       
-      return data;
+      // Filter out lifetime tiers since they're no longer supported
+      return data?.filter(tier => tier.level !== 'lifetime') ?? [];
     },
   });
 
