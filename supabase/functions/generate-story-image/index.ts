@@ -15,6 +15,12 @@ serve(async (req) => {
   try {
     const { prompt, style = "realistic", aspectRatio = "16:9" } = await req.json();
 
+    // Basic content safety check
+    const bannedPhrases = ['nude', 'naked', 'explicit', 'nsfw', 'porn', 'violence', 'gore', 'blood'];
+    if (bannedPhrases.some(phrase => prompt.toLowerCase().includes(phrase))) {
+      throw new Error('Content safety check failed');
+    }
+
     // Get the active image generation provider
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',

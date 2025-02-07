@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { type VideoAspectRatio } from "../types";
+import { loadContentFilters, containsInappropriateContent } from "@/utils/contentFilter";
 
 export const generateBackgroundImage = async (
   storyId: string,
@@ -13,6 +14,17 @@ export const generateBackgroundImage = async (
     toast({
       title: "Authentication required",
       description: "Please sign in to generate background image.",
+      variant: "destructive",
+    });
+    return null;
+  }
+
+  // Load content filters and check content
+  const bannedWords = await loadContentFilters();
+  if (containsInappropriateContent(storyContent, bannedWords)) {
+    toast({
+      title: "Content Warning",
+      description: "Your story contains content that may not be appropriate for image generation.",
       variant: "destructive",
     });
     return null;
@@ -61,18 +73,17 @@ export const generateBackgroundImage = async (
     throw new Error('Failed to update credits');
   }
 
-  // Create a video-specific prompt
-  const videoPrompt = `Create a cinematic, dynamic scene for a video adaptation of this story: ${storyContent}. 
+  // Create a video-specific prompt that removes problematic content
+  const videoPrompt = `Create a cinematic, dynamic scene: ${storyContent}. 
     The image should be visually striking and suitable for ${selectedAspectRatio} video format. 
-    Focus on creating a dramatic, atmospheric scene that captures the story's essence.
+    Focus on creating a dramatic, atmospheric scene.
     Style: Use rich, cinematic lighting and composition typical of film scenes.`;
 
   const enhancedPrompt = `Create a high-quality, detailed illustration. 
     Style: Use vibrant colors and cinematic techniques. 
     The image should be engaging and dramatic, without any text overlays. 
     Focus on creating an emotional and immersive scene. 
-    Specific scene: ${videoPrompt}. 
-    Important: Do not include any text or words in the image.`;
+    Important: Do not include any text, words, or explicit content in the image.`;
 
   // Generate image using the edge function
   const { data, error: genError } = await supabase.functions.invoke('generate-story-image', {
