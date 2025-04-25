@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MainNav } from "./navigation/MainNav";
 import { MobileNav } from "./navigation/MobileNav";
@@ -14,6 +14,12 @@ interface NavigationBarProps {
 export const NavigationBar = ({ onLogout }: NavigationBarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isMobile = useIsMobile();
+  const location = useLocation();
+
+  // Don't render navigation on the index page
+  if (location.pathname === '/') {
+    return null;
+  }
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-gray-700 bg-[#2D1B69] backdrop-blur supports-[backdrop-filter]:bg-opacity-90">
