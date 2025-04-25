@@ -27,6 +27,7 @@ import Support from "@/pages/Support";
 import Terms from "@/pages/Terms";
 import Contact from "@/pages/Contact";
 import AdminWatermarks from "@/pages/admin/AdminWatermarks";
+import Pricing from "@/pages/Pricing";
 
 export function AppRoutes() {
   return (
@@ -34,6 +35,7 @@ export function AppRoutes() {
       {/* Public routes */}
       <Route path="/" element={<Landing />} />
       <Route path="/auth" element={<Auth />} />
+      <Route path="/pricing" element={<Pricing />} />
       <Route path="/explore" element={<Explore />} />
       <Route path="/sitemap" element={<Sitemap />} />
       <Route path="/support" element={<Support />} />

@@ -15,7 +15,7 @@ export const CTASection = () => {
         <p className="text-base md:text-xl text-gray-600 mb-8 md:mb-10 max-w-2xl mx-auto px-4">
           Join thousands of families and educators in creating meaningful stories that inspire, educate, and transform lives through our enhanced learning features.
         </p>
-        <Link to="/auth">
+        <Link to="/pricing">
           <Button 
             size="lg" 
             className="text-base md:text-lg px-8 md:px-12 py-6 md:py-8 bg-primary hover:bg-primary-hover transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
