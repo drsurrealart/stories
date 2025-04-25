@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,15 +8,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserCircle, Settings, CreditCard, LogOut, LayoutDashboard } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfileDropdownProps {
   onLogout: () => void;
 }
 
 export const ProfileDropdown = ({ onLogout }: ProfileDropdownProps) => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
   const { data: isAdmin } = useQuery({
     queryKey: ['isAdmin'],
     queryFn: async () => {
@@ -34,6 +39,41 @@ export const ProfileDropdown = ({ onLogout }: ProfileDropdownProps) => {
       return data;
     },
   });
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        toast({
+          title: "Logout failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        console.error("Logout error:", error);
+        return;
+      }
+      
+      // Call the onLogout handler provided by parent
+      onLogout();
+      
+      // Show success toast
+      toast({
+        title: "Success",
+        description: "You have been logged out successfully.",
+      });
+      
+      // Navigate to landing page
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        title: "Unexpected error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Logout unexpected error:", error);
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -68,7 +108,7 @@ export const ProfileDropdown = ({ onLogout }: ProfileDropdownProps) => {
         </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-[#3D2B79]" />
         <DropdownMenuItem 
-          onClick={onLogout}
+          onClick={handleLogout}
           className="text-red-400 hover:text-red-300 focus:text-red-300 cursor-pointer hover:bg-[#3D2B79]"
         >
           <LogOut className="mr-2 h-4 w-4" />
