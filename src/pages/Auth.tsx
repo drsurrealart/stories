@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -114,11 +114,13 @@ const Auth = () => {
       <div className="w-full max-w-md space-y-8">
         {/* Logo and Title */}
         <div className="flex flex-col items-center space-y-4">
-          <img 
-            src="/lovable-uploads/a9b9dcba-e93f-40b8-b434-166fe8567c97.png" 
-            alt="Logo" 
-            className="h-16 w-auto"
-          />
+          <Link to="/" className="block">
+            <img 
+              src="/lovable-uploads/a9b9dcba-e93f-40b8-b434-166fe8567c97.png" 
+              alt="Logo" 
+              className="h-16 w-auto hover:opacity-80 transition-opacity"
+            />
+          </Link>
           <div className="text-center">
             <h2 className="text-2xl font-bold text-[#1A1F2C]">
               {view === "sign_in" ? "Welcome Back!" : "Create Your Account"}
