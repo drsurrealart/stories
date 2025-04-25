@@ -118,6 +118,7 @@ export function StoryTypeSelector({ selectedType, onSelect, ageGroup, disabled =
 // Helper function to get appropriate icon for each genre
 function getGenreIcon(genre: string): string {
   const icons: Record<string, string> = {
+    // Keep existing good mappings
     bedtime: '🌙',
     animals: '🐾',
     family: '👨‍👩‍👧‍👦',
@@ -126,7 +127,6 @@ function getGenreIcon(genre: string): string {
     mystery: '🔍',
     fairytale: '🏰',
     sports: '⚽',
-    school: '📚',
     science: '🔬',
     fantasy: '✨',
     action: '🦸‍♂️',
@@ -134,7 +134,29 @@ function getGenreIcon(genre: string): string {
     detective: '🕵️‍♂️',
     mythology: '🐉',
     survival: '🏕️',
-    // Add more mappings as needed
+    
+    // Add new mappings for categories
+    counting: '🔢',
+    colors: '🎨',
+    shapes: '⭕',
+    nursery: '🎵',
+    'magic-garden': '🌺',
+    'friendly-monsters': '👾',
+    dinosaurs: '🦖',
+    'ocean-friends': '🐋',
+    school: '🎒',
+    superhero: '🦹',
+    'time-travel': '⌛',
+    pets: '🐈',
+    cooking: '👩‍🍳',
+    gaming: '🎮',
+    'eco-warriors': '🌍',
+    'tech-tales': '💻',
+    'science-club': '🧪',
+    humor: '😄',
+    magic: '🔮',
+    friendship: '🤝',
+    technology: '🤖',
     default: '📖'
   };
   return icons[genre] || icons.default;
