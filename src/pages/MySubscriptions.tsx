@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { NavigationBar } from "@/components/NavigationBar";
@@ -31,6 +32,7 @@ const MySubscriptions = () => {
       const { data, error } = await supabase
         .from('subscription_tiers')
         .select('*')
+        .neq('level', 'free')  // Exclude free tier
         .order('price');
       
       if (error) {

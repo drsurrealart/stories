@@ -14,7 +14,6 @@ const Pricing = () => {
       const { data, error } = await supabase
         .from('subscription_tiers')
         .select('*')
-        .neq('level', 'free')  // Exclude free tier
         .order('price');
       
       if (error) {

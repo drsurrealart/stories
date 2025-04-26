@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -99,7 +100,7 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
 
   // Separate tiers into subscriptions and upgrades
   const subscriptionTiers = tiers.filter(tier => 
-    !['lifetime', 'credits'].includes(tier.level)
+    !['lifetime', 'credits', 'free'].includes(tier.level)
   );
   
   const upgradeTiers = tiers.filter(tier => 
@@ -110,7 +111,7 @@ export const PricingTable = ({ tiers, currentTier }: PricingTableProps) => {
     <div className="space-y-12">
       <div className="space-y-8">
         <BillingToggle isYearly={isYearly} setIsYearly={setIsYearly} />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {subscriptionTiers.map((tier) => (
             <PricingCard
               key={tier.id}
